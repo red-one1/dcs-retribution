@@ -503,6 +503,7 @@ function SetupAirboss(nameOfCarrier, carrierType)
     AirbossRetribution:SetCollisionDistance(15)
     AirbossRetribution:SetCarrierIllumination(-1)
     AirbossRetribution:SetExtraVoiceOvers(true)
+    AirbossRetribution:SetExtraVoiceOversAI(true)
     ReportDayNightStatusAtBullseye()
 
     if MSRS_Config then
