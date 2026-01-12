@@ -13,15 +13,15 @@ airboss_options = {
     ["rescueDuration"] = 3,
     ["rescueZoneRadius"] = 50,
     ["windowStartOption"] = 30,
-    ["windowLengthOption"] = 30,
-    ["despawnMinutesAfterLanding"] = 5, -- 0 = disabled, 1/2/3... = minutes after landing before despawn (unless unit shuts down)
+    ["windowLengthOption"] = 20,
+    ["turnTimeBeforeRecovery"] = 5,
 }
 
--- Carrier data lookup table from Retribution
+-- Single root for admin-style F10 entries so we do not clutter the default player menus.
+local airbossAdminMenuRoot = nil
 airboss_carrier_data = {}
-
 if dcsRetribution then
-    if dcsRetribution.plugins and dcsRetribution.plugins.airboss then
+    if dcsRetribution and dcsRetribution.plugins and dcsRetribution.plugins.airboss then
         airboss_options.enableRescueHelo = dcsRetribution.plugins.airboss.enableRescueHelo
         airboss_options.rescueHeloDistance = dcsRetribution.plugins.airboss.rescueHeloDistance
         airboss_options.enableAWACS = dcsRetribution.plugins.airboss.enableAWACS
@@ -63,6 +63,60 @@ AirbossPendingDespawnUnit = AirbossPendingDespawnUnit or {} -- unitName -> true
 AirbossShutdownSeenUnit   = AirbossShutdownSeenUnit   or {} -- unitName -> true
 
 -- RESCUE HELO
+
+local function AddManualTurnIntoWindMenu(airbossInstance, carrierName)
+    if not airbossInstance then
+        env.info("AIRBOSS: Skipping manual turn-into-wind menu, no instance")
+        return
+    end
+
+    airbossAdminMenuRoot = airbossAdminMenuRoot or MENU_MISSION:New("Airboss Admin")
+    local carrierMenu = MENU_MISSION:New(string.format("%s", carrierName), airbossAdminMenuRoot)
+
+    MENU_MISSION_COMMAND:New(
+        string.format("Turn into wind now (%d min)", airboss_options.windowLengthOption),
+        carrierMenu,
+        function()
+            local isDay = true
+            local bullseye = COORDINATE.GetBullseyeCoordinate(coalition.side.BLUE)
+            if bullseye then
+                isDay = bullseye:IsDay()
+            end
+
+            local caseNumber = isDay and 1 or 3
+            local durationSec = airboss_options.windowLengthOption * 60
+
+            -- Open now (start=nil) with custom length (stop as seconds from now), force into-wind.
+
+            -- function AIRBOSS:AddRecoveryWindow( starttime, stoptime, case, holdingoffset, turnintowind, speed, uturn )
+            airbossInstance:SetRecoveryTurnTime(airboss_options.turnTimeBeforeRecovery * 60)
+            string.format("Beginning turn for %d minutes", airboss_options.turnTimeBeforeRecovery*60)
+            airbossInstance:AddRecoveryWindow(
+                airboss_options.turnTimeBeforeRecovery * 60,
+                durationSec,
+                caseNumber,
+                nil,
+                true,
+                20,
+                true
+            )
+            string.format("Setting recovery window for %d minutes after turn ends",  airboss_options.windowLengthOption)
+
+
+            MESSAGE:New(
+                string.format(
+                    "AIRBOSS: %s turning into the wind now for %d minutes (Case %d)",
+                    carrierName,
+                    airboss_options.windowLengthOption,
+                    caseNumber
+                ),
+                10,
+                "RETRIBUTION",
+                false
+            ):ToAll():ToLog()
+        end
+    )
+end
 
 function AddRescueHelo(nameOfCarrier)
     env.info("AIRBOSS: Loading Rescue Helo")
@@ -590,6 +644,9 @@ function SetupAirboss(nameOfCarrier, carrierType)
     AirbossRetribution:SetCarrierIllumination(-1)
     AirbossRetribution:SetExtraVoiceOvers(true)
     AirbossRetribution:SetExtraVoiceOversAI(true)
+
+    -- Expose an always-on admin menu to force the carrier to turn into wind without mission edits.
+    AddManualTurnIntoWindMenu(AirbossRetribution, nameOfCarrier)
     ReportDayNightStatusAtBullseye()
 
     if MSRS_Config then
