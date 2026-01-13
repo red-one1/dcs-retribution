@@ -96,12 +96,14 @@ local function IsAwacsType(typeName)
 end
 
 -- Calculate aspect angle between CAP and bogey heading
-local function CalculateAspect(capHeading, bogeyHeading, capToBogeyHeading)
+local function CalculateAspect(bogeyHeading, capToBogeyHeading)
     -- Aspect is the angle between the bogey's heading and the line from bogey to CAP
     -- Hot aspect: bogey flying towards CAP (aspect close to 0°)
     -- Flanking: bogey flying at an angle (aspect < 90°)
     -- Beam/Cold: bogey flying away (aspect > 90°)
     
+    -- The aspect angle is the difference between where the bogey is heading
+    -- and where it would need to head to fly directly at the CAP
     local capToBogeyReverse = (capToBogeyHeading + 180) % 360
     local aspect = math.abs(bogeyHeading - capToBogeyReverse)
     if aspect > 180 then
@@ -309,13 +311,12 @@ local function CheckInterceptConditions(capFlight, bogey)
     end
     
     -- Calculate aspect
-    local capHeading = capUnit:getPosition().x:GetHeading()
     local bogeyVel = bogeyUnit:GetVelocityVec3()
     local bogeyHeading = math.deg(math.atan2(bogeyVel.z, bogeyVel.x))
     if bogeyHeading < 0 then bogeyHeading = bogeyHeading + 360 end
     
     local capToBogeyHeading = capCoord:HeadingTo(bogeyPos)
-    local aspect = CalculateAspect(capHeading, bogeyHeading, capToBogeyHeading)
+    local aspect = CalculateAspect(bogeyHeading, capToBogeyHeading)
     
     if aspect > MaxAspectAngle then
         return false, string.format("Aspect %.1f° > max %.1f°", aspect, MaxAspectAngle)
