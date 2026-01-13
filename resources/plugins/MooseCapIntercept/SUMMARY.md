@@ -219,7 +219,7 @@ eabaa20 Initial plan
 - Trigger-spawned groups
 - Delayed group spawns
 - Both coalition AWACS detection
-- Blue coalition CAP control (modifiable)
+- Both Red and Blue coalition CAP control
 
 **Compatible With:**
 - Existing Retribution plugins
@@ -234,9 +234,8 @@ eabaa20 Initial plan
 
 1. **Route Restoration**: Position-based anchors, not full waypoint data
 2. **CAP Discovery**: Name-based heuristic due to API limitations
-3. **Coalition**: Currently Blue CAPs only (easily changed)
-4. **Discovery Latency**: 30s max delay for late-spawning groups
-5. **Moose Dependency**: Requires specific AUFTRAG/FLIGHTGROUP APIs
+3. **Discovery Latency**: 30s max delay for late-spawning groups
+4. **Moose Dependency**: Requires specific AUFTRAG/FLIGHTGROUP APIs
 
 ---
 
@@ -288,7 +287,6 @@ Potential improvements for future versions:
 **High Priority:**
 - [ ] Full route waypoint preservation
 - [ ] Direct DCS task inspection (when API allows)
-- [ ] Coalition configuration option
 
 **Medium Priority:**
 - [ ] Multi-CAP coordination per bogey

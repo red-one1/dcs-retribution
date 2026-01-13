@@ -102,13 +102,14 @@ Mission Start
          ↓
          ├─→ Every 30s: Re-discover groups
          │   ├─→ Check for new AWACS (late spawns)
-         │   ├─→ Check for new CAPs (late spawns)
+         │   ├─→ Check for new CAPs (late spawns, both coalitions)
          │   └─→ Update detection set if new AWACS
          ├─→ Get detections from AWACS
          ├─→ For each bogey:
+         │   ├─→ Check coalition (only intercept enemies)
          │   ├─→ Check if already assigned
          │   ├─→ Calculate range & aspect
-         │   ├─→ Find nearest CAP
+         │   ├─→ Find nearest CAP from opposing coalition
          │   └─→ Vector to intercept
          └─→ Check for completed intercepts
              └─→ Restore CAP routes
@@ -119,7 +120,8 @@ Mission Start
 ### 1. Late-Spawning Groups (NEW)
 - **Dynamic Discovery**: Plugin now checks for new groups every 30 seconds
 - **AWACS Handling**: New AWACS automatically added to detection SET_GROUP
-- **CAP Handling**: New CAPs immediately begin tracking and intercept duties
+- **CAP Handling**: New CAPs from both coalitions immediately begin tracking and intercept duties
+- **Coalition Checking**: CAPs only intercept enemy aircraft (different coalition)
 - **Tracking Tables**: knownCapGroups and knownAwacsGroups prevent duplicate processing
 - **Mission Flexibility**: Supports trigger-spawned, late-activated, and delayed groups
 - **Performance**: Minimal overhead (30s discovery interval vs 10s main loop)
@@ -129,9 +131,10 @@ Mission Start
 - CAPs return to approximate patrol location rather than exact waypoint sequence
 - Future enhancement: Parse full route from mission file
 
-### 2. Coalition Handling
-- Currently hardcoded to Blue coalition for CAP discovery
-- Can be easily modified to support Red coalition or both
+### 3. Coalition Handling
+- **Both Coalitions Supported**: Plugin discovers and manages CAPs from both Red and Blue coalitions
+- **Enemy Detection**: Each CAP only intercepts aircraft from opposing coalition
+- **Coalition Tracking**: CAP flight data includes coalition info for proper filtering
 
 ### 3. Name-Based Detection
 - CAP discovery relies on group name patterns due to DCS mission scripting API limitations

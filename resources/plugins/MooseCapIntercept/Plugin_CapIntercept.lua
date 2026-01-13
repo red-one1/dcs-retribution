@@ -171,47 +171,51 @@ local function DiscoverCapFlights()
     Debug("Discovering CAP flights...")
     local newCapsFound = false
     
-    -- Scan friendly coalition (blue by default, adjust if needed)
-    local groups = coalition.getGroups(coalition.side.BLUE, Group.Category.AIRPLANE)
-    if groups then
-        for _, group in ipairs(groups) do
-            local groupName = group:getName()
-            
-            -- Skip if already known
-            if not knownCapGroups[groupName] then
-                local units = group:getUnits()
+    -- Scan both Red and Blue coalitions for CAP flights
+    for coalName, coalId in pairs(coalition.side) do
+        local groups = coalition.getGroups(coalId, Group.Category.AIRPLANE)
+        if groups then
+            for _, group in ipairs(groups) do
+                local groupName = group:getName()
                 
-                if units and #units > 0 then
-                    -- Check if group template has CAP task
-                    -- DCS stores tasks in the group data
-                    local controller = group:getController()
-                    if controller then
-                        -- Try to determine if this is a CAP flight
-                        -- We check the group name for CAP indicators as a heuristic
-                        -- since direct task inspection is limited in mission scripting environment
-                        if string.find(groupName, "CAP") or 
-                           string.find(groupName, "BARCAP") or 
-                           string.find(groupName, "TARCAP") then
-                            
-                            Debug("  Found NEW CAP: " .. groupName)
-                            
-                            -- Store CAP flight data
-                            local capFlight = {
-                                groupName = groupName,
-                                group = group,
-                                originalRoute = nil,  -- Will store route waypoints
-                                racetrackStart = nil, -- Will store racetrack anchor 1
-                                racetrackEnd = nil,   -- Will store racetrack anchor 2
-                                currentTask = "patrol", -- Track current task state
-                                assignedBogey = nil   -- Track assigned intercept
-                            }
-                            
-                            table.insert(capFlights, capFlight)
-                            knownCapGroups[groupName] = true
-                            newCapsFound = true
-                            
-                            -- Extract racetrack immediately for new CAP
-                            ExtractRacetrackWaypoints(capFlight)
+                -- Skip if already known
+                if not knownCapGroups[groupName] then
+                    local units = group:getUnits()
+                    
+                    if units and #units > 0 then
+                        -- Check if group template has CAP task
+                        -- DCS stores tasks in the group data
+                        local controller = group:getController()
+                        if controller then
+                            -- Try to determine if this is a CAP flight
+                            -- We check the group name for CAP indicators as a heuristic
+                            -- since direct task inspection is limited in mission scripting environment
+                            if string.find(groupName, "CAP") or 
+                               string.find(groupName, "BARCAP") or 
+                               string.find(groupName, "TARCAP") then
+                                
+                                Debug("  Found NEW CAP: " .. groupName .. " (Coalition: " .. coalName .. ")")
+                                
+                                -- Store CAP flight data with coalition info
+                                local capFlight = {
+                                    groupName = groupName,
+                                    group = group,
+                                    coalition = coalId,
+                                    coalitionName = coalName,
+                                    originalRoute = nil,  -- Will store route waypoints
+                                    racetrackStart = nil, -- Will store racetrack anchor 1
+                                    racetrackEnd = nil,   -- Will store racetrack anchor 2
+                                    currentTask = "patrol", -- Track current task state
+                                    assignedBogey = nil   -- Track assigned intercept
+                                }
+                                
+                                table.insert(capFlights, capFlight)
+                                knownCapGroups[groupName] = true
+                                newCapsFound = true
+                                
+                                -- Extract racetrack immediately for new CAP
+                                ExtractRacetrackWaypoints(capFlight)
+                            end
                         end
                     end
                 end
@@ -388,13 +392,31 @@ local function FindNearestCap(bogey)
     local nearestCap = nil
     local nearestRange = 999999
     
+    -- Get bogey coalition
+    local bogeyGroup = bogey:GetGroup()
+    if not bogeyGroup then
+        return nil
+    end
+    
+    local bogeyCoalition = bogeyGroup:GetCoalition()
+    if not bogeyCoalition then
+        return nil
+    end
+    
     for _, capFlight in ipairs(capFlights) do
         -- Skip CAPs already assigned to another bogey
         if capFlight.currentTask == "patrol" then
-            local qualified, reason, range = CheckInterceptConditions(capFlight, bogey)
-            if qualified and range < nearestRange then
-                nearestCap = capFlight
-                nearestRange = range
+            -- Only intercept enemy aircraft (different coalition)
+            if capFlight.coalition ~= bogeyCoalition then
+                local qualified, reason, range = CheckInterceptConditions(capFlight, bogey)
+                if qualified and range < nearestRange then
+                    nearestCap = capFlight
+                    nearestRange = range
+                end
+            else
+                Debug(string.format("  Skipping bogey from same coalition: %s (CAP: %s, Bogey: %s)", 
+                    bogeyGroup:GetName(), capFlight.coalitionName, 
+                    bogeyCoalition == coalition.side.BLUE and "BLUE" or (bogeyCoalition == coalition.side.RED and "RED" or "NEUTRAL")))
             end
         end
     end

@@ -29,7 +29,7 @@ The plugin can be configured through the DCS Retribution UI with the following o
 ### 1. Auto-Discovery Phase (Mission Start + 5s)
 
 - **AWACS Discovery**: Scans all aircraft groups for AWACS/AEW types (E-3, E-2, A-50, Tu-126, etc.)
-- **CAP Discovery**: Identifies friendly CAP flights by checking group names for "CAP", "BARCAP", or "TARCAP"
+- **CAP Discovery**: Identifies CAP flights from both Red and Blue coalitions by checking group names for "CAP", "BARCAP", or "TARCAP"
 - **Route Extraction**: Stores each CAP's current position as racetrack reference for later restoration
 
 ### 2. Detection and Intercept Loop (Every ~10s)
@@ -39,8 +39,9 @@ The plugin can be configured through the DCS Retribution UI with the following o
    - Automatically adds new groups to tracking
 2. Moose DETECTION_AREAS polls AWACS radars for enemy aircraft detections
 3. For each detected bogey:
+   - Check coalition (only intercept enemy aircraft)
    - Check if already assigned to a CAP (skip if yes)
-   - Calculate range from nearest available CAP
+   - Calculate range from nearest available CAP of opposing coalition
    - Calculate aspect angle (bogey heading vs line to CAP)
    - If range ≤ configured max AND aspect ≤ configured max:
      - Vector nearest CAP to intercept using AUFTRAG:NewINTERCEPT
@@ -96,13 +97,14 @@ All thresholds can be adjusted via the plugin configuration UI without editing c
 - DCS Retribution mission generator
 - Moose framework (included in base plugin)
 - AWACS/AEW aircraft in the mission (can spawn at any time)
-- CAP flights with "CAP", "BARCAP", or "TARCAP" in group name (can spawn at any time)
+- CAP flights with "CAP", "BARCAP", or "TARCAP" in group name (can spawn at any time, any coalition)
 
 ### Late-Spawning Groups
 
 The plugin supports groups that spawn at any time during the mission:
 - **AWACS**: New AWACS groups are auto-detected every 30 seconds and added to detection system
-- **CAP Flights**: New CAP flights are auto-detected every 30 seconds and begin intercept duties immediately
+- **CAP Flights**: New CAP flights from both Red and Blue coalitions are auto-detected every 30 seconds and begin intercept duties immediately
+- **Coalition Support**: CAPs from both coalitions work independently, only intercepting enemy aircraft
 - **No restart needed**: Groups can be trigger-spawned, late-activated, or delayed without reconfiguration
 
 ### Moose Version
@@ -168,9 +170,7 @@ Enable Debug Mode in plugin options to see detailed logging:
 
 3. **Moose AUFTRAG**: The plugin uses Moose's AUFTRAG system which requires specific Moose version compatibility. Test thoroughly with your Moose version.
 
-4. **Coalition Hardcoded**: Currently scans only Blue coalition for CAPs. Edit `coalition.side.BLUE` in code if Red CAPs needed.
-
-5. **Single AWACS Set**: All AWACS share a single detection set. Individual AWACS coverage zones not modeled.
+4. **Single AWACS Set**: All AWACS share a single detection set. Individual AWACS coverage zones not modeled.
 
 ## Future Enhancements
 
@@ -178,7 +178,6 @@ Possible improvements for future versions:
 
 - [ ] Full route persistence using mission file parsing
 - [ ] Per-AWACS detection zones
-- [ ] Coalition configuration option
 - [ ] Direct DCS task inspection when API allows
 - [ ] Integration with Retribution flight planning UI
 - [ ] Tanker coordination for extended intercepts
