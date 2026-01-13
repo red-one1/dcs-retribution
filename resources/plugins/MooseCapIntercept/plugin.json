@@ -1,0 +1,47 @@
+{
+    "nameInUI": "Moose CAP Intercept",
+    "defaultValue": false,
+    "specificOptions": [
+        {
+            "nameInUI": "Intercept Range (NM)",
+            "mnemonic": "InterceptRangeNM",
+            "minimumValue": 20,
+            "maximumValue": 150,
+            "defaultValue": 80
+        },
+        {
+            "nameInUI": "Max Aspect Angle (deg)",
+            "mnemonic": "MaxAspectAngle",
+            "minimumValue": 60,
+            "maximumValue": 180,
+            "defaultValue": 120
+        },
+        {
+            "nameInUI": "Scheduler Interval (sec)",
+            "mnemonic": "SchedulerInterval",
+            "minimumValue": 5,
+            "maximumValue": 60,
+            "defaultValue": 10
+        },
+        {
+            "nameInUI": "Engage Range (NM)",
+            "mnemonic": "EngageRangeNM",
+            "minimumValue": 40,
+            "maximumValue": 150,
+            "defaultValue": 80
+        },
+        {
+            "nameInUI": "Debug Mode",
+            "mnemonic": "CapInterceptDebug",
+            "defaultValue": false
+        }
+    ],
+    "scriptsWorkOrders": [],
+    "configurationWorkOrders": [
+        {
+            "file": "Plugin_CapIntercept.lua",
+            "mnemonic": "MooseCapIntercept-config"
+        }
+    ],
+    "otherResourceFiles": []
+}
