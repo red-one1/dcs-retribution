@@ -419,33 +419,64 @@ local function FindNearestCapForCoalition(bogey, capCoalition)
     -- Get bogey coalition
     local bogeyGroup = bogey:GetGroup()
     if not bogeyGroup then
+        Debug("  FindNearestCap: No bogey group found")
         return nil
     end
     
     local bogeyCoalition = bogeyGroup:GetCoalition()
     if not bogeyCoalition then
+        Debug("  FindNearestCap: No bogey coalition found")
         return nil
     end
     
+    local bogeyName = bogeyGroup:GetName()
+    local coalitionName = capCoalition == coalition.side.BLUE and "BLUE" or (capCoalition == coalition.side.RED and "RED" or "NEUTRAL")
+    Debug(string.format("  FindNearestCap: Looking for %s CAPs to intercept bogey '%s' (Coalition: %s)", 
+        coalitionName, bogeyName,
+        bogeyCoalition == coalition.side.BLUE and "BLUE" or (bogeyCoalition == coalition.side.RED and "RED" or "NEUTRAL")))
+    
+    local capsEvaluated = 0
+    local capsSkippedCoalition = 0
+    local capsSkippedAssigned = 0
+    local capsSkippedFriendly = 0
+    local capsDisqualified = 0
+    
     for _, capFlight in ipairs(capFlights) do
         -- Skip CAPs already assigned to another bogey
-        if capFlight.currentTask == "patrol" then
+        if capFlight.currentTask ~= "patrol" then
+            capsSkippedAssigned = capsSkippedAssigned + 1
+            Debug(string.format("    CAP '%s': Skipped (already assigned, task=%s)", capFlight.groupName, capFlight.currentTask))
+        elseif capFlight.coalition ~= capCoalition then
             -- Only consider CAPs from the specified coalition
-            if capFlight.coalition == capCoalition then
-                -- Only intercept enemy aircraft (different coalition)
-                if capFlight.coalition ~= bogeyCoalition then
-                    local qualified, reason, range = CheckInterceptConditions(capFlight, bogey)
-                    if qualified and range < nearestRange then
-                        nearestCap = capFlight
-                        nearestRange = range
-                    end
-                else
-                    Debug(string.format("  Skipping bogey from same coalition: %s (CAP: %s, Bogey: %s)", 
-                        bogeyGroup:GetName(), capFlight.coalitionName, 
-                        bogeyCoalition == coalition.side.BLUE and "BLUE" or (bogeyCoalition == coalition.side.RED and "RED" or "NEUTRAL")))
-                end
+            capsSkippedCoalition = capsSkippedCoalition + 1
+            Debug(string.format("    CAP '%s': Skipped (wrong coalition: %s)", capFlight.groupName, capFlight.coalitionName))
+        elseif capFlight.coalition == bogeyCoalition then
+            -- Only intercept enemy aircraft (different coalition)
+            capsSkippedFriendly = capsSkippedFriendly + 1
+            Debug(string.format("    CAP '%s': Skipped (friendly bogey)", capFlight.groupName))
+        else
+            -- Check intercept conditions
+            capsEvaluated = capsEvaluated + 1
+            local qualified, reason, range = CheckInterceptConditions(capFlight, bogey)
+            if qualified and range < nearestRange then
+                Debug(string.format("    CAP '%s': QUALIFIED (Range: %.1fNM) - NEW NEAREST", capFlight.groupName, range))
+                nearestCap = capFlight
+                nearestRange = range
+            elseif qualified then
+                Debug(string.format("    CAP '%s': QUALIFIED but not nearest (Range: %.1fNM vs %.1fNM)", capFlight.groupName, range, nearestRange))
+            else
+                capsDisqualified = capsDisqualified + 1
+                Debug(string.format("    CAP '%s': Disqualified (%s)", capFlight.groupName, reason))
             end
         end
+    end
+    
+    if nearestCap then
+        Debug(string.format("  FindNearestCap: SELECTED '%s' at %.1fNM (Evaluated: %d, Skipped: %d coalition/%d assigned/%d friendly, Disqualified: %d)", 
+            nearestCap.groupName, nearestRange, capsEvaluated, capsSkippedCoalition, capsSkippedAssigned, capsSkippedFriendly, capsDisqualified))
+    else
+        Debug(string.format("  FindNearestCap: NO CAP FOUND (Evaluated: %d, Skipped: %d coalition/%d assigned/%d friendly, Disqualified: %d)", 
+            capsEvaluated, capsSkippedCoalition, capsSkippedAssigned, capsSkippedFriendly, capsDisqualified))
     end
     
     return nearestCap
