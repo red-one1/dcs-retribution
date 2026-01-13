@@ -640,23 +640,6 @@ local function SchedulerFunction()
             end
         end
     end
-                if not IsBogeyAlive(detectedItem) then
-                    Debug("  Bogey " .. bogeyName .. " destroyed, releasing CAP")
-                    
-                    -- Find assigned CAP and restore it
-                    local assignedCapName = bogeyAssignments[bogeyName]
-                    for _, capFlight in ipairs(capFlights) do
-                        if capFlight.groupName == assignedCapName then
-                            RestoreCapRoute(capFlight)
-                            break
-                        end
-                    end
-                    
-                    bogeyAssignments[bogeyName] = nil
-                end
-            end
-        end
-    end
     
     -- Also check for CAPs that completed intercept (arrived at bogey location)
     for _, capFlight in ipairs(capFlights) do
