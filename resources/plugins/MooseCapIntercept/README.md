@@ -28,7 +28,8 @@ The plugin can be configured through the DCS Retribution UI with the following o
 
 ### 1. Auto-Discovery Phase (Mission Start + 5s)
 
-- **AWACS Discovery**: Scans all aircraft groups for AWACS/AEW types (E-3, E-2, A-50, Tu-126, etc.)
+- **AWACS Discovery**: Scans all aircraft groups for AWACS/AEW types (E-3, E-2, A-50, Tu-126, etc.) and separates by coalition
+- **Detection Set Creation**: Creates separate Blue and Red DETECTION_AREAS sets, each using only their coalition's AWACS
 - **CAP Discovery**: Identifies CAP flights from both Red and Blue coalitions by checking group names for "CAP", "BARCAP", or "TARCAP"
 - **Route Extraction**: Stores each CAP's current position as racetrack reference for later restoration
 
@@ -37,11 +38,13 @@ The plugin can be configured through the DCS Retribution UI with the following o
 1. **Discovery Check (every 30s)**: Scans for newly spawned AWACS and CAP groups
    - Handles late-activated or trigger-spawned groups
    - Automatically adds new groups to tracking
-2. Moose DETECTION_AREAS polls AWACS radars for enemy aircraft detections
-3. For each detected bogey:
+   - Updates coalition-specific detection sets
+2. **Blue AWACS Detection**: Blue DETECTION_AREAS polls Blue AWACS radars for enemy aircraft
+3. **Red AWACS Detection**: Red DETECTION_AREAS polls Red AWACS radars for enemy aircraft
+4. For each detected bogey:
    - Check coalition (only intercept enemy aircraft)
    - Check if already assigned to a CAP (skip if yes)
-   - Calculate range from nearest available CAP of opposing coalition
+   - Calculate range from nearest available CAP of same coalition as AWACS
    - Calculate aspect angle (bogey heading vs line to CAP)
    - If range ≤ configured max AND aspect ≤ configured max:
      - Vector nearest CAP to intercept using AUFTRAG:NewINTERCEPT
@@ -102,9 +105,9 @@ All thresholds can be adjusted via the plugin configuration UI without editing c
 ### Late-Spawning Groups
 
 The plugin supports groups that spawn at any time during the mission:
-- **AWACS**: New AWACS groups are auto-detected every 30 seconds and added to detection system
+- **AWACS**: New AWACS groups are auto-detected every 30 seconds and added to their coalition's detection system
 - **CAP Flights**: New CAP flights from both Red and Blue coalitions are auto-detected every 30 seconds and begin intercept duties immediately
-- **Coalition Support**: CAPs from both coalitions work independently, only intercepting enemy aircraft
+- **Coalition Separation**: Blue CAPs use Blue AWACS detections, Red CAPs use Red AWACS detections
 - **No restart needed**: Groups can be trigger-spawned, late-activated, or delayed without reconfiguration
 
 ### Moose Version
@@ -170,7 +173,7 @@ Enable Debug Mode in plugin options to see detailed logging:
 
 3. **Moose AUFTRAG**: The plugin uses Moose's AUFTRAG system which requires specific Moose version compatibility. Test thoroughly with your Moose version.
 
-4. **Single AWACS Set**: All AWACS share a single detection set. Individual AWACS coverage zones not modeled.
+4. **Separate Detection Sets**: Blue CAPs use Blue AWACS only, Red CAPs use Red AWACS only. Mixed coalition AWACS sharing is not supported.
 
 ## Future Enhancements
 

@@ -70,10 +70,12 @@ local AWACS_TYPES = {
 -- GLOBAL STATE
 --------------------------------------------------------------------------------
 local capFlights = {}           -- Table of discovered CAP flights
-local detectionSet = nil        -- Moose DETECTION_AREAS set
+local detectionSetBlue = nil    -- Moose DETECTION_AREAS set for Blue coalition
+local detectionSetRed = nil     -- Moose DETECTION_AREAS set for Red coalition
 local bogeyAssignments = {}     -- Track bogey → CAP assignments
 local schedulerId = nil         -- Scheduler ID
-local awacsSet = nil            -- SET_GROUP for AWACS (updated dynamically)
+local awacsSetBlue = nil        -- SET_GROUP for Blue AWACS (updated dynamically)
+local awacsSetRed = nil         -- SET_GROUP for Red AWACS (updated dynamically)
 local knownCapGroups = {}       -- Track known CAP group names
 local knownAwacsGroups = {}     -- Track known AWACS group names
 local lastDiscoveryCheck = 0    -- Time of last discovery check
@@ -128,7 +130,8 @@ end
 -- Auto-discover AWACS/AEW radar groups
 local function DiscoverAwacs()
     Debug("Discovering AWACS groups...")
-    local awacsGroups = {}
+    local awacsGroupsBlue = {}
+    local awacsGroupsRed = {}
     local newAwacsFound = false
     
     -- Scan all coalitions for AWACS aircraft
@@ -145,25 +148,35 @@ local function DiscoverAwacs()
                         local unit = units[1]
                         local typeName = unit:getTypeName()
                         if IsAwacsType(typeName) then
-                            table.insert(awacsGroups, groupName)
-                            knownAwacsGroups[groupName] = true
+                            -- Store AWACS by coalition
+                            if coalId == coalition.side.BLUE then
+                                table.insert(awacsGroupsBlue, groupName)
+                            elseif coalId == coalition.side.RED then
+                                table.insert(awacsGroupsRed, groupName)
+                            end
+                            knownAwacsGroups[groupName] = coalId
                             newAwacsFound = true
-                            Debug("  Found NEW AWACS: " .. groupName .. " (" .. typeName .. ")")
+                            Debug("  Found NEW AWACS: " .. groupName .. " (" .. typeName .. ", Coalition: " .. coalName .. ")")
                         end
                     end
                 else
-                    -- Already known, add to list
-                    table.insert(awacsGroups, groupName)
+                    -- Already known, add to appropriate list
+                    local knownCoalId = knownAwacsGroups[groupName]
+                    if knownCoalId == coalition.side.BLUE then
+                        table.insert(awacsGroupsBlue, groupName)
+                    elseif knownCoalId == coalition.side.RED then
+                        table.insert(awacsGroupsRed, groupName)
+                    end
                 end
             end
         end
     end
     
     if newAwacsFound then
-        env.info("[CapIntercept] Discovered new AWACS groups - updating detection set")
+        env.info("[CapIntercept] Discovered new AWACS groups - updating detection sets")
     end
     
-    return awacsGroups, newAwacsFound
+    return awacsGroupsBlue, awacsGroupsRed, newAwacsFound
 end
 
 -- Auto-discover CAP flights (groups with task == "CAP")
@@ -255,24 +268,23 @@ end
 -- MOOSE INTEGRATION
 --------------------------------------------------------------------------------
 
--- Initialize Moose detection set with AWACS
-local function InitializeDetection(awacsGroups)
+-- Initialize Moose detection set with AWACS for a specific coalition
+local function InitializeDetectionForCoalition(awacsGroups, coalitionName)
     if #awacsGroups == 0 then
-        env.info("[CapIntercept] WARNING: No AWACS groups found for detection!")
+        Debug("No " .. coalitionName .. " AWACS groups found for detection")
         return nil
     end
     
-    Debug("Initializing DETECTION_AREAS with " .. #awacsGroups .. " AWACS groups")
+    Debug("Initializing " .. coalitionName .. " DETECTION_AREAS with " .. #awacsGroups .. " AWACS groups")
     
     -- Create detection set using Moose
-    -- Note: This requires Moose to be loaded first (handled by base plugin)
     if not DETECTION_AREAS then
         env.info("[CapIntercept] ERROR: Moose DETECTION_AREAS not available!")
         return nil
     end
     
     -- Create a SET_GROUP for AWACS
-    awacsSet = SET_GROUP:New()
+    local awacsSet = SET_GROUP:New()
     for _, groupName in ipairs(awacsGroups) do
         local group = GROUP:FindByName(groupName)
         if group then
@@ -286,31 +298,31 @@ local function InitializeDetection(awacsGroups)
     detection:FilterCategories({Unit.Category.AIRPLANE})
     detection:SetRefreshTimeInterval(SchedulerInterval)
     
-    Debug("Detection set initialized successfully")
-    return detection
+    Debug(coalitionName .. " detection set initialized successfully")
+    return detection, awacsSet
 end
 
--- Update AWACS set with newly spawned AWACS groups
-local function UpdateAwacsSet(awacsGroups)
+-- Update AWACS set with newly spawned AWACS groups for a coalition
+local function UpdateAwacsSetForCoalition(awacsGroups, awacsSet, detectionSet, coalitionName)
     if not awacsSet then
-        Debug("Creating new AWACS set")
-        return InitializeDetection(awacsGroups)
+        Debug("Creating new " .. coalitionName .. " AWACS set")
+        return InitializeDetectionForCoalition(awacsGroups, coalitionName)
     end
     
-    Debug("Updating AWACS set with new groups")
+    Debug("Updating " .. coalitionName .. " AWACS set with new groups")
     
     -- Add new AWACS to the set
     for _, groupName in ipairs(awacsGroups) do
         local group = GROUP:FindByName(groupName)
         if group and not awacsSet:FindGroup(groupName) then
             awacsSet:AddGroup(group)
-            Debug("  Added " .. groupName .. " to AWACS set")
+            Debug("  Added " .. groupName .. " to " .. coalitionName .. " AWACS set")
         end
     end
     awacsSet:FilterOnce()
     
     -- Detection set automatically uses updated awacsSet
-    return detectionSet
+    return detectionSet, awacsSet
 end
 
 -- Wrap CAP group as Moose FLIGHTGROUP
@@ -387,8 +399,8 @@ local function CheckInterceptConditions(capFlight, bogey)
     return true, "Qualified", rangeNM
 end
 
--- Find nearest available CAP for a bogey
-local function FindNearestCap(bogey)
+-- Find nearest available CAP for a bogey from a specific coalition
+local function FindNearestCapForCoalition(bogey, capCoalition)
     local nearestCap = nil
     local nearestRange = 999999
     
@@ -406,17 +418,20 @@ local function FindNearestCap(bogey)
     for _, capFlight in ipairs(capFlights) do
         -- Skip CAPs already assigned to another bogey
         if capFlight.currentTask == "patrol" then
-            -- Only intercept enemy aircraft (different coalition)
-            if capFlight.coalition ~= bogeyCoalition then
-                local qualified, reason, range = CheckInterceptConditions(capFlight, bogey)
-                if qualified and range < nearestRange then
-                    nearestCap = capFlight
-                    nearestRange = range
+            -- Only consider CAPs from the specified coalition
+            if capFlight.coalition == capCoalition then
+                -- Only intercept enemy aircraft (different coalition)
+                if capFlight.coalition ~= bogeyCoalition then
+                    local qualified, reason, range = CheckInterceptConditions(capFlight, bogey)
+                    if qualified and range < nearestRange then
+                        nearestCap = capFlight
+                        nearestRange = range
+                    end
+                else
+                    Debug(string.format("  Skipping bogey from same coalition: %s (CAP: %s, Bogey: %s)", 
+                        bogeyGroup:GetName(), capFlight.coalitionName, 
+                        bogeyCoalition == coalition.side.BLUE and "BLUE" or (bogeyCoalition == coalition.side.RED and "RED" or "NEUTRAL")))
                 end
-            else
-                Debug(string.format("  Skipping bogey from same coalition: %s (CAP: %s, Bogey: %s)", 
-                    bogeyGroup:GetName(), capFlight.coalitionName, 
-                    bogeyCoalition == coalition.side.BLUE and "BLUE" or (bogeyCoalition == coalition.side.RED and "RED" or "NEUTRAL")))
             end
         end
     end
@@ -528,44 +543,103 @@ local function SchedulerFunction()
         lastDiscoveryCheck = currentTime
         
         -- Check for new AWACS
-        local awacsGroups, newAwacs = DiscoverAwacs()
-        if newAwacs and #awacsGroups > 0 then
-            detectionSet = UpdateAwacsSet(awacsGroups)
+        local awacsGroupsBlue, awacsGroupsRed, newAwacs = DiscoverAwacs()
+        if newAwacs then
+            if #awacsGroupsBlue > 0 then
+                detectionSetBlue, awacsSetBlue = UpdateAwacsSetForCoalition(awacsGroupsBlue, awacsSetBlue, detectionSetBlue, "Blue")
+            end
+            if #awacsGroupsRed > 0 then
+                detectionSetRed, awacsSetRed = UpdateAwacsSetForCoalition(awacsGroupsRed, awacsSetRed, detectionSetRed, "Red")
+            end
         end
         
         -- Check for new CAPs
         DiscoverCapFlights()
     end
     
-    if not detectionSet then
-        return
-    end
-    
-    -- Process detections
-    local detectedItems = detectionSet:GetDetectedItems()
-    if not detectedItems or #detectedItems == 0 then
-        Debug("No detections this cycle")
-        return
-    end
-    
-    Debug(string.format("Processing %d detections", #detectedItems))
-    
-    -- Check each detected item
-    for _, detectedItem in ipairs(detectedItems) do
-        local bogeyGroup = detectedItem:GetGroup()
-        if bogeyGroup then
-            local bogeyName = bogeyGroup:GetName()
+    -- Process detections for Blue CAPs using Blue AWACS
+    if detectionSetBlue then
+        local detectedItemsBlue = detectionSetBlue:GetDetectedItems()
+        if detectedItemsBlue and #detectedItemsBlue > 0 then
+            Debug(string.format("Processing %d Blue AWACS detections", #detectedItemsBlue))
             
-            -- Skip if already assigned
-            if not bogeyAssignments[bogeyName] then
-                -- Find nearest CAP
-                local nearestCap = FindNearestCap(detectedItem)
-                
-                if nearestCap then
-                    VectorToIntercept(nearestCap, detectedItem)
+            -- Check each detected item
+            for _, detectedItem in ipairs(detectedItemsBlue) do
+                local bogeyGroup = detectedItem:GetGroup()
+                if bogeyGroup then
+                    local bogeyName = bogeyGroup:GetName()
+                    
+                    -- Skip if already assigned
+                    if not bogeyAssignments[bogeyName] then
+                        -- Find nearest Blue CAP
+                        local nearestCap = FindNearestCapForCoalition(detectedItem, coalition.side.BLUE)
+                        
+                        if nearestCap then
+                            VectorToIntercept(nearestCap, detectedItem)
+                        end
+                    else
+                        -- Check if bogey is still alive
+                        if not IsBogeyAlive(detectedItem) then
+                            Debug("  Bogey " .. bogeyName .. " destroyed, releasing CAP")
+                            
+                            -- Find assigned CAP and restore it
+                            local assignedCapName = bogeyAssignments[bogeyName]
+                            for _, capFlight in ipairs(capFlights) do
+                                if capFlight.groupName == assignedCapName then
+                                    RestoreCapRoute(capFlight)
+                                    break
+                                end
+                            end
+                            
+                            bogeyAssignments[bogeyName] = nil
+                        end
+                    end
                 end
-            else
-                -- Check if bogey is still alive
+            end
+        end
+    end
+    
+    -- Process detections for Red CAPs using Red AWACS
+    if detectionSetRed then
+        local detectedItemsRed = detectionSetRed:GetDetectedItems()
+        if detectedItemsRed and #detectedItemsRed > 0 then
+            Debug(string.format("Processing %d Red AWACS detections", #detectedItemsRed))
+            
+            -- Check each detected item
+            for _, detectedItem in ipairs(detectedItemsRed) do
+                local bogeyGroup = detectedItem:GetGroup()
+                if bogeyGroup then
+                    local bogeyName = bogeyGroup:GetName()
+                    
+                    -- Skip if already assigned
+                    if not bogeyAssignments[bogeyName] then
+                        -- Find nearest Red CAP
+                        local nearestCap = FindNearestCapForCoalition(detectedItem, coalition.side.RED)
+                        
+                        if nearestCap then
+                            VectorToIntercept(nearestCap, detectedItem)
+                        end
+                    else
+                        -- Check if bogey is still alive
+                        if not IsBogeyAlive(detectedItem) then
+                            Debug("  Bogey " .. bogeyName .. " destroyed, releasing CAP")
+                            
+                            -- Find assigned CAP and restore it
+                            local assignedCapName = bogeyAssignments[bogeyName]
+                            for _, capFlight in ipairs(capFlights) do
+                                if capFlight.groupName == assignedCapName then
+                                    RestoreCapRoute(capFlight)
+                                    break
+                                end
+                            end
+                            
+                            bogeyAssignments[bogeyName] = nil
+                        end
+                    end
+                end
+            end
+        end
+    end
                 if not IsBogeyAlive(detectedItem) then
                     Debug("  Bogey " .. bogeyName .. " destroyed, releasing CAP")
                     
@@ -614,11 +688,12 @@ local function Initialize()
     -- Wait a bit for mission to stabilize
     timer.scheduleFunction(function()
         -- Auto-discover AWACS
-        local awacsGroups, newAwacs = DiscoverAwacs()
-        if #awacsGroups == 0 then
+        local awacsGroupsBlue, awacsGroupsRed, newAwacs = DiscoverAwacs()
+        local totalAwacs = #awacsGroupsBlue + #awacsGroupsRed
+        if totalAwacs == 0 then
             env.info("[CapIntercept] WARNING: No AWACS found at startup, will continue checking for late spawns")
         else
-            env.info(string.format("[CapIntercept] Discovered %d AWACS groups at startup", #awacsGroups))
+            env.info(string.format("[CapIntercept] Discovered %d Blue and %d Red AWACS groups at startup", #awacsGroupsBlue, #awacsGroupsRed))
         end
         
         -- Auto-discover CAP flights
@@ -629,9 +704,12 @@ local function Initialize()
             env.info(string.format("[CapIntercept] Discovered %d CAP flights at startup", #capFlights))
         end
         
-        -- Initialize Moose detection if AWACS available
-        if #awacsGroups > 0 then
-            detectionSet = InitializeDetection(awacsGroups)
+        -- Initialize Moose detection for each coalition if AWACS available
+        if #awacsGroupsBlue > 0 then
+            detectionSetBlue, awacsSetBlue = InitializeDetectionForCoalition(awacsGroupsBlue, "Blue")
+        end
+        if #awacsGroupsRed > 0 then
+            detectionSetRed, awacsSetRed = InitializeDetectionForCoalition(awacsGroupsRed, "Red")
         end
         
         -- Start scheduler (will check for new groups every 30s)

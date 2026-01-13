@@ -69,7 +69,7 @@ local aspect = abs(bogeyHeading - (capToBogeyHeading + 180))
 #### 4. Vectoring System
 
 When intercept criteria are met:
-1. Nearest available CAP is selected
+1. Nearest available CAP from the same coalition as the detecting AWACS is selected
 2. CAP is wrapped as Moose FLIGHTGROUP
 3. AUFTRAG:NewINTERCEPT mission created with:
    - Urgent priority (priority=1)
@@ -77,6 +77,11 @@ When intercept criteria are met:
    - Alarm State Red
    - Configurable engage range
 4. Bogey→CAP assignment tracked to prevent double-tasking
+
+**Coalition Separation**: 
+- Blue AWACS detections → Blue CAPs
+- Red AWACS detections → Red CAPs
+- Each coalition operates independently with its own detection picture
 
 #### 5. Route Restoration
 
@@ -133,8 +138,9 @@ Mission Start
 
 ### 3. Coalition Handling
 - **Both Coalitions Supported**: Plugin discovers and manages CAPs from both Red and Blue coalitions
-- **Enemy Detection**: Each CAP only intercepts aircraft from opposing coalition
+- **Separate Detection Sets**: Blue AWACS feed Blue CAPs, Red AWACS feed Red CAPs
 - **Coalition Tracking**: CAP flight data includes coalition info for proper filtering
+- **Independent Operation**: Each coalition operates with its own AWACS detection picture
 
 ### 3. Name-Based Detection
 - CAP discovery relies on group name patterns due to DCS mission scripting API limitations
