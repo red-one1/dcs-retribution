@@ -73,6 +73,10 @@ local capFlights = {}           -- Table of discovered CAP flights
 local detectionSet = nil        -- Moose DETECTION_AREAS set
 local bogeyAssignments = {}     -- Track bogey → CAP assignments
 local schedulerId = nil         -- Scheduler ID
+local awacsSet = nil            -- SET_GROUP for AWACS (updated dynamically)
+local knownCapGroups = {}       -- Track known CAP group names
+local knownAwacsGroups = {}     -- Track known AWACS group names
+local lastDiscoveryCheck = 0    -- Time of last discovery check
 
 --------------------------------------------------------------------------------
 -- UTILITY FUNCTIONS
@@ -125,71 +129,101 @@ end
 local function DiscoverAwacs()
     Debug("Discovering AWACS groups...")
     local awacsGroups = {}
+    local newAwacsFound = false
     
     -- Scan all coalitions for AWACS aircraft
     for coalName, coalId in pairs(coalition.side) do
         local groups = coalition.getGroups(coalId, Group.Category.AIRPLANE)
         if groups then
             for _, group in ipairs(groups) do
-                local units = group:getUnits()
-                if units and #units > 0 then
-                    local unit = units[1]
-                    local typeName = unit:getTypeName()
-                    if IsAwacsType(typeName) then
-                        table.insert(awacsGroups, group:getName())
-                        Debug("  Found AWACS: " .. group:getName() .. " (" .. typeName .. ")")
+                local groupName = group:getName()
+                
+                -- Skip if already known
+                if not knownAwacsGroups[groupName] then
+                    local units = group:getUnits()
+                    if units and #units > 0 then
+                        local unit = units[1]
+                        local typeName = unit:getTypeName()
+                        if IsAwacsType(typeName) then
+                            table.insert(awacsGroups, groupName)
+                            knownAwacsGroups[groupName] = true
+                            newAwacsFound = true
+                            Debug("  Found NEW AWACS: " .. groupName .. " (" .. typeName .. ")")
+                        end
                     end
+                else
+                    -- Already known, add to list
+                    table.insert(awacsGroups, groupName)
                 end
             end
         end
     end
     
-    return awacsGroups
+    if newAwacsFound then
+        env.info("[CapIntercept] Discovered new AWACS groups - updating detection set")
+    end
+    
+    return awacsGroups, newAwacsFound
 end
 
 -- Auto-discover CAP flights (groups with task == "CAP")
 local function DiscoverCapFlights()
     Debug("Discovering CAP flights...")
-    local caps = {}
+    local newCapsFound = false
     
     -- Scan friendly coalition (blue by default, adjust if needed)
     local groups = coalition.getGroups(coalition.side.BLUE, Group.Category.AIRPLANE)
     if groups then
         for _, group in ipairs(groups) do
             local groupName = group:getName()
-            local units = group:getUnits()
             
-            if units and #units > 0 then
-                -- Check if group template has CAP task
-                -- DCS stores tasks in the group data
-                local controller = group:getController()
-                if controller then
-                    -- Try to determine if this is a CAP flight
-                    -- We check the group name for CAP indicators as a heuristic
-                    -- since direct task inspection is limited in mission scripting environment
-                    if string.find(groupName, "CAP") or 
-                       string.find(groupName, "BARCAP") or 
-                       string.find(groupName, "TARCAP") then
-                        
-                        Debug("  Found CAP: " .. groupName)
-                        
-                        -- Store CAP flight data
-                        table.insert(caps, {
-                            groupName = groupName,
-                            group = group,
-                            originalRoute = nil,  -- Will store route waypoints
-                            racetrackStart = nil, -- Will store racetrack anchor 1
-                            racetrackEnd = nil,   -- Will store racetrack anchor 2
-                            currentTask = "patrol", -- Track current task state
-                            assignedBogey = nil   -- Track assigned intercept
-                        })
+            -- Skip if already known
+            if not knownCapGroups[groupName] then
+                local units = group:getUnits()
+                
+                if units and #units > 0 then
+                    -- Check if group template has CAP task
+                    -- DCS stores tasks in the group data
+                    local controller = group:getController()
+                    if controller then
+                        -- Try to determine if this is a CAP flight
+                        -- We check the group name for CAP indicators as a heuristic
+                        -- since direct task inspection is limited in mission scripting environment
+                        if string.find(groupName, "CAP") or 
+                           string.find(groupName, "BARCAP") or 
+                           string.find(groupName, "TARCAP") then
+                            
+                            Debug("  Found NEW CAP: " .. groupName)
+                            
+                            -- Store CAP flight data
+                            local capFlight = {
+                                groupName = groupName,
+                                group = group,
+                                originalRoute = nil,  -- Will store route waypoints
+                                racetrackStart = nil, -- Will store racetrack anchor 1
+                                racetrackEnd = nil,   -- Will store racetrack anchor 2
+                                currentTask = "patrol", -- Track current task state
+                                assignedBogey = nil   -- Track assigned intercept
+                            }
+                            
+                            table.insert(capFlights, capFlight)
+                            knownCapGroups[groupName] = true
+                            newCapsFound = true
+                            
+                            -- Extract racetrack immediately for new CAP
+                            ExtractRacetrackWaypoints(capFlight)
+                        end
                     end
                 end
             end
         end
     end
     
-    return caps
+    if newCapsFound then
+        env.info(string.format("[CapIntercept] Discovered new CAP flights - now tracking %d total", #capFlights))
+    end
+    
+    return newCapsFound
 end
 
 -- Extract racetrack waypoints from CAP route
@@ -234,7 +268,7 @@ local function InitializeDetection(awacsGroups)
     end
     
     -- Create a SET_GROUP for AWACS
-    local awacsSet = SET_GROUP:New()
+    awacsSet = SET_GROUP:New()
     for _, groupName in ipairs(awacsGroups) do
         local group = GROUP:FindByName(groupName)
         if group then
@@ -250,6 +284,29 @@ local function InitializeDetection(awacsGroups)
     
     Debug("Detection set initialized successfully")
     return detection
+end
+
+-- Update AWACS set with newly spawned AWACS groups
+local function UpdateAwacsSet(awacsGroups)
+    if not awacsSet then
+        Debug("Creating new AWACS set")
+        return InitializeDetection(awacsGroups)
+    end
+    
+    Debug("Updating AWACS set with new groups")
+    
+    -- Add new AWACS to the set
+    for _, groupName in ipairs(awacsGroups) do
+        local group = GROUP:FindByName(groupName)
+        if group and not awacsSet:FindGroup(groupName) then
+            awacsSet:AddGroup(group)
+            Debug("  Added " .. groupName .. " to AWACS set")
+        end
+    end
+    awacsSet:FilterOnce()
+    
+    -- Detection set automatically uses updated awacsSet
+    return detectionSet
 end
 
 -- Wrap CAP group as Moose FLIGHTGROUP
@@ -443,6 +500,21 @@ end
 
 -- Main detection and intercept scheduler
 local function SchedulerFunction()
+    -- Periodically check for new groups (every 30 seconds)
+    local currentTime = timer.getTime()
+    if currentTime - lastDiscoveryCheck >= 30 then
+        lastDiscoveryCheck = currentTime
+        
+        -- Check for new AWACS
+        local awacsGroups, newAwacs = DiscoverAwacs()
+        if newAwacs and #awacsGroups > 0 then
+            detectionSet = UpdateAwacsSet(awacsGroups)
+        end
+        
+        -- Check for new CAPs
+        DiscoverCapFlights()
+    end
+    
     if not detectionSet then
         return
     end
@@ -520,45 +592,37 @@ local function Initialize()
     -- Wait a bit for mission to stabilize
     timer.scheduleFunction(function()
         -- Auto-discover AWACS
-        local awacsGroups = DiscoverAwacs()
+        local awacsGroups, newAwacs = DiscoverAwacs()
         if #awacsGroups == 0 then
-            env.info("[CapIntercept] WARNING: No AWACS found, detection system will not work")
+            env.info("[CapIntercept] WARNING: No AWACS found at startup, will continue checking for late spawns")
+        else
+            env.info(string.format("[CapIntercept] Discovered %d AWACS groups at startup", #awacsGroups))
         end
         
         -- Auto-discover CAP flights
-        capFlights = DiscoverCapFlights()
+        DiscoverCapFlights()
         if #capFlights == 0 then
-            env.info("[CapIntercept] WARNING: No CAP flights found")
-            return
+            env.info("[CapIntercept] WARNING: No CAP flights found at startup, will continue checking for late spawns")
+        else
+            env.info(string.format("[CapIntercept] Discovered %d CAP flights at startup", #capFlights))
         end
         
-        env.info(string.format("[CapIntercept] Discovered %d CAP flights and %d AWACS groups", 
-            #capFlights, #awacsGroups))
-        
-        -- Extract racetrack waypoints for each CAP
-        for _, capFlight in ipairs(capFlights) do
-            ExtractRacetrackWaypoints(capFlight)
-        end
-        
-        -- Initialize Moose detection
+        -- Initialize Moose detection if AWACS available
         if #awacsGroups > 0 then
             detectionSet = InitializeDetection(awacsGroups)
-            
-            if detectionSet then
-                -- Start scheduler
-                schedulerId = timer.scheduleFunction(function()
-                    local success, err = pcall(SchedulerFunction)
-                    if not success then
-                        env.info("[CapIntercept] ERROR in scheduler: " .. tostring(err))
-                    end
-                    return timer.getTime() + SchedulerInterval
-                end, nil, timer.getTime() + SchedulerInterval)
-                
-                env.info(string.format("[CapIntercept] Scheduler started (interval: %ds)", SchedulerInterval))
-            end
         end
         
-        env.info("[CapIntercept] Initialization complete")
+        -- Start scheduler (will check for new groups every 30s)
+        schedulerId = timer.scheduleFunction(function()
+            local success, err = pcall(SchedulerFunction)
+            if not success then
+                env.info("[CapIntercept] ERROR in scheduler: " .. tostring(err))
+            end
+            return timer.getTime() + SchedulerInterval
+        end, nil, timer.getTime() + SchedulerInterval)
+        
+        env.info(string.format("[CapIntercept] Scheduler started (interval: %ds, discovery check: 30s)", SchedulerInterval))
+        env.info("[CapIntercept] Initialization complete - will auto-discover groups that spawn later in mission")
     end, nil, timer.getTime() + 5)
 end
 

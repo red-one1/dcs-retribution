@@ -34,8 +34,11 @@ The plugin can be configured through the DCS Retribution UI with the following o
 
 ### 2. Detection and Intercept Loop (Every ~10s)
 
-1. Moose DETECTION_AREAS polls AWACS radars for enemy aircraft detections
-2. For each detected bogey:
+1. **Discovery Check (every 30s)**: Scans for newly spawned AWACS and CAP groups
+   - Handles late-activated or trigger-spawned groups
+   - Automatically adds new groups to tracking
+2. Moose DETECTION_AREAS polls AWACS radars for enemy aircraft detections
+3. For each detected bogey:
    - Check if already assigned to a CAP (skip if yes)
    - Calculate range from nearest available CAP
    - Calculate aspect angle (bogey heading vs line to CAP)
@@ -92,8 +95,15 @@ All thresholds can be adjusted via the plugin configuration UI without editing c
 
 - DCS Retribution mission generator
 - Moose framework (included in base plugin)
-- AWACS/AEW aircraft in the mission
-- CAP flights with "CAP", "BARCAP", or "TARCAP" in group name
+- AWACS/AEW aircraft in the mission (can spawn at any time)
+- CAP flights with "CAP", "BARCAP", or "TARCAP" in group name (can spawn at any time)
+
+### Late-Spawning Groups
+
+The plugin supports groups that spawn at any time during the mission:
+- **AWACS**: New AWACS groups are auto-detected every 30 seconds and added to detection system
+- **CAP Flights**: New CAP flights are auto-detected every 30 seconds and begin intercept duties immediately
+- **No restart needed**: Groups can be trigger-spawned, late-activated, or delayed without reconfiguration
 
 ### Moose Version
 

@@ -49,6 +49,8 @@ Watch your CAP flights:
 - When enemy aircraft approach, nearest CAP will break off and intercept
 - After destroying the bogey, CAP returns to patrol area
 
+**Note**: Groups can spawn at any time! The plugin checks for new AWACS and CAP groups every 30 seconds, so late-activated or trigger-spawned groups are automatically discovered and integrated.
+
 ## Troubleshooting
 
 ### "No CAPs Found" in Log
@@ -66,8 +68,11 @@ Example bad names:
 - ❌ "Air Defense"
 
 ### "No AWACS Found" in Log
-**Problem**: Plugin can't find AWACS  
-**Solution**: Check your AWACS aircraft type is supported
+**Problem**: Plugin can't find AWACS at mission start  
+**Solution**: 
+- If AWACS spawn later in mission, they will be auto-detected within 30 seconds
+- If AWACS never spawn, detection system won't work (expected behavior)
+- Check your AWACS aircraft type is supported
 
 Supported types (default):
 - ✅ E-3A/B/C (US AWACS)

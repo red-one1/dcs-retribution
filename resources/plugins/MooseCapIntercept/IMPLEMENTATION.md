@@ -93,13 +93,17 @@ Mission Start
     ↓
 +5s: Initialize()
     ↓
-    ├─→ Discover AWACS
-    ├─→ Discover CAP flights
+    ├─→ Discover initial AWACS (if any)
+    ├─→ Discover initial CAP flights (if any)
     ├─→ Extract racetrack waypoints
-    └─→ Create DETECTION_AREAS
+    └─→ Create DETECTION_AREAS (if AWACS present)
          ↓
     Every 10s: SchedulerFunction()
          ↓
+         ├─→ Every 30s: Re-discover groups
+         │   ├─→ Check for new AWACS (late spawns)
+         │   ├─→ Check for new CAPs (late spawns)
+         │   └─→ Update detection set if new AWACS
          ├─→ Get detections from AWACS
          ├─→ For each bogey:
          │   ├─→ Check if already assigned
@@ -112,7 +116,15 @@ Mission Start
 
 ## Technical Considerations
 
-### 1. Route Persistence
+### 1. Late-Spawning Groups (NEW)
+- **Dynamic Discovery**: Plugin now checks for new groups every 30 seconds
+- **AWACS Handling**: New AWACS automatically added to detection SET_GROUP
+- **CAP Handling**: New CAPs immediately begin tracking and intercept duties
+- **Tracking Tables**: knownCapGroups and knownAwacsGroups prevent duplicate processing
+- **Mission Flexibility**: Supports trigger-spawned, late-activated, and delayed groups
+- **Performance**: Minimal overhead (30s discovery interval vs 10s main loop)
+
+### 2. Route Persistence
 - Current implementation stores position-based anchors, not full waypoint data
 - CAPs return to approximate patrol location rather than exact waypoint sequence
 - Future enhancement: Parse full route from mission file
