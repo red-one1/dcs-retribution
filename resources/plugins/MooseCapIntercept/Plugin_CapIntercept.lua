@@ -98,9 +98,15 @@ local function IsAwacsType(typeName)
     end
     
     for _, awacsType in ipairs(AWACS_TYPES) do
-        -- Use exact match or match at word boundaries to avoid false positives
-        -- E.g., "E-2C" should match "E-2C" but not match "F-16C_50"
-        if typeName == awacsType or string.match(typeName, "^" .. awacsType .. "[^%w]") or string.match(typeName, "[^%w]" .. awacsType .. "$") then
+        -- Exact match check
+        if typeName == awacsType then
+            return true
+        end
+        
+        -- Check if typename starts with awacsType followed by a space, underscore, or hyphen
+        -- This handles variants like "E-2C Hawkeye" but not "F-16C_50"
+        local pattern = "^" .. awacsType:gsub("([%-%.%+%[%]%(%)%$%^%%%?%*])", "%%%1") .. "[%s_%-]"
+        if string.match(typeName, pattern) then
             return true
         end
     end
