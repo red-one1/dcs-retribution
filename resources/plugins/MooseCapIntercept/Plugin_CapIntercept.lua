@@ -93,8 +93,14 @@ end
 
 -- Check if a unit type is an AWACS
 local function IsAwacsType(typeName)
+    if not typeName then
+        return false
+    end
+    
     for _, awacsType in ipairs(AWACS_TYPES) do
-        if typeName and string.find(typeName, awacsType) then
+        -- Use exact match or match at word boundaries to avoid false positives
+        -- E.g., "E-2C" should match "E-2C" but not match "F-16C_50"
+        if typeName == awacsType or string.match(typeName, "^" .. awacsType .. "[^%w]") or string.match(typeName, "[^%w]" .. awacsType .. "$") then
             return true
         end
     end
@@ -179,6 +185,27 @@ local function DiscoverAwacs()
     return awacsGroupsBlue, awacsGroupsRed, newAwacsFound
 end
 
+-- Extract racetrack waypoints from CAP route
+local function ExtractRacetrackWaypoints(capFlight)
+    -- In DCS, racetrack waypoints are typically consecutive waypoints where
+    -- an orbit/race track task is assigned
+    -- For now, we'll store the group's current position as racetrack center
+    -- In a full implementation, this would parse the mission file or use
+    -- Moose's route extraction capabilities
+    
+    local units = capFlight.group:getUnits()
+    if units and #units > 0 then
+        local unit = units[1]
+        local pos = unit:getPosition()
+        if pos then
+            capFlight.racetrackStart = {x = pos.p.x, y = pos.p.z}
+            -- Create a simple racetrack by offsetting from current position
+            capFlight.racetrackEnd = {x = pos.p.x + 10000, y = pos.p.z}
+            Debug("  Extracted racetrack for " .. capFlight.groupName)
+        end
+    end
+end
+
 -- Auto-discover CAP flights (groups with task == "CAP")
 local function DiscoverCapFlights()
     Debug("Discovering CAP flights...")
@@ -241,27 +268,6 @@ local function DiscoverCapFlights()
     end
     
     return newCapsFound
-end
-
--- Extract racetrack waypoints from CAP route
-local function ExtractRacetrackWaypoints(capFlight)
-    -- In DCS, racetrack waypoints are typically consecutive waypoints where
-    -- an orbit/race track task is assigned
-    -- For now, we'll store the group's current position as racetrack center
-    -- In a full implementation, this would parse the mission file or use
-    -- Moose's route extraction capabilities
-    
-    local units = capFlight.group:getUnits()
-    if units and #units > 0 then
-        local unit = units[1]
-        local pos = unit:getPosition()
-        if pos then
-            capFlight.racetrackStart = {x = pos.p.x, y = pos.p.z}
-            -- Create a simple racetrack by offsetting from current position
-            capFlight.racetrackEnd = {x = pos.p.x + 10000, y = pos.p.z}
-            Debug("  Extracted racetrack for " .. capFlight.groupName)
-        end
-    end
 end
 
 --------------------------------------------------------------------------------
