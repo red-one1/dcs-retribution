@@ -13,14 +13,18 @@ airboss_options = {
     ["rescueDuration"] = 3,
     ["rescueZoneRadius"] = 50,
     ["windowStartOption"] = 30,
-    ["windowLengthOption"] = 20,
+    ["windowLengthOption"] = 30,
     ["turnTimeBeforeRecovery"] = 5,
+    ["despawnMinutesAfterLanding"] = 5,
 }
 
 -- Single root for admin-style F10 entries so we do not clutter the default player menus.
 local airbossAdminMenuRoot = nil
+airboss_carrier_data = {}
 
-    if dcsRetribution and dcsRetribution.plugins and dcsRetribution.plugins.airboss then
+
+if dcsRetribution then
+    if dcsRetribution.plugins and dcsRetribution.plugins.airboss then
         airboss_options.enableRescueHelo = dcsRetribution.plugins.airboss.enableRescueHelo
         airboss_options.rescueHeloDistance = dcsRetribution.plugins.airboss.rescueHeloDistance
         airboss_options.enableAWACS = dcsRetribution.plugins.airboss.enableAWACS
@@ -30,9 +34,17 @@ local airbossAdminMenuRoot = nil
         airboss_options.rescueDuration = dcsRetribution.plugins.airboss.rescueDuration
         airboss_options.rescueZoneRadius = dcsRetribution.plugins.airboss.rescueZoneRadius
         airboss_options.windowStartOption = dcsRetribution.plugins.airboss.windowStartOption
-    --     airboss_options.windowLengthOption = dcsRetribution.plugins.airboss.windowLengthOption
+        airboss_options.windowLengthOption = dcsRetribution.plugins.airboss.windowLengthOption
+        airboss_options.despawnMinutesAfterLanding = dcsRetribution.plugins.airboss.despawnMinutesAfterLanding
     end
-
+    -- Build carrier data lookup table
+    if dcsRetribution.Carriers then
+        for _, carrier in pairs(dcsRetribution.Carriers) do
+            airboss_carrier_data[carrier.unit_name] = carrier
+            env.info("AIRBOSS: Loaded carrier data from Retribution for " .. carrier.unit_name)
+        end
+    end
+end
     
 --    env.info("AIRBOSS Rescue Helo Enabled: " .. tostring(airboss_options.enableRescueHelo))
 --    env.info("AIRBOSS AWACS Enabled: " .. tostring(airboss_options.enableAWACS))
