@@ -67,8 +67,10 @@ end
 -- Single root for admin-style F10 entries so we do not clutter the default player menus.
 local airbossAdminMenuRoot = nil
 airboss_carrier_data = {}
+
+
 if dcsRetribution then
-    if dcsRetribution and dcsRetribution.plugins and dcsRetribution.plugins.airboss then
+    if dcsRetribution.plugins and dcsRetribution.plugins.airboss then
         airboss_options.enableRescueHelo = dcsRetribution.plugins.airboss.enableRescueHelo
         airboss_options.rescueHeloDistance = dcsRetribution.plugins.airboss.rescueHeloDistance
         airboss_options.enableAWACS = dcsRetribution.plugins.airboss.enableAWACS
