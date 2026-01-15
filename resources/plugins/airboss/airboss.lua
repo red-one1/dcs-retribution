@@ -42,7 +42,7 @@ local airbossAdminMenuRoot = nil
             env.info("AIRBOSS: Loaded carrier data from Retribution for " .. carrier.unit_name)
         end
     end
-end
+
 --    env.info("AIRBOSS Rescue Helo Enabled: " .. tostring(airboss_options.enableRescueHelo))
 --    env.info("AIRBOSS AWACS Enabled: " .. tostring(airboss_options.enableAWACS))
 --    env.info("AIRBOSS Tanker Enabled: " .. tostring(airboss_options.enableTanker))
