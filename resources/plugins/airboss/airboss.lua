@@ -13,8 +13,9 @@ airboss_options = {
     ["rescueDuration"] = 3,
     ["rescueZoneRadius"] = 50,
     ["windowStartOption"] = 30,
-    ["windowLengthOption"] = 20,
+    ["windowLengthOption"] = 30,
     ["turnTimeBeforeRecovery"] = 5,
+    ["despawnMinutesAfterLanding"] = 5,
 }
 
 -- Single root for admin-style F10 entries so we do not clutter the default player menus.
