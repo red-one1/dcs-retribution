@@ -36,7 +36,10 @@ if AIRBOSS and not AIRBOSS._CreateFlightGroupPatched then
             return existingFlight
         end
 
-        return _airbossCreateFlightGroup(self, group)
+        if type(_airbossCreateFlightGroup) == "function" then
+            return _airbossCreateFlightGroup(self, group)
+        end
+        return nil
     end
 end
 
@@ -54,7 +57,10 @@ if AIRBOSS and not AIRBOSS._PlayerLeftPatched then
             return
         end
 
-        return _airbossPlayerLeft(self, EventData)
+        if type(_airbossPlayerLeft) == "function" then
+            return _airbossPlayerLeft(self, EventData)
+        end
+        return nil
     end
 end
 
