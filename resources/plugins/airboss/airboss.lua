@@ -18,6 +18,46 @@ airboss_options = {
     ["despawnMinutesAfterLanding"] = 5,
 }
 
+--- Patch AIRBOSS duplicate flight group creation to avoid errors when players join existing groups.
+--
+-- This wrapper prevents duplicate `AIRBOSS:_CreateFlightGroup()` calls from logging an error
+-- when a player joins a group that is already tracked. It reuses the existing flight record.
+if AIRBOSS and not AIRBOSS._CreateFlightGroupPatched then
+    AIRBOSS._CreateFlightGroupPatched = true
+    local _airbossCreateFlightGroup = AIRBOSS._CreateFlightGroup
+
+    function AIRBOSS:_CreateFlightGroup(group)
+        local existingFlight = self:_GetFlightFromGroupInQueue(group, self.flights)
+        if existingFlight then
+            self:T2(self.lid .. string.format(
+                "INFO: Flight group %s already exists in self.flights; reusing existing flight.",
+                group:GetName()
+            ))
+            return existingFlight
+        end
+
+        return _airbossCreateFlightGroup(self, group)
+    end
+end
+
+--- Patch AIRBOSS player-left handler to safely return when IniUnit is missing.
+--
+-- Some DCS PLAYERLEFTUNIT events can arrive without `EventData.IniUnit`. This wrapper
+-- ignores those events to avoid noisy errors while preserving the original behavior.
+if AIRBOSS and not AIRBOSS._PlayerLeftPatched then
+    AIRBOSS._PlayerLeftPatched = true
+    local _airbossPlayerLeft = AIRBOSS._PlayerLeft
+
+    function AIRBOSS:_PlayerLeft(EventData)
+        if not EventData or not EventData.IniUnit then
+            self:T2(self.lid .. "INFO: PLAYERLEFTUNIT with nil IniUnit; ignoring.")
+            return
+        end
+
+        return _airbossPlayerLeft(self, EventData)
+    end
+end
+
 -- Single root for admin-style F10 entries so we do not clutter the default player menus.
 local airbossAdminMenuRoot = nil
 airboss_carrier_data = {}
