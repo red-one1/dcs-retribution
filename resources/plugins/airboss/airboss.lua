@@ -14,7 +14,7 @@ airboss_options = {
     ["rescueZoneRadius"] = 50,
     ["windowStartOption"] = 30,
     ["windowLengthOption"] = 30,
-    ["turnTimeBeforeRecovery"] = 5,
+    ["turnTimeBeforeRecovery"] = 5, -- Time in minutes for carrier to turn into wind before recovery window starts
     ["despawnMinutesAfterLanding"] = 5,
 }
 
