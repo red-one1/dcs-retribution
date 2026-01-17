@@ -18,7 +18,7 @@
             "defaultValue": 16
         },
         {
-            "nameInUI": "Detection Accept Range (NM)",
+            "nameInUI": "Detection Accept Range (NM) (ignored when Skynet IADS detection is active)",
             "mnemonic": "DetectionAcceptRange",
             "defaultValue": 108
         },

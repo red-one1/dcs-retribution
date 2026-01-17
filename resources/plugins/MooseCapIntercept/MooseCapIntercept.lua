@@ -1,4 +1,4 @@
-local MOOSE_CAP_INTERCEPT_VERSION = "2026-01-17o"
+local MOOSE_CAP_INTERCEPT_VERSION = "2026-01-17aa"
 env.info("-----DCSRetribution|MOOSE CAP Intercept plugin - configuration start (v" .. MOOSE_CAP_INTERCEPT_VERSION .. ") ------")
 
 -- Defaults (overridden by dcsRetribution.plugins.MooseCapIntercept when present)
@@ -130,6 +130,47 @@ local function SafeGetHeading(obj)
     return obj:GetHeading()
 end
 
+local function SafeGetVelocityVec3(obj)
+    if not HasValidDcsObject(obj) then return nil end
+    if obj.GetVelocityVec3 then
+        return obj:GetVelocityVec3()
+    end
+    if obj.getVelocity then
+        return obj:getVelocity()
+    end
+    return nil
+end
+
+local function GroundSpeedMps(unit)
+    if not unit then return nil end
+
+    local velVec = SafeGetVelocityVec3(unit)
+    if velVec then
+        local x = velVec.x or 0
+        local z = velVec.z or 0
+        return math.sqrt((x * x) + (z * z))
+    end
+
+    if unit.GetVelocityMPS then
+        local mps = unit:GetVelocityMPS()
+        if mps ~= nil then
+            return mps
+        end
+    end
+
+    if unit.GetVelocity then
+        local vel = unit:GetVelocity()
+        if vel and vel.Get then
+            local mps = vel:Get()
+            if mps ~= nil then
+                return mps
+            end
+        end
+    end
+
+    return nil
+end
+
 local function AngleBetween(vec1, vec2)
     local dot = vec1.x * vec2.x + vec1.y * vec2.y
     local mag1 = math.sqrt(vec1.x * vec1.x + vec1.y * vec1.y)
@@ -140,8 +181,21 @@ local function AngleBetween(vec1, vec2)
 end
 
 local function HeadingVector(unit)
+    local velVec = SafeGetVelocityVec3(unit)
+    if velVec then
+        local vx = velVec.x or 0
+        local vz = velVec.z or 0
+        local mag = math.sqrt((vx * vx) + (vz * vz))
+        if mag > 0 then
+            return { x = vx / mag, y = vz / mag }
+        end
+    end
+
     local heading = SafeGetHeading(unit)
     if not heading then return nil end
+    if math.abs(heading) > (2 * math.pi) then
+        heading = math.rad(heading)
+    end
     return { x = math.sin(heading), y = math.cos(heading) }
 end
 
@@ -277,8 +331,14 @@ local function GetGroupLogName(group)
             unitName = unit:GetName()
         end
     end
-    if unitName and unitName ~= groupName then
-        return groupName .. " | " .. unitName
+    if unitName then
+        if groupName and unitName ~= groupName then
+            if string.find(unitName, groupName, 1, true) then
+                return unitName
+            end
+            return unitName .. " | " .. groupName
+        end
+        return unitName
     end
     return groupName
 end
@@ -339,10 +399,46 @@ local function SetupDetection(awacsSet, coalitionName)
     return detection
 end
 
+local function TrimRouteFromIndex(route, startIndex)
+    if not route or type(route) ~= "table" then return route end
+    if not startIndex or startIndex <= 1 then return route end
+    local trimmed = {}
+    for i = startIndex, #route do
+        trimmed[#trimmed + 1] = route[i]
+    end
+    return trimmed
+end
+
+local function GetResumeIndex(route, group)
+    if not route or not group then return nil end
+    local groupCoord = SafeGetCoordinate(group)
+    if not groupCoord then return nil end
+
+    local bestIndex = nil
+    local bestDist = nil
+    for i, wp in ipairs(route) do
+        local wpCoord = COORDINATE and COORDINATE:NewFromWaypoint(wp) or nil
+        if wpCoord then
+            local dist = wpCoord:Get2DDistance(groupCoord)
+            if not bestDist or dist < bestDist then
+                bestDist = dist
+                bestIndex = i
+            end
+        end
+    end
+
+    return bestIndex
+end
+
 local function EnsureRouteStored(state, group)
     local name = group:GetName()
     if not state.routes[name] then
-        state.routes[name] = group:GetTaskRoute()
+        local route = group:GetTaskRoute()
+        local resumeIndex = GetResumeIndex(route, group)
+        state.routes[name] = {
+            route = route,
+            resumeIndex = resumeIndex,
+        }
         DebugLog("Stored original route for " .. name, state.coalition)
     end
 end
@@ -351,11 +447,18 @@ local function ResumeRouteIfPossible(state, group)
     if not group or not group:IsAlive() then return end
 
     local name = group:GetName()
-    local route = state.routes[name]
-    if route then
-        group:SetTask(group:TaskRoute(route), 1)
+    local stored = state.routes[name]
+    local route = stored and stored.route or stored
+    local resumeIndex = stored and stored.resumeIndex or nil
+    local resumeRoute = TrimRouteFromIndex(route, resumeIndex)
+    if resumeRoute then
+        group:SetTask(group:TaskRoute(resumeRoute), 1)
         state.lastIntercept[name] = timer.getTime()
-        DebugLog("CAP returning to previous route: " .. name, state.coalition)
+        if resumeIndex and resumeIndex > 1 then
+            DebugLog("CAP returning to previous route: " .. name .. " (resume WP " .. tostring(resumeIndex) .. ")", state.coalition)
+        else
+            DebugLog("CAP returning to previous route: " .. name, state.coalition)
+        end
     else
         DebugLog("CAP returning but no stored route for " .. name .. "; cannot resume.", state.coalition)
     end
@@ -440,29 +543,63 @@ local function ProcessCoalition(state)
             local enemyUnit = enemyGroup:GetUnit(1)
             local bestRange = nil
             local bestQualifies = false
+            local bestReason = nil
+            local bestAngle = nil
 
             if enemyUnit then
+                if #capGroups == 0 then
+                    bestReason = "no CAP groups"
+                end
                 for _, capGroup in ipairs(capGroups) do
                     local capCoord = SafeGetCoordinate(capGroup)
                     local enemyCoord = SafeGetCoordinate(enemyGroup)
                     if capCoord and enemyCoord then
                         local dist = capCoord:Get2DDistance(enemyCoord)
-                        local ok = IsHotOrFlanking(enemyUnit, capGroup)
+                        local speed = GroundSpeedMps(enemyUnit)
+                        local moving = (speed ~= nil) and (speed > 0)
+                        local ok, angle = IsHotOrFlanking(enemyUnit, capGroup)
+                        ok = moving and ok
                         if bestRange == nil or dist < bestRange then
                             bestRange = dist
+                            bestAngle = angle
                             bestQualifies = (dist <= CapInterceptRangeM) and ok
+                            if bestQualifies then
+                                bestReason = "moving+range+aspect"
+                            else
+                                if not moving then
+                                    bestReason = (speed == nil) and "no velocity" or "not moving"
+                                elseif dist > CapInterceptRangeM then
+                                    bestReason = "out of range"
+                                else
+                                    bestReason = "aspect"
+                                end
+                            end
                         end
+                    elseif not bestReason then
+                        bestReason = "missing coords"
                     end
                 end
+            else
+                bestReason = "no enemy unit"
             end
 
-            newTracked[enemyName] = { count = enemyCount, qualifies = bestQualifies }
+            local rangeNm = bestRange and (bestRange / NM_TO_M) or nil
+            newTracked[enemyName] = {
+                count = enemyCount,
+                qualifies = bestQualifies,
+                reason = bestReason,
+                rangeNm = rangeNm,
+                angle = bestAngle,
+            }
 
             local prior = state.tracked and state.tracked[enemyName]
             if not prior then
+                local reasonSuffix = bestReason and (" reason=" .. bestReason) or ""
+                local rangeSuffix = rangeNm and string.format(" range=%.1fnm", rangeNm) or ""
+                local angleSuffix = bestAngle and string.format(" aspect=%.0fdeg", bestAngle) or ""
                 DebugLog(string.format(
-                    "New enemy tracked: %s (x%d) qualifies=%s",
-                    GetGroupLogName(enemyGroup), enemyCount, tostring(bestQualifies)
+                    "New enemy tracked: %s (x%d) qualifies=%s%s%s%s",
+                    GetGroupLogName(enemyGroup), enemyCount, tostring(bestQualifies), reasonSuffix, rangeSuffix, angleSuffix
                 ), coalitionName)
             else
                 if enemyCount > (prior.count or 0) then
@@ -472,9 +609,12 @@ local function ProcessCoalition(state)
                     ), coalitionName)
                 end
                 if prior.qualifies ~= bestQualifies then
+                    local reasonSuffix = bestReason and (" reason=" .. bestReason) or ""
+                    local rangeSuffix = rangeNm and string.format(" range=%.1fnm", rangeNm) or ""
+                    local angleSuffix = bestAngle and string.format(" aspect=%.0fdeg", bestAngle) or ""
                     DebugLog(string.format(
-                        "Qualification change for %s: %s -> %s",
-                        GetGroupLogName(enemyGroup), tostring(prior.qualifies), tostring(bestQualifies)
+                        "Qualification change for %s: %s -> %s%s%s%s",
+                        GetGroupLogName(enemyGroup), tostring(prior.qualifies), tostring(bestQualifies), reasonSuffix, rangeSuffix, angleSuffix
                     ), coalitionName)
                 end
             end
@@ -520,7 +660,9 @@ local function ProcessCoalition(state)
                     if dist <= CapInterceptRangeM then
                         local enemyUnit = enemyGroup:GetUnit(1)
                         if enemyUnit then
-                            local ok = IsHotOrFlanking(enemyUnit, capGroup)
+                            local speed = GroundSpeedMps(enemyUnit)
+                            local moving = (speed ~= nil) and (speed > 0)
+                            local ok = moving and IsHotOrFlanking(enemyUnit, capGroup)
                             if ok then
                                 ForceIntercept(state, capGroup, enemyGroup)
                                 break
@@ -587,6 +729,13 @@ end
 
 blueState = InitCoalition("blue", BLUE_CAP_PATTERNS, BLUE_AWACS_PATTERNS)
 redState = InitCoalition("red", RED_CAP_PATTERNS, RED_AWACS_PATTERNS)
+
+if blueState then
+    DebugLog("Detection source on load: " .. (blueState.useSkynet and "Skynet IADS" or "MOOSE AWACS/EWR"), "blue")
+end
+if redState then
+    DebugLog("Detection source on load: " .. (redState.useSkynet and "Skynet IADS" or "MOOSE AWACS/EWR"), "red")
+end
 
 if __MooseCapInterceptNeedsRebuild and RebuildCoalition and blueState and redState then
     DebugLog("Rebuilding detection sets after config load.", "blue")
