@@ -116,6 +116,10 @@
     ],
     "configurationWorkOrders": [
         {
+            "file": "skynet-iads-expose.lua",
+            "mnemonic": "skynetiads-expose"
+        },
+        {
             "file": "skynetiads-config.lua",
             "mnemonic": "skynetiads-config"
         }

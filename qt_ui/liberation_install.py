@@ -186,6 +186,7 @@ def replace_mission_scripting_file():
         with open(mission_scripting_path, "r") as ms:
             current_file_content = ms.read()
         with open(liberation_scripting_path, "r") as libe_ms:
+
             liberation_file_content = libe_ms.read()
 
         # Save original file

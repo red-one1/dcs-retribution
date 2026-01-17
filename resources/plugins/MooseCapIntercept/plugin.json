@@ -1,0 +1,69 @@
+{
+    "nameInUI": "Moose CAP Intercept",
+    "defaultValue": false,
+    "specificOptions": [
+        {
+            "nameInUI": "Debug Mode",
+            "mnemonic": "MooseCapInterceptDebug",
+            "defaultValue": false
+        },
+        {
+            "nameInUI": "Debug To Coalition Messages",
+            "mnemonic": "MooseCapInterceptDebugToCoalition",
+            "defaultValue": false
+        },
+        {
+            "nameInUI": "Detection Grouping Radius (NM)",
+            "mnemonic": "DetectionGroupingRadius",
+            "defaultValue": 16
+        },
+        {
+            "nameInUI": "Detection Accept Range (NM)",
+            "mnemonic": "DetectionAcceptRange",
+            "defaultValue": 108
+        },
+        {
+            "nameInUI": "CAP Intercept Range (NM)",
+            "mnemonic": "CapInterceptRange",
+            "defaultValue": 32
+        },
+        {
+            "nameInUI": "Hot Aspect Max (deg)",
+            "mnemonic": "HotAspectDeg",
+            "defaultValue": 35
+        },
+        {
+            "nameInUI": "Flank Aspect Min (deg)",
+            "mnemonic": "FlankAspectMinDeg",
+            "defaultValue": 60
+        },
+        {
+            "nameInUI": "Flank Aspect Max (deg)",
+            "mnemonic": "FlankAspectMaxDeg",
+            "defaultValue": 120
+        },
+        {
+            "nameInUI": "Intercept Cooldown (sec)",
+            "mnemonic": "InterceptCooldownSec",
+            "defaultValue": 60
+        },
+        {
+            "nameInUI": "Max Intercept Duration (sec)",
+            "mnemonic": "InterceptMaxDurationSec",
+            "defaultValue": 180
+        },
+        {
+            "nameInUI": "Scheduler Interval (sec)",
+            "mnemonic": "SchedulerIntervalSec",
+            "defaultValue": 5
+        }
+    ],
+    "scriptsWorkOrders": [
+        {
+            "file": "MooseCapIntercept.lua",
+            "mnemonic": "MooseCapIntercept"
+        }
+    ],
+    "configurationWorkOrders": [],
+    "otherResourceFiles": []
+}
