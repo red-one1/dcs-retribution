@@ -3,7 +3,7 @@ anyio==3.7.1
 asgiref==3.8.1
 atomicwrites==1.4.1
 attrs==25.3.0
-black==25.1.0
+black==26.1.0
 certifi==2025.1.31
 cfgv==3.4.0
 click==8.1.8
@@ -25,7 +25,7 @@ mypy-extensions==1.0.0
 nodeenv==1.9.1
 numpy==1.26.4
 packaging==24.2
-pathspec==0.12.1
+pathspec==1.0.0
 pefile==2024.8.26
 Pillow==11.1.0
 platformdirs==4.3.7
@@ -33,7 +33,7 @@ pluggy==1.5.0
 pre-commit==4.2.0
 pydantic==2.11.0b2
 pydantic-settings==2.8.1
-pydcs @ git+https://github.com/dcs-retribution/pydcs@1f5f81210dffad2e0c2ea8be96702e39d2037bc7
+pydcs @ git+https://github.com/dcs-retribution/pydcs@0a431241c4b08aef9128538b69fc1d0611d4d3be
 pyinstaller==5.13.2
 pyinstaller-hooks-contrib==2024.0
 pyparsing==3.2.1
