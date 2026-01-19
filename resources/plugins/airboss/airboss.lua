@@ -15,6 +15,13 @@ airboss_options = {
     ["windowStartOption"] = 30,
     ["windowLengthOption"] = 30,
     ["despawnMinutesAfterLanding"] = 5, -- 0 = disabled, 1/2/3... = minutes after landing before despawn (unless unit shuts down)
+    ["openaiTtsEnabled"] = false,
+    ["openaiApiKey"] = "",
+    ["openaiModel"] = "gpt-4o-mini-tts",
+    ["openaiVoice"] = "alloy",
+    ["openaiFormat"] = "mp3",
+    ["openaiSpeed"] = 1.0,
+    ["openaiBaseUrl"] = "https://api.openai.com/v1/audio/speech",
 }
 
 -- Carrier data lookup table from Retribution
@@ -33,6 +40,13 @@ if dcsRetribution then
         airboss_options.windowStartOption = dcsRetribution.plugins.airboss.windowStartOption
         airboss_options.windowLengthOption = dcsRetribution.plugins.airboss.windowLengthOption
         airboss_options.despawnMinutesAfterLanding = dcsRetribution.plugins.airboss.despawnMinutesAfterLanding
+        airboss_options.openaiTtsEnabled = dcsRetribution.plugins.airboss.openaiTtsEnabled
+        airboss_options.openaiApiKey = dcsRetribution.plugins.airboss.openaiApiKey
+        airboss_options.openaiModel = dcsRetribution.plugins.airboss.openaiModel
+        airboss_options.openaiVoice = dcsRetribution.plugins.airboss.openaiVoice
+        airboss_options.openaiFormat = dcsRetribution.plugins.airboss.openaiFormat
+        airboss_options.openaiSpeed = dcsRetribution.plugins.airboss.openaiSpeed
+        airboss_options.openaiBaseUrl = dcsRetribution.plugins.airboss.openaiBaseUrl
     end
 
     -- Build carrier data lookup table
@@ -61,6 +75,174 @@ AirbossCarriers = AirbossCarriers or {}
 -- Per-unit despawn state
 AirbossPendingDespawnUnit = AirbossPendingDespawnUnit or {} -- unitName -> true
 AirbossShutdownSeenUnit   = AirbossShutdownSeenUnit   or {} -- unitName -> true
+
+-- OpenAI TTS (SRS ExternalAudio) helpers
+local function Airboss_JsonEscape(text)
+    if not text then return "" end
+    text = text:gsub("\\", "\\\\")
+    text = text:gsub("\"", "\\\"")
+    text = text:gsub("\r", "\\r")
+    text = text:gsub("\n", "\\n")
+    text = text:gsub("\t", "\\t")
+    return text
+end
+
+local function Airboss_EscapePs(text)
+    if not text then return "" end
+    return text:gsub("'", "''")
+end
+
+local function Airboss_EnsureDir(path)
+    if not path or path == "" then return end
+    if lfs and lfs.attributes(path, "mode") ~= "directory" then
+        lfs.mkdir(path)
+    elseif not lfs then
+        os.execute(string.format('mkdir "%s"', path))
+    end
+end
+
+local function Airboss_OpenAiCreateAudioFile(text, msrs, opts)
+    if not text or text == "" then return nil end
+    if not opts or not opts.apiKey or opts.apiKey == "" then
+        env.info("AIRBOSS: OpenAI TTS enabled but API key missing.")
+        return nil
+    end
+
+    local format = tostring(opts.format or "mp3"):lower()
+    if format ~= "mp3" and format ~= "wav" and format ~= "opus" then
+        format = "mp3"
+    end
+
+    local baseDir = (msrs and msrs:GetPath()) or "C:\\Program Files\\DCS-SimpleRadio-Standalone\\ExternalAudio"
+    local outputDir = baseDir .. "\\openai_tts"
+    Airboss_EnsureDir(outputDir)
+
+    local outFile = string.format("%s\\airboss_openai_%s.%s", outputDir, MSRS.uuid(), format)
+    local bodyJson = string.format(
+        '{"model":"%s","voice":"%s","input":"%s","response_format":"%s","speed":%s}',
+        tostring(opts.model or "gpt-4o-mini-tts"),
+        tostring(opts.voice or "alloy"),
+        Airboss_JsonEscape(text),
+        format,
+        tostring(opts.speed or 1.0)
+    )
+
+    local scriptPath = os.getenv("TMP") .. "\\AIRBOSS-OpenAI-" .. MSRS.uuid() .. ".ps1"
+    local script = io.open(scriptPath, "w+")
+    if not script then
+        env.info("AIRBOSS: Failed to create OpenAI TTS script file.")
+        return nil
+    end
+
+    local ps = string.format(
+        "$headers = @{ Authorization = 'Bearer %s' }\n$body = '%s'\nInvoke-WebRequest -Uri '%s' -Method Post -Headers $headers -Body $body -ContentType 'application/json' -OutFile '%s'\n",
+        Airboss_EscapePs(opts.apiKey),
+        Airboss_EscapePs(bodyJson),
+        Airboss_EscapePs(opts.baseUrl or "https://api.openai.com/v1/audio/speech"),
+        Airboss_EscapePs(outFile)
+    )
+    script:write(ps)
+    script:close()
+
+    local cmd = string.format('powershell -NoProfile -ExecutionPolicy Bypass -File "%s"', scriptPath)
+    os.execute(cmd)
+    os.remove(scriptPath)
+
+    if UTILS and UTILS.FileExists(outFile) then
+        return outFile
+    end
+
+    env.info("AIRBOSS: OpenAI TTS failed to create audio file: " .. outFile)
+    return nil
+end
+
+local function Airboss_OpenAiScheduleCleanup(path, text, speed)
+    if not path or path == "" then return end
+    local delay = (MSRS.getSpeechTime(text or "", speed or 1.0, false) or 15) + 30
+    SCHEDULER:New(nil,
+        function()
+            if UTILS and UTILS.FileExists(path) then
+                os.remove(path)
+            end
+        end,
+        {},
+        delay
+    )
+end
+
+local function Airboss_EnableOpenAiTts(msrs, opts)
+    if not msrs or not opts or not opts.enabled then return end
+    if not opts.apiKey or opts.apiKey == "" then
+        env.info("AIRBOSS: OpenAI TTS enabled but API key missing.")
+        return
+    end
+
+    msrs:SetBackend(MSRS.Backend.SRSEXE)
+    msrs:SetProvider("openai")
+    msrs._openai = {
+        apiKey = opts.apiKey,
+        model = opts.model,
+        voice = opts.voice,
+        format = opts.format,
+        speed = opts.speed,
+        baseUrl = opts.baseUrl,
+    }
+
+    if not msrs._openaiOriginal then
+        msrs._openaiOriginal = {
+            PlayTextExt = msrs.PlayTextExt,
+            PlayText = msrs.PlayText,
+        }
+    end
+
+    msrs.PlayTextExt = function(self, Text, Delay, Frequencies, Modulations, Gender, Culture, Voice, Volume, Label, Coordinate)
+        if not self._openai then
+            return self._openaiOriginal.PlayTextExt(self, Text, Delay, Frequencies, Modulations, Gender, Culture, Voice, Volume, Label, Coordinate)
+        end
+
+        if Delay and Delay > 0 then
+            self:ScheduleOnce(Delay, self.PlayTextExt, self, Text, 0, Frequencies, Modulations, Gender, Culture, Voice, Volume, Label, Coordinate)
+            return self
+        end
+
+        local openaiOpts = {
+            apiKey = self._openai.apiKey,
+            model = self._openai.model,
+            voice = Voice or self._openai.voice,
+            format = self._openai.format,
+            speed = self._openai.speed,
+            baseUrl = self._openai.baseUrl,
+        }
+
+        local outFile = Airboss_OpenAiCreateAudioFile(Text, self, openaiOpts)
+        if not outFile then
+            return self._openaiOriginal.PlayTextExt(self, Text, Delay, Frequencies, Modulations, Gender, Culture, Voice, Volume, Label, Coordinate)
+        end
+
+        local freqs = Frequencies or self:GetFrequencies()
+        local mods = Modulations or self:GetModulations()
+        local originalProvider = self.provider
+        self.provider = MSRS.Provider.WINDOWS
+        local command = self:_GetCommand(UTILS.EnsureTable(freqs, false), UTILS.EnsureTable(mods, false), nil, Gender, nil, Culture, Volume, nil, nil, Label, Coordinate)
+        self.provider = originalProvider
+
+        if not string.find(command, "CommandNotFound") then
+            command = command .. string.format(' --file="%s"', tostring(outFile))
+            command = string.gsub(command, "--ssml", "-h")
+            self:_ExecCommand(command)
+            Airboss_OpenAiScheduleCleanup(outFile, Text, openaiOpts.speed)
+        end
+
+        return self
+    end
+
+    msrs.PlayText = function(self, Text, Delay, Coordinate)
+        if self._openai then
+            return self:PlayTextExt(Text, Delay, nil, nil, nil, nil, nil, nil, nil, Coordinate)
+        end
+        return self._openaiOriginal.PlayText(self, Text, Delay, Coordinate)
+    end
+end
 
 -- RESCUE HELO
 
@@ -594,6 +776,22 @@ function SetupAirboss(nameOfCarrier, carrierType)
     if MSRS_Config then
         env.info("AIRBOSS: MSRS configuration file was loaded, Setting SRS to Active.")
         AirbossRetribution:EnableSRS()
+
+        if airboss_options.openaiTtsEnabled then
+            if AirbossRetribution.SRS then
+                Airboss_EnableOpenAiTts(AirbossRetribution.SRS, {
+                    enabled = airboss_options.openaiTtsEnabled,
+                    apiKey = airboss_options.openaiApiKey,
+                    model = airboss_options.openaiModel,
+                    voice = airboss_options.openaiVoice,
+                    format = airboss_options.openaiFormat,
+                    speed = airboss_options.openaiSpeed,
+                    baseUrl = airboss_options.openaiBaseUrl,
+                })
+            else
+                env.info("AIRBOSS: OpenAI TTS enabled but SRS not initialized.")
+            end
+        end
     else
         env.info("AIRBOSS: MSRS Configuration File not loaded, falling back to Soundfiles")
     end

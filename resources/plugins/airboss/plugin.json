@@ -68,6 +68,43 @@
             "minimumValue": 0,
             "maximumValue": 30,
             "defaultValue": 5
+        },
+        {
+            "nameInUI": "Enable OpenAI TTS (SRS ExternalAudio)",
+            "mnemonic": "openaiTtsEnabled",
+            "defaultValue": false
+        },
+        {
+            "nameInUI": "OpenAI API Key",
+            "mnemonic": "openaiApiKey",
+            "defaultValue": ""
+        },
+        {
+            "nameInUI": "OpenAI TTS Model",
+            "mnemonic": "openaiModel",
+            "defaultValue": "gpt-4o-mini-tts"
+        },
+        {
+            "nameInUI": "OpenAI Voice",
+            "mnemonic": "openaiVoice",
+            "defaultValue": "alloy"
+        },
+        {
+            "nameInUI": "OpenAI Audio Format",
+            "mnemonic": "openaiFormat",
+            "defaultValue": "mp3"
+        },
+        {
+            "nameInUI": "OpenAI Speech Speed",
+            "mnemonic": "openaiSpeed",
+            "minimumValue": 0.5,
+            "maximumValue": 2.0,
+            "defaultValue": 1.0
+        },
+        {
+            "nameInUI": "OpenAI API Base URL",
+            "mnemonic": "openaiBaseUrl",
+            "defaultValue": "https://api.openai.com/v1/audio/speech"
         }
     ],
 
