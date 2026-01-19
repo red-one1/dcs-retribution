@@ -10,6 +10,7 @@ from PySide6.QtWidgets import (
     QWidget,
     QDoubleSpinBox,
     QSpinBox,
+    QLineEdit,
 )
 
 from game.plugins import LuaPlugin, LuaPluginManager
@@ -97,6 +98,12 @@ class PluginOptionsBox(QGroupBox):
                 spinbox.valueChanged.connect(option.set_value)
                 layout.addWidget(spinbox, row, 1)
                 self.widgets[option.identifier] = spinbox
+            elif isinstance(val, str):
+                line_edit = QLineEdit()
+                line_edit.setText(val)
+                line_edit.textChanged.connect(option.set_value)
+                layout.addWidget(line_edit, row, 1)
+                self.widgets[option.identifier] = line_edit
 
     def update_from_settings(self, settings: Settings) -> None:
         for identifier in self.widgets:
@@ -106,6 +113,8 @@ class PluginOptionsBox(QGroupBox):
                 w.setChecked(value)
             elif isinstance(w, QDoubleSpinBox) or isinstance(w, QSpinBox):
                 w.setValue(value)
+            elif isinstance(w, QLineEdit):
+                w.setText(value)
 
 
 class PluginOptionsPage(QWidget):

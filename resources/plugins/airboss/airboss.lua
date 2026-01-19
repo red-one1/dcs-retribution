@@ -101,6 +101,26 @@ local function Airboss_EnsureDir(path)
     end
 end
 
+local function Airboss_OpenAiNormalizeVoice(voice)
+    if not voice or voice == "" then return "alloy" end
+    local v = tostring(voice)
+    local vlower = string.lower(v)
+    local allowed = {
+        alloy = true,
+        echo = true,
+        fable = true,
+        onyx = true,
+        nova = true,
+        shimmer = true,
+    }
+    if not allowed[vlower] then
+        env.info("AIRBOSS: OpenAI TTS voice '" .. v .. "' is not valid. Falling back to 'alloy'.")
+        return "alloy"
+    end
+    return vlower
+end
+
+
 local function Airboss_OpenAiCreateAudioFile(text, msrs, opts)
     if not text or text == "" then return nil end
     if not opts or not opts.apiKey or opts.apiKey == "" then
@@ -108,50 +128,110 @@ local function Airboss_OpenAiCreateAudioFile(text, msrs, opts)
         return nil
     end
 
+    env.info("AIRBOSS: OpenAI TTS request received. Text length=" .. tostring(#text))
+
     local format = tostring(opts.format or "mp3"):lower()
     if format ~= "mp3" and format ~= "wav" and format ~= "opus" then
         format = "mp3"
     end
 
-    local baseDir = (msrs and msrs:GetPath()) or "C:\\Program Files\\DCS-SimpleRadio-Standalone\\ExternalAudio"
-    local outputDir = baseDir .. "\\openai_tts"
+    local voice = Airboss_OpenAiNormalizeVoice(opts.voice)
+
+    env.info("AIRBOSS: OpenAI TTS settings model=" .. tostring(opts.model or "gpt-4o-mini-tts") ..
+        " voice=" .. tostring(voice) ..
+        " format=" .. tostring(format) ..
+        " speed=" .. tostring(opts.speed or 1.0) ..
+        " baseUrl=" .. tostring(opts.baseUrl or "https://api.openai.com/v1/audio/speech"))
+
+    local outputDir = nil
+    local tempDir = os.getenv("TMP") or os.getenv("TEMP")
+    if tempDir and tempDir ~= "" then
+        outputDir = tempDir .. "\\openai_tts"
+    elseif lfs and lfs.writedir then
+        outputDir = lfs.writedir() .. "Logs\\openai_tts"
+    else
+        outputDir = "C:\\Users\\Public\\Documents\\openai_tts"
+    end
     Airboss_EnsureDir(outputDir)
+
+    env.info("AIRBOSS: OpenAI TTS output directory: " .. tostring(outputDir))
 
     local outFile = string.format("%s\\airboss_openai_%s.%s", outputDir, MSRS.uuid(), format)
     local bodyJson = string.format(
         '{"model":"%s","voice":"%s","input":"%s","response_format":"%s","speed":%s}',
         tostring(opts.model or "gpt-4o-mini-tts"),
-        tostring(opts.voice or "alloy"),
+        tostring(voice),
         Airboss_JsonEscape(text),
         format,
         tostring(opts.speed or 1.0)
     )
 
     local scriptPath = os.getenv("TMP") .. "\\AIRBOSS-OpenAI-" .. MSRS.uuid() .. ".ps1"
+    local errorPath = os.getenv("TMP") .. "\\AIRBOSS-OpenAI-" .. MSRS.uuid() .. ".err.log"
     local script = io.open(scriptPath, "w+")
     if not script then
         env.info("AIRBOSS: Failed to create OpenAI TTS script file.")
         return nil
     end
 
+    env.info("AIRBOSS: OpenAI TTS PowerShell script path: " .. tostring(scriptPath))
+
     local ps = string.format(
-        "$headers = @{ Authorization = 'Bearer %s' }\n$body = '%s'\nInvoke-WebRequest -Uri '%s' -Method Post -Headers $headers -Body $body -ContentType 'application/json' -OutFile '%s'\n",
+        "$ErrorActionPreference = 'Stop'\n" ..
+        "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12\n" ..
+        "$headers = @{ Authorization = 'Bearer %s' }\n" ..
+        "$body = '%s'\n" ..
+        "try {\n" ..
+        "  $resp = Invoke-WebRequest -Uri '%s' -Method Post -Headers $headers -Body $body -ContentType 'application/json' -OutFile '%s'\n" ..
+        "  if ($resp.StatusCode -lt 200 -or $resp.StatusCode -ge 300) { throw \"HTTP $($resp.StatusCode)\" }\n" ..
+        "} catch {\n" ..
+        "  $err = $_.Exception\n" ..
+        "  $status = ''\n" ..
+        "  $respBody = ''\n" ..
+        "  if ($err -and $err.Response) {\n" ..
+        "    try {\n" ..
+        "      $status = $err.Response.StatusCode.value__\n" ..
+        "      $reader = New-Object System.IO.StreamReader($err.Response.GetResponseStream())\n" ..
+        "      $respBody = $reader.ReadToEnd()\n" ..
+        "    } catch {}\n" ..
+        "  }\n" ..
+        "  \"HTTP Status: $status\" | Out-File -FilePath '%s' -Encoding UTF8\n" ..
+        "  \"Response Body:\" | Out-File -FilePath '%s' -Append -Encoding UTF8\n" ..
+        "  $respBody | Out-File -FilePath '%s' -Append -Encoding UTF8\n" ..
+        "  $_ | Out-File -FilePath '%s' -Append -Encoding UTF8\n" ..
+        "  exit 1\n" ..
+        "}\n",
         Airboss_EscapePs(opts.apiKey),
         Airboss_EscapePs(bodyJson),
         Airboss_EscapePs(opts.baseUrl or "https://api.openai.com/v1/audio/speech"),
-        Airboss_EscapePs(outFile)
+        Airboss_EscapePs(outFile),
+        Airboss_EscapePs(errorPath),
+        Airboss_EscapePs(errorPath),
+        Airboss_EscapePs(errorPath),
+        Airboss_EscapePs(errorPath)
     )
     script:write(ps)
     script:close()
 
     local cmd = string.format('powershell -NoProfile -ExecutionPolicy Bypass -File "%s"', scriptPath)
+    env.info("AIRBOSS: OpenAI TTS executing PowerShell request.")
     os.execute(cmd)
     os.remove(scriptPath)
 
+    env.info("AIRBOSS: OpenAI TTS PowerShell request completed. Output file: " .. tostring(outFile))
+
     if UTILS and UTILS.FileExists(outFile) then
+        if lfs and lfs.attributes then
+            local size = lfs.attributes(outFile, "size")
+            env.info("AIRBOSS: OpenAI TTS output file size: " .. tostring(size))
+        end
+        env.info("AIRBOSS: OpenAI TTS audio file created successfully.")
         return outFile
     end
 
+    if UTILS and UTILS.FileExists(errorPath) then
+        env.info("AIRBOSS: OpenAI TTS PowerShell error log: " .. tostring(errorPath))
+    end
     env.info("AIRBOSS: OpenAI TTS failed to create audio file: " .. outFile)
     return nil
 end
@@ -177,8 +257,13 @@ local function Airboss_EnableOpenAiTts(msrs, opts)
         return
     end
 
+    env.info("AIRBOSS: Enabling OpenAI TTS. model=" .. tostring(opts.model or "gpt-4o-mini-tts") ..
+        " voice=" .. tostring(opts.voice or "alloy") ..
+        " format=" .. tostring(opts.format or "mp3") ..
+        " speed=" .. tostring(opts.speed or 1.0) ..
+        " baseUrl=" .. tostring(opts.baseUrl or "https://api.openai.com/v1/audio/speech"))
+
     msrs:SetBackend(MSRS.Backend.SRSEXE)
-    msrs:SetProvider("openai")
     msrs._openai = {
         apiKey = opts.apiKey,
         model = opts.model,
@@ -192,6 +277,7 @@ local function Airboss_EnableOpenAiTts(msrs, opts)
         msrs._openaiOriginal = {
             PlayTextExt = msrs.PlayTextExt,
             PlayText = msrs.PlayText,
+            PlaySoundText = msrs.PlaySoundText,
         }
     end
 
@@ -208,7 +294,7 @@ local function Airboss_EnableOpenAiTts(msrs, opts)
         local openaiOpts = {
             apiKey = self._openai.apiKey,
             model = self._openai.model,
-            voice = Voice or self._openai.voice,
+            voice = Airboss_OpenAiNormalizeVoice(Voice or self._openai.voice),
             format = self._openai.format,
             speed = self._openai.speed,
             baseUrl = self._openai.baseUrl,
@@ -242,6 +328,41 @@ local function Airboss_EnableOpenAiTts(msrs, opts)
         end
         return self._openaiOriginal.PlayText(self, Text, Delay, Coordinate)
     end
+
+    msrs.PlaySoundText = function(self, SoundText, Delay)
+        if not self._openai then
+            return self._openaiOriginal.PlaySoundText(self, SoundText, Delay)
+        end
+
+        if not SoundText or not SoundText.text then
+            env.info("AIRBOSS: OpenAI TTS PlaySoundText called without text, falling back.")
+            return self._openaiOriginal.PlaySoundText(self, SoundText, Delay)
+        end
+
+        env.info("AIRBOSS: OpenAI TTS PlaySoundText invoked. Text length=" .. tostring(#SoundText.text))
+
+        local oldSpeed = self._openai.speed
+        if SoundText.speed then
+            self._openai.speed = SoundText.speed
+        end
+
+        local result = self:PlayTextExt(
+            SoundText.text,
+            Delay,
+            nil,
+            nil,
+            SoundText.gender,
+            SoundText.culture,
+            SoundText.voice,
+            SoundText.volume,
+            SoundText.label,
+            SoundText.coordinate
+        )
+
+        self._openai.speed = oldSpeed
+        return result
+    end
+
 end
 
 -- RESCUE HELO

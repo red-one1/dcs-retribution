@@ -172,9 +172,22 @@ class LuaPlugin(PluginSettings):
     def inject_configuration(self, lua_generator: LuaGenerator) -> None:
         # inject the plugin options
         if self.options:
+
+            def _lua_value(value: Any) -> str:
+                if value is None:
+                    return "nil"
+                if isinstance(value, bool):
+                    return str(value).lower()
+                if isinstance(value, (int, float)):
+                    return str(value)
+                if isinstance(value, str):
+                    escaped = value.replace("\\", "\\\\").replace('"', '\\"')
+                    return f'"{escaped}"'
+                return f'"{str(value)}"'
+
             option_decls = []
             for option in self.options:
-                value = str(option.get_value).lower()
+                value = _lua_value(option.get_value)
                 name = option.identifier
                 option_decls.append(f"    dcsRetribution.plugins.{name} = {value}")
 
