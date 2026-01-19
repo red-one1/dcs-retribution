@@ -27,4 +27,4 @@ env/
 *.psd
 
 .gitignore
-resources/plugins/base/Moose.lua
+resources/plugins/base/Moose_commented.lua
