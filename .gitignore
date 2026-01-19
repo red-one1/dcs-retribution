@@ -28,3 +28,4 @@ env/
 
 .gitignore
 resources/plugins/base/Moose_commented.lua
+AGENTS.md
