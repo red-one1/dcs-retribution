@@ -2,6 +2,7 @@ from dcs.point import MovingPoint
 from dcs.task import (
     OptECMUsing,
     OptFormation,
+    OptROE,
     SetUnlimitedFuelCommand,
     SwitchWaypoint,
     RunScript,
@@ -42,6 +43,9 @@ class SplitPointBuilder(PydcsWaypointBuilder):
                 f'trigger.action.setUserFlag("split-{id(self.package)}", true)'
             )
             waypoint.tasks.append(script)
+
+        if self.flight.flight_type == FlightType.ESCORT:
+            waypoint.tasks.append(OptROE(value=OptROE.Values.OpenFire))
 
         elif self.flight.flight_type in [
             FlightType.SEAD_SWEEP,
