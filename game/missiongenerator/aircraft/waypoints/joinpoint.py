@@ -7,6 +7,7 @@ from dcs.task import (
     EscortTaskAction,
     OptECMUsing,
     OptFormation,
+    OptROE,
     Targets,
     SetUnlimitedFuelCommand,
 )
@@ -49,10 +50,11 @@ class JoinPointBuilder(PydcsWaypointBuilder):
                     Targets.All.GroundUnits.GroundVehicles.ArmoredVehicles.id,
                     Targets.All.Naval.Ships.ArmedShips.LightArmedShips.id,
                 ]
+            waypoint.tasks.append(OptROE(value=OptROE.Values.OpenFireWeaponFree))
             self.configure_escort_tasks(
                 waypoint,
                 targets,
-                max_dist=doctrine.escort_engagement_range.nautical_miles,
+                max_dist=doctrine.escort_engagement_range.nautical_miles * 0.66,
                 vertical_spacing=doctrine.escort_spacing.feet,
             )
 
