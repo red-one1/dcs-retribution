@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import random
 from typing import TYPE_CHECKING
 
 import shapely.ops
@@ -23,7 +24,7 @@ class JoinZoneGeometry:
     The zones themselves are stored in the class rather than just the resulting join
     point so that the zones can be drawn in the map for debugging purposes.
     Join placement is additionally randomized to keep join points closer to home than
-    the target (25% to 40% of the home-to-target distance).
+    the target (35% to 36% of the home-to-target distance).
     """
 
     def __init__(
@@ -126,3 +127,14 @@ class JoinZoneGeometry:
 
         join, _ = shapely.ops.nearest_points(search_geometry, self.ip)
         return self._target.new_in_same_map(join.x, join.y)
+
+    def _random_point_in_geometry(self, geometry: MultiPolygon) -> Point | None:
+        if geometry.is_empty:
+            return None
+        minx, miny, maxx, maxy = geometry.bounds
+        for _ in range(100):
+            x = random.uniform(minx, maxx)
+            y = random.uniform(miny, maxy)
+            if geometry.contains(ShapelyPoint(x, y)):
+                return self._target.new_in_same_map(x, y)
+        return None
