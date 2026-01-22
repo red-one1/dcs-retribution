@@ -61,6 +61,9 @@ class PackageWaypoints:
             coalition,
         ).find_best_join_point()
 
+        # Join/split are derived from join_point; JoinZoneGeometry randomizes the
+        # join distance between 25% and 40% of the home-to-target leg.
+
         refuel_point = RefuelZoneGeometry(
             origin.position,
             join_point,
