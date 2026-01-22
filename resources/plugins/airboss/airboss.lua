@@ -14,11 +14,60 @@ airboss_options = {
     ["rescueZoneRadius"] = 50,
     ["windowStartOption"] = 30,
     ["windowLengthOption"] = 30,
-    ["despawnMinutesAfterLanding"] = 5, -- 0 = disabled, 1/2/3... = minutes after landing before despawn (unless unit shuts down)
+    ["turnTimeBeforeRecovery"] = 5, -- Time in minutes for carrier to turn into wind before recovery window starts
+    ["despawnMinutesAfterLanding"] = 5,
 }
 
--- Carrier data lookup table from Retribution
+--- Patch AIRBOSS duplicate flight group creation to avoid errors when players join existing groups.
+--
+-- This wrapper prevents duplicate `AIRBOSS:_CreateFlightGroup()` calls from logging an error
+-- when a player joins a group that is already tracked. It reuses the existing flight record.
+if AIRBOSS and not AIRBOSS._CreateFlightGroupPatched then
+    AIRBOSS._CreateFlightGroupPatched = true
+    local _airbossCreateFlightGroup = AIRBOSS._CreateFlightGroup
+
+    function AIRBOSS:_CreateFlightGroup(group)
+        local existingFlight = self:_GetFlightFromGroupInQueue(group, self.flights)
+        if existingFlight then
+            self:T2(self.lid .. string.format(
+                "INFO: Flight group %s already exists in self.flights; reusing existing flight.",
+                group:GetName()
+            ))
+            return existingFlight
+        end
+
+        if type(_airbossCreateFlightGroup) == "function" then
+            return _airbossCreateFlightGroup(self, group)
+        end
+        return nil
+    end
+end
+
+--- Patch AIRBOSS player-left handler to safely return when IniUnit is missing.
+--
+-- Some DCS PLAYERLEFTUNIT events can arrive without `EventData.IniUnit`. This wrapper
+-- ignores those events to avoid noisy errors while preserving the original behavior.
+if AIRBOSS and not AIRBOSS._PlayerLeftPatched then
+    AIRBOSS._PlayerLeftPatched = true
+    local _airbossPlayerLeft = AIRBOSS._PlayerLeft
+
+    function AIRBOSS:_PlayerLeft(EventData)
+        if not EventData or not EventData.IniUnit then
+            self:T2(self.lid .. "INFO: PLAYERLEFTUNIT with nil IniUnit; ignoring.")
+            return
+        end
+
+        if type(_airbossPlayerLeft) == "function" then
+            return _airbossPlayerLeft(self, EventData)
+        end
+        return nil
+    end
+end
+
+-- Single root for admin-style F10 entries so we do not clutter the default player menus.
+local airbossAdminMenuRoot = nil
 airboss_carrier_data = {}
+
 
 if dcsRetribution then
     if dcsRetribution.plugins and dcsRetribution.plugins.airboss then
@@ -34,7 +83,6 @@ if dcsRetribution then
         airboss_options.windowLengthOption = dcsRetribution.plugins.airboss.windowLengthOption
         airboss_options.despawnMinutesAfterLanding = dcsRetribution.plugins.airboss.despawnMinutesAfterLanding
     end
-
     -- Build carrier data lookup table
     if dcsRetribution.Carriers then
         for _, carrier in pairs(dcsRetribution.Carriers) do
@@ -43,7 +91,7 @@ if dcsRetribution then
         end
     end
 end
-
+    
 --    env.info("AIRBOSS Rescue Helo Enabled: " .. tostring(airboss_options.enableRescueHelo))
 --    env.info("AIRBOSS AWACS Enabled: " .. tostring(airboss_options.enableAWACS))
 --    env.info("AIRBOSS Tanker Enabled: " .. tostring(airboss_options.enableTanker))
@@ -63,6 +111,60 @@ AirbossPendingDespawnUnit = AirbossPendingDespawnUnit or {} -- unitName -> true
 AirbossShutdownSeenUnit   = AirbossShutdownSeenUnit   or {} -- unitName -> true
 
 -- RESCUE HELO
+
+local function AddManualTurnIntoWindMenu(airbossInstance, carrierName)
+    if not airbossInstance then
+        env.info("AIRBOSS: Skipping manual turn-into-wind menu, no instance")
+        return
+    end
+
+    airbossAdminMenuRoot = airbossAdminMenuRoot or MENU_MISSION:New("Airboss Admin")
+    local carrierMenu = MENU_MISSION:New(string.format("%s", carrierName), airbossAdminMenuRoot)
+
+    MENU_MISSION_COMMAND:New(
+        string.format("Turn into wind now (%d min)", airboss_options.windowLengthOption),
+        carrierMenu,
+        function()
+            local isDay = true
+            local bullseye = COORDINATE.GetBullseyeCoordinate(coalition.side.BLUE)
+            if bullseye then
+                isDay = bullseye:IsDay()
+            end
+
+            local caseNumber = isDay and 1 or 3
+            local durationSec = airboss_options.windowLengthOption * 60
+
+            -- Open now (start=nil) with custom length (stop as seconds from now), force into-wind.
+
+            -- function AIRBOSS:AddRecoveryWindow( starttime, stoptime, case, holdingoffset, turnintowind, speed, uturn )
+            airbossInstance:SetRecoveryTurnTime(airboss_options.turnTimeBeforeRecovery * 60)
+            string.format("Beginning turn for %d minutes", airboss_options.turnTimeBeforeRecovery*60)
+            airbossInstance:AddRecoveryWindow(
+                airboss_options.turnTimeBeforeRecovery * 60,
+                durationSec,
+                caseNumber,
+                nil,
+                true,
+                20,
+                true
+            )
+            string.format("Setting recovery window for %d minutes after turn ends",  airboss_options.windowLengthOption)
+
+
+            MESSAGE:New(
+                string.format(
+                    "AIRBOSS: %s turning into the wind now for %d minutes (Case %d)",
+                    carrierName,
+                    airboss_options.windowLengthOption,
+                    caseNumber
+                ),
+                10,
+                "RETRIBUTION",
+                false
+            ):ToAll():ToLog()
+        end
+    )
+end
 
 function AddRescueHelo(nameOfCarrier)
     env.info("AIRBOSS: Loading Rescue Helo")
@@ -589,6 +691,10 @@ function SetupAirboss(nameOfCarrier, carrierType)
     AirbossRetribution:SetCollisionDistance(15)
     AirbossRetribution:SetCarrierIllumination(-1)
     AirbossRetribution:SetExtraVoiceOvers(true)
+    AirbossRetribution:SetExtraVoiceOversAI(true)
+
+    -- Expose an always-on admin menu to force the carrier to turn into wind without mission edits.
+    AddManualTurnIntoWindMenu(AirbossRetribution, nameOfCarrier)
     ReportDayNightStatusAtBullseye()
 
     if MSRS_Config then
