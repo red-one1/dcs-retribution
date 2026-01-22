@@ -42,6 +42,7 @@ from .seadsweepingress import SeadSweepIngressBuilder
 from .splitpoint import SplitPointBuilder
 from .strikeingress import StrikeIngressBuilder
 from .sweepingress import SweepIngressBuilder
+from .takeoff import TakeoffPointBuilder
 from .target import TargetBuilder
 
 
@@ -157,6 +158,7 @@ class WaypointGenerator:
             FlightWaypointType.SPLIT: SplitPointBuilder,
             FlightWaypointType.TARGET_GROUP_LOC: TargetBuilder,
             FlightWaypointType.TARGET_POINT: TargetBuilder,
+            FlightWaypointType.TAKEOFF: TakeoffPointBuilder,
         }
         builder = builders.get(waypoint.waypoint_type, DefaultWaypointBuilder)
         return builder(
