@@ -1,4 +1,3 @@
-import random
 from typing import List
 
 from dcs.point import MovingPoint
@@ -7,6 +6,7 @@ from dcs.task import (
     EscortTaskAction,
     OptECMUsing,
     OptFormation,
+    OptROE,
     Targets,
     SetUnlimitedFuelCommand,
 )
@@ -49,10 +49,11 @@ class JoinPointBuilder(PydcsWaypointBuilder):
                     Targets.All.GroundUnits.GroundVehicles.ArmoredVehicles.id,
                     Targets.All.Naval.Ships.ArmedShips.LightArmedShips.id,
                 ]
+            waypoint.tasks.append(OptROE(value=OptROE.Values.OpenFireWeaponFree))
             self.configure_escort_tasks(
                 waypoint,
                 targets,
-                max_dist=doctrine.escort_engagement_range.nautical_miles,
+                max_dist=doctrine.escort_engagement_range.nautical_miles * 0.66,
                 vertical_spacing=doctrine.escort_spacing.feet,
             )
 
@@ -114,10 +115,9 @@ class JoinPointBuilder(PydcsWaypointBuilder):
         max_dist: float = 30.0,
         vertical_spacing: float = 2000.0,
     ) -> None:
-        rx = (random.random() + 0.1) * 333
+        # rx = (random.random() + 0.1) * 333
         ry = feet(vertical_spacing).meters
-        rz = (random.random() + 0.1) * 166 * random.choice([-1, 1])
-        pos = {"x": rx, "y": ry, "z": rz}
+        pos = {"x": 0.0, "y": ry, "z": nautical_miles(5).meters}
         engage_dist = int(nautical_miles(max_dist).meters)
 
         if self.flight.is_helo:
