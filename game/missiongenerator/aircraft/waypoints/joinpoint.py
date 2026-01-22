@@ -1,4 +1,3 @@
-import random
 from typing import List
 
 from dcs.point import MovingPoint
@@ -118,8 +117,7 @@ class JoinPointBuilder(PydcsWaypointBuilder):
     ) -> None:
         # rx = (random.random() + 0.1) * 333
         ry = feet(vertical_spacing).meters
-        rz = (random.random() + 0.1) * 166 * random.choice([-1, 1])
-        pos = {"x": nautical_miles(5).meters, "y": ry, "z": rz}
+        pos = {"x": 0.0, "y": ry, "z": nautical_miles(5).meters}
         engage_dist = int(nautical_miles(max_dist).meters)
 
         if self.flight.is_helo:
