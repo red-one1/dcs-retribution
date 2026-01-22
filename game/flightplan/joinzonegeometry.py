@@ -90,11 +90,11 @@ class JoinZoneGeometry:
             ]
         )
 
-        permissible_zones = (
-            ip_direction_limit_wedge.difference(self.excluded_zones)
-            .difference(self.home_bubble)
-            .intersection(self.distance_ring)
-        )
+        base_zones = ip_direction_limit_wedge.difference(
+            self.excluded_zones
+        ).difference(self.home_bubble)
+        self.base_zones = base_zones
+        permissible_zones = base_zones.intersection(self.distance_ring)
         if permissible_zones.is_empty:
             permissible_zones = MultiPolygon([])
         if not isinstance(permissible_zones, MultiPolygon):
@@ -112,6 +112,24 @@ class JoinZoneGeometry:
         if not isinstance(preferred_lines, MultiLineString):
             preferred_lines = MultiLineString([preferred_lines])
         self.preferred_lines = preferred_lines
+
+        fallback_zones = base_zones.intersection(self.max_distance_bubble)
+        if fallback_zones.is_empty:
+            fallback_zones = MultiPolygon([])
+        if not isinstance(fallback_zones, MultiPolygon):
+            fallback_zones = MultiPolygon([fallback_zones])
+        self.fallback_zones = fallback_zones
+
+        fallback_lines = (
+            ip_direction_limit_wedge.intersection(self.excluded_zones.boundary)
+            .difference(self.home_bubble)
+            .intersection(self.max_distance_bubble)
+        )
+        if fallback_lines.is_empty:
+            fallback_lines = MultiLineString([])
+        if not isinstance(fallback_lines, MultiLineString):
+            fallback_lines = MultiLineString([fallback_lines])
+        self.fallback_lines = fallback_lines
 
     def find_best_join_point(self) -> Point:
         # Choose the best available geometry for nearest point computation.
