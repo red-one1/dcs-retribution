@@ -116,10 +116,19 @@ class JoinZoneGeometry:
     def find_best_join_point(self) -> Point:
         if random_point := self._random_point_in_geometry(self.permissible_zones):
             return random_point
-        if self.preferred_lines.is_empty:
-            join, _ = shapely.ops.nearest_points(self.permissible_zones, self.ip)
+
+        # Choose the best available geometry for nearest point computation.
+        # Prefer preferred_lines when available; fall back to permissible_zones.
+        if not self.preferred_lines.is_empty:
+            search_geometry = self.preferred_lines
+        elif not self.permissible_zones.is_empty:
+            search_geometry = self.permissible_zones
         else:
-            join, _ = shapely.ops.nearest_points(self.preferred_lines, self.ip)
+            # No usable geometry; fall back deterministically to the IP position.
+            join = self.ip
+            return self._target.new_in_same_map(join.x, join.y)
+
+        join, _ = shapely.ops.nearest_points(search_geometry, self.ip)
         return self._target.new_in_same_map(join.x, join.y)
 
     def _random_point_in_geometry(self, geometry: MultiPolygon) -> Point | None:
