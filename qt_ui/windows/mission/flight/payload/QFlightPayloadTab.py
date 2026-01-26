@@ -15,7 +15,9 @@ from PySide6.QtWidgets import (
 from game import Game
 from game.ato.flight import Flight
 from game.ato.flightmember import FlightMember
+from game.ato.flightwaypointtype import FlightWaypointType
 from game.ato.loadouts import Loadout
+from game.utils import LBS_TO_KG
 from qt_ui.widgets.QLabeledWidget import QLabeledWidget
 from qt_ui.widgets.combos.QSquadronLiverySelector import SquadronLiverySelector
 from .QLoadoutEditor import QLoadoutEditor
@@ -206,6 +208,12 @@ class QFlightPayloadTab(QFrame):
         self.fuel_selector = DcsFuelSelector(flight)
         layout.addLayout(self.fuel_selector)
 
+        self.fuel_warning = QLabel()
+        self.fuel_warning.setStyleSheet("color: #f1c40f;")
+        self.fuel_warning.setWordWrap(True)
+        self.fuel_warning.setVisible(False)
+        layout.addWidget(self.fuel_warning)
+
         self.loadout_selector = DcsLoadoutSelector(
             flight, self.member_selector.selected_member
         )
@@ -215,6 +223,11 @@ class QFlightPayloadTab(QFrame):
         layout.addWidget(docsText)
 
         self.setLayout(layout)
+
+        self.fuel_selector.fuel.valueChanged.connect(self.update_fuel_warning)
+        self.fuel_selector.fuel_spinner.valueChanged.connect(self.update_fuel_warning)
+        self.fuel_selector.unit.currentIndexChanged.connect(self.update_fuel_warning)
+        self.update_fuel_warning()
 
     def resize_for_flight(self) -> None:
         self.member_selector.setMaximum(self.flight.count - 1)
@@ -317,3 +330,85 @@ class QFlightPayloadTab(QFrame):
         else:
             self.member_selector.selected_member.livery = livery
             self.member_selector.selected_member.use_livery_set = use_livery_set
+
+    def update_fuel_warning(self) -> None:
+        fuel_consumption = self.flight.unit_type.fuel_consumption
+        if fuel_consumption is None or fuel_consumption.min_safe is None:
+            self.fuel_warning.setVisible(False)
+            return
+
+        flight_plan = getattr(self.flight, "flight_plan", None)
+        if flight_plan is None or not flight_plan.waypoints:
+            self.fuel_warning.setVisible(False)
+            return
+
+        total_consumption_lbs = float(fuel_consumption.taxi)
+        has_unlimited_fuel_legs = any(
+            wpt.waypoint_type
+            in {
+                FlightWaypointType.JOIN,
+                FlightWaypointType.SPLIT,
+                FlightWaypointType.PATROL_TRACK,
+                FlightWaypointType.PATROL,
+            }
+            or wpt.name in {"JOIN", "SPLIT", "RACETRACK START", "RACETRACK END"}
+            for wpt in flight_plan.waypoints
+        )
+        unlimited_fuel_active = (
+            has_unlimited_fuel_legs
+            and self.flight.client_count < 1
+            and self.flight.squadron.coalition.game.settings.ai_unlimited_fuel
+        )
+
+        for a, b in zip(flight_plan.waypoints, flight_plan.waypoints[1:]):
+            if a.waypoint_type in {
+                FlightWaypointType.JOIN,
+                FlightWaypointType.PATROL_TRACK,
+            }:
+                unlimited_fuel_active = False
+            elif a.waypoint_type is FlightWaypointType.SPLIT or (
+                a.waypoint_type is FlightWaypointType.PATROL
+                and a.name == "RACETRACK END"
+            ):
+                unlimited_fuel_active = True
+
+            if unlimited_fuel_active:
+                continue
+
+            consumption = flight_plan.fuel_consumption_between_points(a, b)
+            if consumption is None:
+                self.fuel_warning.setVisible(False)
+                return
+            total_consumption_lbs += consumption
+
+        total_consumption_kg = total_consumption_lbs * LBS_TO_KG
+        landing_fuel_kg = self.flight.fuel - total_consumption_kg
+        min_safe_kg = fuel_consumption.min_safe * LBS_TO_KG
+
+        if landing_fuel_kg >= min_safe_kg:
+            self.fuel_warning.setVisible(False)
+            return
+
+        if self.fuel_selector.unit.currentIndex() == 1:
+            landing_fuel = self.fuel_selector.kg2lbs(round(landing_fuel_kg))
+            min_safe = self.fuel_selector.kg2lbs(round(min_safe_kg))
+            unit = "lbs"
+        else:
+            landing_fuel = round(landing_fuel_kg)
+            min_safe = round(min_safe_kg)
+            unit = "kg"
+
+        if landing_fuel_kg < 0:
+            message = (
+                "Warning: Estimated fuel exhausted before landing based on the "
+                "current flight plan."
+            )
+        else:
+            message = (
+                "Warning: Estimated landing fuel "
+                f"{landing_fuel} {unit} is below min safe "
+                f"{min_safe} {unit}."
+            )
+
+        self.fuel_warning.setText(message)
+        self.fuel_warning.setVisible(True)
