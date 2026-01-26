@@ -50,7 +50,7 @@ class JoinPointBuilder(PydcsWaypointBuilder):
                     Targets.All.GroundUnits.GroundVehicles.ArmoredVehicles.id,
                     Targets.All.Naval.Ships.ArmedShips.LightArmedShips.id,
                 ]
-            waypoint.tasks.append(OptROE(value=OptROE.Values.OpenFireWeaponFree))
+            waypoint.tasks.append(OptROE(value=OptROE.Values.OpenFire))
             self.configure_escort_tasks(
                 waypoint,
                 targets,
