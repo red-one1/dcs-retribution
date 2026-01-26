@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import random
 from typing import TYPE_CHECKING
 
 import shapely.ops
@@ -46,8 +45,8 @@ class JoinZoneGeometry:
 
         # Randomize join distance between 25% and 40% of the home-to-target leg.
         total_distance = home.distance_to_point(target)
-        min_join_distance = total_distance * 0.25
-        max_join_distance = total_distance * 0.40
+        min_join_distance = total_distance * 0.35
+        max_join_distance = total_distance * 0.36
         self.min_distance_bubble = self.home.buffer(min_join_distance)
         self.max_distance_bubble = self.home.buffer(max_join_distance)
         self.distance_ring = self.max_distance_bubble.difference(
@@ -114,9 +113,6 @@ class JoinZoneGeometry:
         self.preferred_lines = preferred_lines
 
     def find_best_join_point(self) -> Point:
-        if random_point := self._random_point_in_geometry(self.permissible_zones):
-            return random_point
-
         # Choose the best available geometry for nearest point computation.
         # Prefer preferred_lines when available; fall back to permissible_zones.
         if not self.preferred_lines.is_empty:
@@ -130,14 +126,3 @@ class JoinZoneGeometry:
 
         join, _ = shapely.ops.nearest_points(search_geometry, self.ip)
         return self._target.new_in_same_map(join.x, join.y)
-
-    def _random_point_in_geometry(self, geometry: MultiPolygon) -> Point | None:
-        if geometry.is_empty:
-            return None
-        minx, miny, maxx, maxy = geometry.bounds
-        for _ in range(100):
-            x = random.uniform(minx, maxx)
-            y = random.uniform(miny, maxy)
-            if geometry.contains(ShapelyPoint(x, y)):
-                return self._target.new_in_same_map(x, y)
-        return None
