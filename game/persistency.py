@@ -27,6 +27,10 @@ if TYPE_CHECKING:
 _dcs_saved_game_folder: Optional[str] = None
 _prefer_liberation_payloads: bool = False
 _server_port: int = 16880
+_save_format: str = "classic"
+
+SAVE_FORMAT_CLASSIC = "classic"
+SAVE_FORMAT_PLAIN_TEXT = "plain_text"
 
 
 # fmt: off
@@ -297,13 +301,24 @@ def _create_dir_if_needed(path: Path) -> Path:
     return path
 
 
-def setup(user_folder: str, prefer_liberation_payloads: bool, port: int) -> None:
+def setup(
+    user_folder: str,
+    prefer_liberation_payloads: bool,
+    port: int,
+    save_format: str = SAVE_FORMAT_CLASSIC,
+) -> None:
     global _dcs_saved_game_folder
     global _prefer_liberation_payloads
     global _server_port
+    global _save_format
     _dcs_saved_game_folder = user_folder
     _prefer_liberation_payloads = prefer_liberation_payloads
     _server_port = port
+    _save_format = (
+        save_format
+        if save_format in (SAVE_FORMAT_CLASSIC, SAVE_FORMAT_PLAIN_TEXT)
+        else SAVE_FORMAT_CLASSIC
+    )
     _create_dir_if_needed(save_dir())
 
 
@@ -378,12 +393,23 @@ def server_port() -> int:
     return _server_port
 
 
+def save_format() -> str:
+    global _save_format
+    return _save_format
+
+
+def use_plain_text_saves() -> bool:
+    return save_format() == SAVE_FORMAT_PLAIN_TEXT
+
+
 def _temporary_save_file() -> str:
-    return str(save_dir() / "tmpsave.retribution")
+    suffix = ".json" if use_plain_text_saves() else ".retribution"
+    return str(save_dir() / f"tmpsave{suffix}")
 
 
 def _autosave_path() -> str:
-    return str(save_dir() / "autosave.retribution")
+    suffix = ".json" if use_plain_text_saves() else ".retribution"
+    return str(save_dir() / f"autosave{suffix}")
 
 
 def _text_save_path(path: str) -> str:
@@ -395,25 +421,33 @@ def mission_path_for(name: str) -> Path:
 
 
 def load_game(path: str) -> Optional[Game]:
-    with open(path, "rb") as f:
-        try:
+    try:
+        if Path(path).suffix.lower() == ".json":
+            with open(path, "r", encoding="utf-8") as f:
+                save = jsonpickle.decode(f.read())
+            save.savepath = path
+            return save
+        with open(path, "rb") as f:
             save = MigrationUnpickler(f).load()
             save.savepath = path
             return save
-        except Exception:
-            logging.exception("Invalid Save game")
-            return None
+    except Exception:
+        logging.exception("Invalid Save game")
+        return None
 
 
 def save_game(game: Game) -> bool:
     with logged_duration("Saving game"):
         try:
-            with open(_temporary_save_file(), "wb") as f:
-                data = _unload_static_data(game)
-                pickle.dump(game, f)
-                _restore_static_data(game, data)
-            shutil.copy(_temporary_save_file(), game.savepath)
-            _export_text_save(game, game.savepath)
+            if use_plain_text_saves():
+                game.savepath = str(Path(game.savepath).with_suffix(".json"))
+                _export_text_save(game, game.savepath)
+            else:
+                with open(_temporary_save_file(), "wb") as f:
+                    data = _unload_static_data(game)
+                    pickle.dump(game, f)
+                    _restore_static_data(game, data)
+                shutil.copy(_temporary_save_file(), game.savepath)
             return True
         except Exception:
             logging.exception("Could not save game")
@@ -439,11 +473,13 @@ def autosave(game: Game) -> bool:
     :return: True if saved successfully
     """
     try:
-        with open(_autosave_path(), "wb") as f:
-            data = _unload_static_data(game)
-            pickle.dump(game, f)
-            _restore_static_data(game, data)
-        _export_text_save(game, _autosave_path())
+        if use_plain_text_saves():
+            _export_text_save(game, _autosave_path())
+        else:
+            with open(_autosave_path(), "wb") as f:
+                data = _unload_static_data(game)
+                pickle.dump(game, f)
+                _restore_static_data(game, data)
         return True
     except Exception:
         logging.exception("Could not save game")

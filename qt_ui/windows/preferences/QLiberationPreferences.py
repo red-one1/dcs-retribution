@@ -57,6 +57,11 @@ class QLiberationPreferences(QFrame):
         self.port = liberation_install.server_port()
         self.port_input = QSpinBox()
 
+        self.save_format = liberation_install.save_format() or "classic"
+        self.save_format_select = QComboBox()
+        self.save_format_select.addItem("Classic (.retribution)", "classic")
+        self.save_format_select.addItem("Plain text (.json)", "plain_text")
+
         self.initUi()
 
     def initUi(self):
@@ -119,6 +124,20 @@ class QLiberationPreferences(QFrame):
         self.port_input.setValue(self.port)
         self.port_input.setStyleSheet("QSpinBox{ width: 50 }")
 
+        layout.addWidget(
+            QLabel("<strong>Save file format:</strong>"),
+            8,
+            0,
+            alignment=Qt.AlignmentFlag.AlignLeft,
+        )
+        layout.addWidget(
+            self.save_format_select, 8, 1, alignment=Qt.AlignmentFlag.AlignRight
+        )
+        for i in range(self.save_format_select.count()):
+            if self.save_format_select.itemData(i) == self.save_format:
+                self.save_format_select.setCurrentIndex(i)
+                break
+
         main_layout.addLayout(layout)
         main_layout.addStretch()
 
@@ -146,6 +165,7 @@ class QLiberationPreferences(QFrame):
         self.prefer_liberation_payloads = self.payloads_cb.isChecked()
         self.setup_preferences_on_every_start = self.setup_every_start_cb.isChecked()
         self.port = self.port_input.value()
+        self.save_format = self.save_format_select.currentData()
         set_theme_index(self.themeSelect.currentIndex())
 
         if not os.path.isdir(self.saved_game_dir):
@@ -207,6 +227,7 @@ class QLiberationPreferences(QFrame):
             self.prefer_liberation_payloads,
             self.setup_preferences_on_every_start,
             self.port,
+            self.save_format,
         )
         liberation_install.save_config()
         liberation_theme.save_theme_config()

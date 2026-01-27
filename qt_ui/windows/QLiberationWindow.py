@@ -349,11 +349,16 @@ class QLiberationWindow(QMainWindow):
             save_dir = self.game.savepath
         else:
             save_dir = str(persistency.save_dir())
+        save_format = liberation_install.save_format()
+        if save_format == "plain_text":
+            file_filter = "*.json;;*.retribution;;*.liberation"
+        else:
+            file_filter = "*.retribution;;*.liberation;;*.json"
         file = QFileDialog.getOpenFileName(
             self,
             "Select game file to open",
             dir=save_dir,
-            filter="*.retribution;;*.liberation",
+            filter=file_filter,
         )
         if file is not None and file[0] != "":
             game = persistency.load_game(file[0])
@@ -399,11 +404,16 @@ class QLiberationWindow(QMainWindow):
             save_dir = self.game.savepath
         else:
             save_dir = str(persistency.save_dir())
+        save_format = liberation_install.save_format()
+        if save_format == "plain_text":
+            file_filter = "*.json;;*.retribution;;*.liberation"
+        else:
+            file_filter = "*.retribution;;*.liberation;;*.json"
         file = QFileDialog.getSaveFileName(
             self,
             "Save As",
             dir=save_dir,
-            filter="*.retribution;;*.liberation",
+            filter=file_filter,
         )
         if file is not None:
             self.game.savepath = file[0]
@@ -411,7 +421,7 @@ class QLiberationWindow(QMainWindow):
             liberation_install.setup_last_save_file(self.game.savepath)
             liberation_install.save_config()
 
-            self.updateWindowTitle(file[0])
+            self.updateWindowTitle(self.game.savepath)
 
     def updateWindowTitle(self, save_path: Optional[str] = None) -> None:
         """
