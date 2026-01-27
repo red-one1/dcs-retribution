@@ -1,17 +1,30 @@
 from __future__ import annotations
 
+import base64
+import collections
 import json
+import io
 import logging
 import pickle
 import shutil
+import typing
+import types
 from pathlib import Path
 from typing import Optional, TYPE_CHECKING, Any
 
 import dcs.terrain.falklands.airports
+from dcs.terrain.terrain import Terrain
 
 import pydcs_extensions
 import jsonpickle
+from jsonpickle import (
+    handlers,
+    tags,
+    pickler as jsonpickle_pickler,
+    unpickler as jsonpickle_unpickler,
+)
 from game.profiling import logged_duration
+from game.dcs.shipunittype import ShipUnitType
 from pydcs_extensions import (
     ELM2084_MMR_AD_RT,
     Iron_Dome_David_Sling_CP,
@@ -31,6 +44,121 @@ _save_format: str = "classic"
 
 SAVE_FORMAT_CLASSIC = "classic"
 SAVE_FORMAT_PLAIN_TEXT = "plain_text"
+
+
+class _TypingAliasHandler(handlers.BaseHandler):
+    def flatten(self, obj: Any, data: dict[str, Any]) -> Any:
+        return str(obj)
+
+
+class _DefaultDictHandler(handlers.BaseHandler):
+    def flatten(self, obj: collections.defaultdict, data: dict[str, Any]) -> Any:
+        factory = obj.default_factory
+        factory_repr = None if factory is None else repr(factory)
+        return {
+            "default_factory": factory_repr,
+            "items": self.context.flatten(dict(obj), reset=False),
+        }
+
+    def restore(self, obj: dict[str, Any]) -> collections.defaultdict:
+        factory_repr = obj.get("default_factory")
+        if factory_repr in {"typing.Set", "set", "builtins.set", "<class 'set'>"}:
+            factory = set
+        else:
+            factory = None
+        items = self.context.restore(obj.get("items", {}), reset=False)
+        return collections.defaultdict(factory, items)
+
+
+class _ShipUnitTypeHandler(handlers.BaseHandler):
+    def flatten(self, obj: ShipUnitType, data: dict[str, Any]) -> Any:
+        data[tags.OBJECT] = f"{ShipUnitType.__module__}.ShipUnitType"
+        data["variant_id"] = obj.variant_id
+        return data
+
+    def restore(self, obj: dict[str, Any]) -> ShipUnitType:
+        return ShipUnitType.named(obj["variant_id"])
+
+
+class _TerrainHandler(handlers.BaseHandler):
+    def flatten(self, obj: Terrain, data: dict[str, Any]) -> Any:
+        payload = pickle.dumps(obj, protocol=pickle.HIGHEST_PROTOCOL)
+        data["payload"] = base64.b64encode(payload).decode("ascii")
+        return data
+
+    def restore(self, obj: dict[str, Any]) -> Terrain:
+        payload = base64.b64decode(obj["payload"])
+        return pickle.loads(payload)
+
+
+def _register_jsonpickle_handlers() -> None:
+    handlers.register(collections.defaultdict, _DefaultDictHandler, base=True)
+    handlers.register(ShipUnitType, _ShipUnitTypeHandler)
+    handlers.register(Terrain, _TerrainHandler, base=True)
+    for alias_type in (
+        getattr(typing, "_GenericAlias", None),
+        getattr(typing, "_SpecialGenericAlias", None),
+        getattr(typing, "_CallableGenericAlias", None),
+        getattr(typing, "ForwardRef", None),
+        getattr(typing, "TypeVar", None),
+        getattr(typing, "ParamSpec", None),
+        getattr(typing, "TypeVarTuple", None),
+    ):
+        if alias_type is not None:
+            handlers.register(alias_type, _TypingAliasHandler)
+    union_type = getattr(types, "UnionType", None)
+    if union_type is not None:
+        handlers.register(union_type, _TypingAliasHandler)
+    for alias in (
+        getattr(typing, "Set", None),
+        getattr(typing, "List", None),
+        getattr(typing, "Dict", None),
+        getattr(typing, "Tuple", None),
+        getattr(typing, "FrozenSet", None),
+        getattr(typing, "Optional", None),
+        getattr(typing, "Union", None),
+    ):
+        if alias is not None and isinstance(alias, type):
+            handlers.register(alias, _TypingAliasHandler)
+
+
+_JSON_MIGRATION_MAP: dict[str, str] = {
+    "pydcs_extensions.f4b.f4b.": "pydcs_extensions.f4.f4.",
+    "pydcs_extensions.irondome.irondome.ELM2048_MMR": "pydcs_extensions.irondome.irondome.ELM2084_MMR_AD_RT",
+    "pydcs_extensions.irondome.irondome.IRON_DOME_CP": "pydcs_extensions.irondome.irondome.Iron_Dome_David_Sling_CP",
+    "pydcs_extensions.swedishmilitaryassetspack.swedishmilitaryassetspack.BV410_RBS90": "pydcs_extensions.swedishmilitaryassetspack.swedishmilitaryassetspack.RBS_90",
+    "pydcs_extensions.swedishmilitaryassetspack.swedishmilitaryassetspack.BV410": "pydcs_extensions.swedishmilitaryassetspack.swedishmilitaryassetspack.CH_BVS10",
+    "pydcs_extensions.swedishmilitaryassetspack.swedishmilitaryassetspack.Artillerisystem08": "pydcs_extensions.swedishmilitaryassetspack.swedishmilitaryassetspack.Artillerisystem08_M982",
+    "pydcs_extensions.swedishmilitaryassetspack.swedishmilitaryassetspack.BV410_RBS70": "pydcs_extensions.swedishmilitaryassetspack.swedishmilitaryassetspack.RBS_70",
+    "pydcs_extensions.fa18efg.Superbug_AITanker": "pydcs_extensions.fa18efg.FA_18ET",
+    "pydcs_extensions.su30.Su_30MKA_AG": "pydcs_extensions.su30.Su_30MKA",
+    "pydcs_extensions.su30.Su_30MKI_AG": "pydcs_extensions.su30.Su_30MKI",
+    "pydcs_extensions.su30.Su_30SM_AG": "pydcs_extensions.su30.Su_30SM",
+    "pydcs_extensions.su30.Su_30MKM_AG": "pydcs_extensions.su30.Su_30MKM",
+    "pydcs_extensions.SaveManager": "game.persistency.DummyObject",
+    "pydcs_extensions.SaveGameBundle": "game.persistency.DummyObject",
+    "dcs.terrain.falklands.airports.CaletaTortel": "dcs.terrain.Airport",
+    "dcs.terrain.falklands.airports.Caleta_Tortel_Airport": "dcs.terrain.Airport",
+}
+
+
+def _apply_json_migration_map(raw_text: str) -> str:
+    for old, new in _JSON_MIGRATION_MAP.items():
+        raw_text = raw_text.replace(old, new)
+    return raw_text
+
+
+def _coerce_unhashable_sets(value: Any) -> Any:
+    if isinstance(value, list):
+        return [_coerce_unhashable_sets(item) for item in value]
+    if isinstance(value, dict):
+        if tags.SET in value and isinstance(value[tags.SET], list):
+            items = [_coerce_unhashable_sets(item) for item in value[tags.SET]]
+            if any(isinstance(item, (dict, list)) for item in items):
+                return {tags.TUPLE: items}
+            return {tags.SET: items}
+        return {key: _coerce_unhashable_sets(val) for key, val in value.items()}
+    return value
 
 
 # fmt: off
@@ -423,8 +551,38 @@ def mission_path_for(name: str) -> Path:
 def load_game(path: str) -> Optional[Game]:
     try:
         if Path(path).suffix.lower() == ".json":
+            _register_jsonpickle_handlers()
             with open(path, "r", encoding="utf-8") as f:
-                save = jsonpickle.decode(f.read())
+                raw_text = _apply_json_migration_map(f.read())
+                try:
+                    wrapper = json.loads(raw_text)
+                except json.JSONDecodeError:
+                    wrapper = None
+                if isinstance(wrapper, dict) and "pickle" in wrapper:
+                    try:
+                        payload = base64.b64decode(wrapper["pickle"])
+                        save = MigrationUnpickler(io.BytesIO(payload)).load()
+                    except Exception:
+                        logging.exception("Failed to load JSON pickle payload")
+                        raise
+                else:
+                    try:
+                        save = jsonpickle.decode(raw_text, keys=True)
+                    except TypeError as exc:
+                        if "unhashable type" in str(exc):
+                            logging.warning(
+                                "JSON save load fell back to string keys: %s", exc
+                            )
+                            try:
+                                data = json.loads(raw_text)
+                                data = _coerce_unhashable_sets(data)
+                                save = jsonpickle_unpickler.Unpickler(
+                                    keys=True
+                                ).restore(data)
+                            except Exception:
+                                save = jsonpickle.decode(raw_text, keys=False)
+                        else:
+                            raise
             save.savepath = path
             return save
         with open(path, "rb") as f:
@@ -488,10 +646,20 @@ def autosave(game: Game) -> bool:
 
 def _export_text_save(game: Game, path: str) -> None:
     """Export a git-friendly JSON sidecar for a binary save."""
+    _register_jsonpickle_handlers()
+    data = _unload_static_data(game)
     try:
-        data = _unload_static_data(game)
-        encoded = jsonpickle.encode(game, make_refs=True, indent=2, sort_keys=True)
-        _restore_static_data(game, data)
+        pickler = jsonpickle_pickler.Pickler(
+            unpicklable=True, make_refs=True, keys=True
+        )
+        payload = pickler.flatten(game)
+        binary_payload = pickle.dumps(game, protocol=pickle.HIGHEST_PROTOCOL)
+        wrapper = {
+            "format": "jsonpickle",
+            "payload": payload,
+            "pickle": base64.b64encode(binary_payload).decode("ascii"),
+        }
+        encoded = json.dumps(wrapper, sort_keys=True, separators=(",", ":"))
         json_path = _text_save_path(path)
         Path(json_path).parent.mkdir(parents=True, exist_ok=True)
         with open(json_path, "w", encoding="utf-8", newline="\n") as f:
@@ -499,3 +667,6 @@ def _export_text_save(game: Game, path: str) -> None:
             f.write("\n")
     except Exception:
         logging.exception("Could not export text save")
+        raise
+    finally:
+        _restore_static_data(game, data)

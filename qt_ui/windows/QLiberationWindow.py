@@ -393,9 +393,11 @@ class QLiberationWindow(QMainWindow):
         logging.info("Saving game")
 
         if self.game.savepath:
-            persistency.save_game(self.game)
-            liberation_install.setup_last_save_file(self.game.savepath)
-            liberation_install.save_config()
+            if persistency.save_game(self.game):
+                liberation_install.setup_last_save_file(self.game.savepath)
+                liberation_install.save_config()
+            else:
+                self._prompt_plain_text_save_failure()
         else:
             self.saveGameAs()
 
@@ -417,11 +419,55 @@ class QLiberationWindow(QMainWindow):
         )
         if file is not None:
             self.game.savepath = file[0]
-            persistency.save_game(self.game)
+            if persistency.save_game(self.game):
+                liberation_install.setup_last_save_file(self.game.savepath)
+                liberation_install.save_config()
+                self.updateWindowTitle(self.game.savepath)
+            else:
+                self._prompt_plain_text_save_failure()
+
+    def _prompt_plain_text_save_failure(self) -> None:
+        if liberation_install.save_format() != "plain_text":
+            QMessageBox.critical(
+                self,
+                "Save failed",
+                "The save file could not be written.",
+                QMessageBox.StandardButton.Ok,
+            )
+            return
+
+        result = QMessageBox.question(
+            self,
+            "Plain text save failed",
+            "Plain text save failed. Retry using the classic binary format?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.Yes,
+        )
+        if result != QMessageBox.StandardButton.Yes:
+            return
+
+        liberation_install.setup(
+            liberation_install.get_saved_game_dir(),
+            liberation_install.get_dcs_install_directory(),
+            liberation_install.prefer_liberation_payloads(),
+            liberation_install.setup_preferences_on_every_start(),
+            liberation_install.server_port(),
+            "classic",
+        )
+        liberation_install.save_config()
+
+        self.game.savepath = str(Path(self.game.savepath).with_suffix(".retribution"))
+        if persistency.save_game(self.game):
             liberation_install.setup_last_save_file(self.game.savepath)
             liberation_install.save_config()
-
             self.updateWindowTitle(self.game.savepath)
+        else:
+            QMessageBox.critical(
+                self,
+                "Save failed",
+                "The save file could not be written.",
+                QMessageBox.StandardButton.Ok,
+            )
 
     def updateWindowTitle(self, save_path: Optional[str] = None) -> None:
         """

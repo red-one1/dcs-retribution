@@ -30,6 +30,7 @@ def init():
     global __prefer_liberation_payloads
     global __setup_preferences_on_every_start
     global __server_port
+    global __save_format
 
     if PREFERENCES_PATH.exists():
         try:
