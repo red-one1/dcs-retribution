@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import logging
 import pickle
 import shutil
@@ -9,6 +10,7 @@ from typing import Optional, TYPE_CHECKING, Any
 import dcs.terrain.falklands.airports
 
 import pydcs_extensions
+import jsonpickle
 from game.profiling import logged_duration
 from pydcs_extensions import (
     ELM2084_MMR_AD_RT,
@@ -384,6 +386,10 @@ def _autosave_path() -> str:
     return str(save_dir() / "autosave.retribution")
 
 
+def _text_save_path(path: str) -> str:
+    return str(Path(path).with_suffix(".json"))
+
+
 def mission_path_for(name: str) -> Path:
     return base_path() / "Missions" / name
 
@@ -407,6 +413,7 @@ def save_game(game: Game) -> bool:
                 pickle.dump(game, f)
                 _restore_static_data(game, data)
             shutil.copy(_temporary_save_file(), game.savepath)
+            _export_text_save(game, game.savepath)
             return True
         except Exception:
             logging.exception("Could not save game")
@@ -436,7 +443,23 @@ def autosave(game: Game) -> bool:
             data = _unload_static_data(game)
             pickle.dump(game, f)
             _restore_static_data(game, data)
+        _export_text_save(game, _autosave_path())
         return True
     except Exception:
         logging.exception("Could not save game")
         return False
+
+
+def _export_text_save(game: Game, path: str) -> None:
+    """Export a git-friendly JSON sidecar for a binary save."""
+    try:
+        data = _unload_static_data(game)
+        encoded = jsonpickle.encode(game, make_refs=True, indent=2, sort_keys=True)
+        _restore_static_data(game, data)
+        json_path = _text_save_path(path)
+        Path(json_path).parent.mkdir(parents=True, exist_ok=True)
+        with open(json_path, "w", encoding="utf-8", newline="\n") as f:
+            f.write(encoded)
+            f.write("\n")
+    except Exception:
+        logging.exception("Could not export text save")
