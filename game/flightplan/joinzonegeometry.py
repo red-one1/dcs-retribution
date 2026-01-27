@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import random
 from typing import TYPE_CHECKING
 
 import shapely.ops
@@ -46,8 +45,8 @@ class JoinZoneGeometry:
 
         # Randomize join distance between 25% and 40% of the home-to-target leg.
         total_distance = home.distance_to_point(target)
-        min_join_distance = total_distance * 0.25
-        max_join_distance = total_distance * 0.40
+        min_join_distance = total_distance * 0.35
+        max_join_distance = total_distance * 0.36
         self.min_distance_bubble = self.home.buffer(min_join_distance)
         self.max_distance_bubble = self.home.buffer(max_join_distance)
         self.distance_ring = self.max_distance_bubble.difference(
@@ -90,11 +89,11 @@ class JoinZoneGeometry:
             ]
         )
 
-        base_zones = ip_direction_limit_wedge.difference(
-            self.excluded_zones
-        ).difference(self.home_bubble)
-        self.base_zones = base_zones
-        permissible_zones = base_zones.intersection(self.distance_ring)
+        permissible_zones = (
+            ip_direction_limit_wedge.difference(self.excluded_zones)
+            .difference(self.home_bubble)
+            .intersection(self.distance_ring)
+        )
         if permissible_zones.is_empty:
             permissible_zones = MultiPolygon([])
         if not isinstance(permissible_zones, MultiPolygon):
@@ -113,59 +112,17 @@ class JoinZoneGeometry:
             preferred_lines = MultiLineString([preferred_lines])
         self.preferred_lines = preferred_lines
 
-        fallback_zones = base_zones.intersection(self.max_distance_bubble)
-        if fallback_zones.is_empty:
-            fallback_zones = MultiPolygon([])
-        if not isinstance(fallback_zones, MultiPolygon):
-            fallback_zones = MultiPolygon([fallback_zones])
-        self.fallback_zones = fallback_zones
-
-        fallback_lines = (
-            ip_direction_limit_wedge.intersection(self.excluded_zones.boundary)
-            .difference(self.home_bubble)
-            .intersection(self.max_distance_bubble)
-        )
-        if fallback_lines.is_empty:
-            fallback_lines = MultiLineString([])
-        if not isinstance(fallback_lines, MultiLineString):
-            fallback_lines = MultiLineString([fallback_lines])
-        self.fallback_lines = fallback_lines
-
     def find_best_join_point(self) -> Point:
-        if random_point := self._random_point_in_geometry(self.permissible_zones):
-            return random_point
-
-        if not self.permissible_zones.is_empty:
-            if self.preferred_lines.is_empty:
-                join, _ = shapely.ops.nearest_points(self.permissible_zones, self.ip)
-            else:
-                join, _ = shapely.ops.nearest_points(self.preferred_lines, self.ip)
+        # Choose the best available geometry for nearest point computation.
+        # Prefer preferred_lines when available; fall back to permissible_zones.
+        if not self.preferred_lines.is_empty:
+            search_geometry = self.preferred_lines
+        elif not self.permissible_zones.is_empty:
+            search_geometry = self.permissible_zones
+        else:
+            # No usable geometry; fall back deterministically to the IP position.
+            join = self.ip
             return self._target.new_in_same_map(join.x, join.y)
 
-        if random_point := self._random_point_in_geometry(self.fallback_zones):
-            return random_point
-
-        if not self.fallback_zones.is_empty:
-            if self.fallback_lines.is_empty:
-                join, _ = shapely.ops.nearest_points(self.fallback_zones, self.ip)
-            else:
-                join, _ = shapely.ops.nearest_points(self.fallback_lines, self.ip)
-            return self._target.new_in_same_map(join.x, join.y)
-
-        if self.base_zones.is_empty:
-            join, _ = shapely.ops.nearest_points(self.excluded_zones.boundary, self.ip)
-            return self._target.new_in_same_map(join.x, join.y)
-
-        join, _ = shapely.ops.nearest_points(self.base_zones, self.ip)
+        join, _ = shapely.ops.nearest_points(search_geometry, self.ip)
         return self._target.new_in_same_map(join.x, join.y)
-
-    def _random_point_in_geometry(self, geometry: MultiPolygon) -> Point | None:
-        if geometry.is_empty:
-            return None
-        minx, miny, maxx, maxy = geometry.bounds
-        for _ in range(100):
-            x = random.uniform(minx, maxx)
-            y = random.uniform(miny, maxy)
-            if geometry.contains(ShapelyPoint(x, y)):
-                return self._target.new_in_same_map(x, y)
-        return None
