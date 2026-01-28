@@ -528,6 +528,14 @@ class Settings:
         detail=("If checked, Bandit's cloud presets will become available."),
     )
 
+    use_f4e_expanded_weapons: bool = boolean_option(
+        "Enable F-4E Expanded Weapons",
+        page=CAMPAIGN_MANAGEMENT_PAGE,
+        section=GENERAL_SECTION,
+        default=False,
+        detail=("If checked, additional weapons/loadouts for the F-4E-45MC will be enabled."),
+    )
+
     # Pilots and Squadrons
     ai_pilot_levelling: bool = boolean_option(
         "Allow AI pilot leveling",

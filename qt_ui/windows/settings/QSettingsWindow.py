@@ -41,6 +41,7 @@ from game.settings import (
 from game.settings.ISettingsContainer import SettingsContainer
 from game.sim import GameUpdateEvents
 from pydcs_extensions import BanditClouds
+from pydcs_extensions import f4e_expanded_weapons as F4EExpanded
 from qt_ui.widgets.QLabeledWidget import QLabeledWidget
 from qt_ui.widgets.spinsliders import FloatSpinSlider, TimeInputs
 from qt_ui.windows.GameUpdateSignal import GameUpdateSignal
@@ -364,6 +365,16 @@ class QSettingsWindow(QDialog):
             BanditClouds.activate()
         else:
             BanditClouds.deactivate()
+        if self.game.settings.use_f4e_expanded_weapons:
+            try:
+                F4EExpanded.activate()
+            except Exception:
+                pass
+        else:
+            try:
+                F4EExpanded.deactivate()
+            except Exception:
+                pass
 
 
 class QSettingsWidget(QtWidgets.QWizardPage, SettingsContainer):
