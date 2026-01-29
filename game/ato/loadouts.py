@@ -13,6 +13,12 @@ from game.dcs.aircrafttype import AircraftType
 from .flighttype import FlightType
 from ..persistency import prefer_liberation_payloads
 
+
+def _is_shrike_or_standard(weapon_name: str) -> bool:
+    normalized = weapon_name.upper()
+    return "AGM-45" in normalized or "SHRIKE" in normalized or "AGM-78" in normalized
+
+
 if TYPE_CHECKING:
     from .flight import Flight
 
@@ -24,6 +30,7 @@ class Loadout:
         pylons: Dict[int, Optional[Weapon]],
         date: Optional[datetime.date],
         is_custom: bool = False,
+        pylon_settings: Optional[Dict[int, dict[str, int]]] = None,
     ) -> None:
         self.name = name
         # We clear unused pylon entries on initialization, but UI actions can still
@@ -31,16 +38,38 @@ class Loadout:
         self.pylons: Dict[int, Optional[Weapon]] = {
             k: v for k, v in pylons.items() if v is not None
         }
+        self.pylon_settings: Dict[int, dict[str, int]] = pylon_settings or {}
         self.date = date
         self.is_custom = is_custom
 
     def derive_custom(self, name: str) -> Loadout:
-        return Loadout(name, self.pylons, self.date, is_custom=True)
+        return Loadout(
+            name,
+            self.pylons,
+            self.date,
+            is_custom=True,
+            pylon_settings=dict(self.pylon_settings),
+        )
 
     def clone(self) -> Loadout:
         return Loadout(
-            self.name, dict(self.pylons), copy.deepcopy(self.date), self.is_custom
+            self.name,
+            dict(self.pylons),
+            copy.deepcopy(self.date),
+            self.is_custom,
+            pylon_settings=copy.deepcopy(self.pylon_settings),
         )
+
+    def pylon_settings_for(self, pylon_number: int) -> Optional[dict[str, int]]:
+        return self.pylon_settings.get(pylon_number)
+
+    def set_pylon_settings(
+        self, pylon_number: int, settings: Optional[dict[str, int]]
+    ) -> None:
+        if settings is None:
+            self.pylon_settings.pop(pylon_number, None)
+        else:
+            self.pylon_settings[pylon_number] = settings
 
     def has_weapon_of_type(self, weapon_type: WeaponType) -> bool:
         for weapon in self.pylons.values():
@@ -83,7 +112,18 @@ class Loadout:
                     del new_pylons[pylon_number]
                 else:
                     new_pylons[pylon_number] = fallback
-        loadout = Loadout(self.name, new_pylons, date, self.is_custom)
+        new_settings = {
+            pylon_number: settings
+            for pylon_number, settings in self.pylon_settings.items()
+            if pylon_number in new_pylons
+        }
+        loadout = Loadout(
+            self.name,
+            new_pylons,
+            date,
+            self.is_custom,
+            pylon_settings=new_settings,
+        )
         # If this is not a custom loadout, we should replace any LGBs with iron bombs if
         # the loadout lost its TGP.
         #
@@ -138,10 +178,21 @@ class Loadout:
             name = payload["name"]
             pylons = payload["pylons"]
             try:
+                pylon_settings: Dict[int, dict[str, int]] = {}
+                for pylon in pylons.values():
+                    settings = pylon.get("settings")
+                    weapon = Weapon.with_clsid(pylon["CLSID"])
+                    if (
+                        isinstance(settings, dict)
+                        and weapon is not None
+                        and not _is_shrike_or_standard(weapon.name)
+                    ):
+                        pylon_settings[pylon["num"]] = settings
                 yield Loadout(
                     name,
                     {p["num"]: Weapon.with_clsid(p["CLSID"]) for p in pylons.values()},
                     date=None,
+                    pylon_settings=pylon_settings,
                 )
             except KeyError:
                 # invalid loadout

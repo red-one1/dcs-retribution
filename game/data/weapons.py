@@ -284,6 +284,15 @@ class Pylon:
             logging.error(f"Pylon {self.number} cannot equip {weapon.name}")
         unit.load_pylon(self.make_pydcs_assignment(weapon), self.number)
 
+    def equip_with_settings(
+        self, unit: FlyingUnit, weapon: Weapon, settings: dict[str, int]
+    ) -> None:
+        if not self.can_equip(weapon):
+            logging.error(f"Pylon {self.number} cannot equip {weapon.name}")
+        weapon_data = dict(weapon.pydcs_data)
+        weapon_data["settings"] = settings
+        unit.load_pylon((self.number, weapon_data), self.number)
+
     def make_pydcs_assignment(self, weapon: Weapon) -> PydcsWeaponAssignment:
         return self.number, weapon.pydcs_data
 

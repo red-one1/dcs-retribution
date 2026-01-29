@@ -18,6 +18,13 @@ from game.ato import Flight, FlightType
 from game.ato.flightplans.shiprecoverytanker import RecoveryTankerFlightPlan
 from game.callsigns import callsign_for_support_unit
 from game.data.weapons import Pylon, WeaponType
+from game.missiongenerator.aircraft.arm_seeker_heads import (
+    is_shrike_or_standard,
+    seeker_heads_for_sead_escort,
+    seeker_heads_for_target_roles,
+    seeker_settings_for_target,
+    seeker_settings_for_head,
+)
 from game.missiongenerator.logisticsgenerator import LogisticsGenerator
 from game.missiongenerator.missiondata import MissionData, AwacsInfo, TankerInfo
 from game.radio.radios import RadioFrequency, RadioRegistry
@@ -382,11 +389,60 @@ class FlightGroupConfigurator:
         if self.game.settings.restrict_weapons_by_date:
             loadout = loadout.degrade_for_date(self.flight.unit_type, self.game.date)
 
+        seeker_settings = seeker_settings_for_target(self.flight.package.target)
+        if self.flight.flight_type == FlightType.SEAD_ESCORT:
+            tr_head, sr_head = seeker_heads_for_sead_escort(self.flight, radius_nm=50)
+        else:
+            tr_head, sr_head = seeker_heads_for_target_roles(self.flight.package.target)
+
+        shrike_pylons = [
+            pylon_number
+            for pylon_number, weapon in loadout.pylons.items()
+            if weapon is not None and is_shrike_or_standard(weapon.name)
+        ]
+        shrike_pylons.sort()
+        tr_count = 0
+        sr_count = 0
+        if tr_head is not None and sr_head is not None and shrike_pylons:
+            if len(shrike_pylons) % 2 == 0:
+                tr_count = len(shrike_pylons) // 2
+            else:
+                tr_count = len(shrike_pylons) // 2 + 1
+            sr_count = len(shrike_pylons) - tr_count
+
         for pylon_number, weapon in loadout.pylons.items():
             if weapon is None:
                 continue
             pylon = Pylon.for_aircraft(self.flight.unit_type, pylon_number)
-            pylon.equip(unit, weapon)
+            if is_shrike_or_standard(weapon.name):
+                override_settings = loadout.pylon_settings_for(pylon_number)
+                if override_settings is not None:
+                    pylon.equip_with_settings(unit, weapon, override_settings)
+                elif tr_head is not None and sr_head is not None and shrike_pylons:
+                    if tr_count > 0:
+                        pylon.equip_with_settings(
+                            unit, weapon, seeker_settings_for_head(tr_head)
+                        )
+                        tr_count -= 1
+                    else:
+                        pylon.equip_with_settings(
+                            unit, weapon, seeker_settings_for_head(sr_head)
+                        )
+                        sr_count = max(0, sr_count - 1)
+                elif tr_head is not None:
+                    pylon.equip_with_settings(
+                        unit, weapon, seeker_settings_for_head(tr_head)
+                    )
+                elif sr_head is not None:
+                    pylon.equip_with_settings(
+                        unit, weapon, seeker_settings_for_head(sr_head)
+                    )
+                elif seeker_settings is not None:
+                    pylon.equip_with_settings(unit, weapon, seeker_settings)
+                else:
+                    pylon.equip(unit, weapon)
+            else:
+                pylon.equip(unit, weapon)
 
     def setup_fuel(self) -> None:
         fuel = self.flight.state.estimate_fuel()

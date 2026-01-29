@@ -170,7 +170,7 @@ class QLoadoutEditor(QGroupBox):
 class DcsPayload:
     displayName: str
     name: str
-    pylons: Dict[int, Dict[str, Union[str, int]]]
+    pylons: Dict[int, Dict[str, Union[str, int, dict[str, int]]]]
     tasks: Dict[int, int]
 
     @classmethod
@@ -179,10 +179,14 @@ class DcsPayload:
         for i, nr in enumerate(member.loadout.pylons, 1):
             wpn = member.loadout.pylons[nr]
             clsid = wpn.clsid if wpn else "<CLEAN>"
-            pylons[i] = {
+            entry: Dict[str, Union[str, int, dict[str, int]]] = {
                 "CLSID": clsid,
                 "num": nr,
             }
+            settings = member.loadout.pylon_settings_for(nr)
+            if settings is not None:
+                entry["settings"] = settings
+            pylons[i] = entry
 
         return DcsPayload(
             f"{payload_name}",
