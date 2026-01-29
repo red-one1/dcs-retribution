@@ -14,7 +14,6 @@ from dcs.weapons_data import Weapons, weapon_ids
 from pydcs_extensions.pylon_injector import inject_pylon, eject_pylon
 from pydcs_extensions.weapon_injector import inject_weapons
 
-
 MISSING_WEAPON_DEFS: Dict[str, Dict[str, object]] = {
     "AGM_45B_Shrike_ARM__LAU_34_": {
         "clsid": "{LAU_34_AGM_45B}",
