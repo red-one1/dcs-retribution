@@ -365,6 +365,7 @@ class QSettingsWindow(QDialog):
         else:
             BanditClouds.deactivate()
 
+
 class QSettingsWidget(QtWidgets.QWizardPage, SettingsContainer):
     def __init__(self, settings: Settings, game: Optional[Game] = None):
         super().__init__()

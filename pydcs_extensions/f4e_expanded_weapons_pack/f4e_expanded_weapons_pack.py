@@ -15,7 +15,6 @@ from pydcs_extensions.pylon_injector import inject_pylon, eject_pylon
 from pydcs_extensions.weapon_injector import inject_weapons
 
 
-
 MISSING_WEAPON_DEFS: Dict[str, Dict[str, object]] = {
     "AGM_45B_Shrike_ARM__LAU_34_": {
         "clsid": "{LAU_34_AGM_45B}",
@@ -149,12 +148,12 @@ MISSING_WEAPON_DEFS: Dict[str, Dict[str, object]] = {
     },
     "_2x_LAU_68_pod___7_x_2_75_FFAR__UnGd_Rkts_Mk5__HEAT__TER___": {
         "clsid": "{HB_F4E_LAU-68_MK5_2x_Right}",
-        "name": "2x LAU-68 pod - 7 x 2.75\" FFAR, UnGd Rkts Mk5, HEAT (TER)",
+        "name": '2x LAU-68 pod - 7 x 2.75" FFAR, UnGd Rkts Mk5, HEAT (TER)',
         "weight": 348.6,
     },
     "_2x_LAU_68_pod___7_x_2_75_FFAR__UnGd_Rkts_Mk5__HEAT__TER____": {
         "clsid": "{HB_F4E_LAU-68_MK5_2x_Left}",
-        "name": "2x LAU-68 pod - 7 x 2.75\" FFAR, UnGd Rkts Mk5, HEAT (TER)",
+        "name": '2x LAU-68 pod - 7 x 2.75" FFAR, UnGd Rkts Mk5, HEAT (TER)',
         "weight": 348.6,
     },
     "_2x_M117___750lb_GP_Bomb_LD__TER___": {
@@ -254,7 +253,7 @@ MISSING_WEAPON_DEFS: Dict[str, Dict[str, object]] = {
     },
     "_3x_LAU_68_pod___7_x_2_75_FFAR__UnGd_Rkts_Mk5__HEAT__TER__": {
         "clsid": "{HB_F4E_LAU-68_MK5_3x}",
-        "name": "3x LAU-68 pod - 7 x 2.75\" FFAR, UnGd Rkts Mk5, HEAT (TER)",
+        "name": '3x LAU-68 pod - 7 x 2.75" FFAR, UnGd Rkts Mk5, HEAT (TER)',
         "weight": 458.9,
     },
     "_3x_M117___750lb_GP_Bomb_LD__TER__": {
@@ -630,6 +629,7 @@ PYLON_ADDITIONS: Dict[str, Iterable[str]] = {
         "_6x_Mk_82___500lb_GP_Bomb_LD__MER__",
     ],
 }
+
 
 def _inject_weapon_id_overrides() -> None:
     for clsid, name in WEAPON_ID_OVERRIDES.items():
