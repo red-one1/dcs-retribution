@@ -1,0 +1,6 @@
+name: AGM-78B Standard ARM
+type: ARM
+year: 1969
+fallback: AGM-45B Shrike ARM (Imp)
+clsids:
+  - "{AGM_78B}"

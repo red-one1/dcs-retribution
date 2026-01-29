@@ -1,15 +1,18 @@
 """F-4E-45MC Expanded Weapons Pack extension.
 
-Call `apply_f4e_expanded_weapons()` once at startup to register additional
-weapons and pylon loadouts for the F-4E-45MC.
+Defines expanded weapon data for pydcs and provides helpers to inject/remove
+additional F-4E-45MC pylon loadouts.
 """
 
 from __future__ import annotations
 
 from typing import Dict, Iterable
 
-# Delay importing heavy `dcs` modules until functions are called to avoid
-# circular imports when `pydcs_extensions` is imported at startup.
+from dcs.planes import F_4E_45MC
+from dcs.weapons_data import Weapons, weapon_ids
+
+from pydcs_extensions.pylon_injector import inject_pylon, eject_pylon
+from pydcs_extensions.weapon_injector import inject_weapons
 
 
 
@@ -356,6 +359,14 @@ MISSING_WEAPON_DEFS: Dict[str, Dict[str, object]] = {
     },
 }
 
+
+class WeaponsF4EExpanded:
+    pass
+
+
+for weapon_name, weapon_def in MISSING_WEAPON_DEFS.items():
+    setattr(WeaponsF4EExpanded, weapon_name, weapon_def)
+
 WEAPON_ID_OVERRIDES: Dict[str, str] = {
     "{LAU_34_AGM_45B}": "AGM_45B_Shrike_ARM__LAU_34_",
     "{HB_F4E_AGM-65L_LAU117}": "AGM_65E2_L___Maverick_E2_L__Laser_ASM___Lg_Whd___LAU_117_",
@@ -620,119 +631,52 @@ PYLON_ADDITIONS: Dict[str, Iterable[str]] = {
     ],
 }
 
-
-def _set_weapon_def(name: str, data: Dict[str, object]) -> None:
-    from dcs import weapons_data
-
-    setattr(weapons_data.Weapons, name, data)
-
-
-def _set_weapon_id(clsid: str, name: str) -> None:
-    from dcs import weapons_data
-
-    if hasattr(weapons_data.Weapons, name):
-        weapons_data.weapon_ids[clsid] = getattr(weapons_data.Weapons, name)
-
-
-def _apply_pylon_additions() -> tuple[int, int, int]:
-    from dcs import planes, weapons_data
-
-    pylons_updated = 0
-    weapons_added = 0
-    missing_defs = 0
-    for pylon_name, additions in PYLON_ADDITIONS.items():
-        pylon_class = getattr(planes.F_4E_45MC, pylon_name, None)
-        if pylon_class is None:
-            continue
-        pylons_updated += 1
-        pylon_number = int(pylon_name.replace("Pylon", ""))
-        for weapon_name in additions:
-            if not hasattr(weapons_data.Weapons, weapon_name):
-                missing_defs += 1
-                continue
-            setattr(
-                pylon_class,
-                weapon_name,
-                (pylon_number, getattr(weapons_data.Weapons, weapon_name)),
-            )
-            weapons_added += 1
-    return pylons_updated, weapons_added, missing_defs
-
-
-def apply_f4e_expanded_weapons() -> None:
-    """Apply the F-4E-45MC Expanded Weapons Pack extension."""
-    from dcs import weapons_data
-
-    missing_defs_added = 0
-    for name, data in MISSING_WEAPON_DEFS.items():
-        if not hasattr(weapons_data.Weapons, name):
-            _set_weapon_def(name, data)
-            missing_defs_added += 1
-    ids_added = 0
+def _inject_weapon_id_overrides() -> None:
     for clsid, name in WEAPON_ID_OVERRIDES.items():
-        before = clsid in weapons_data.weapon_ids
-        _set_weapon_id(clsid, name)
-        if not before and clsid in weapons_data.weapon_ids:
-            ids_added += 1
-    pylons_updated, weapons_added, missing_defs = _apply_pylon_additions()
-__all__ = ["apply_f4e_expanded_weapons"]
-
-def activate() -> None:
-    """Activate the extension (called by UI/settings)."""
-    apply_f4e_expanded_weapons()
-    _refresh_weapon_registry()
+        weapon = getattr(Weapons, name, None)
+        if weapon is not None:
+            weapon_ids[clsid] = weapon
 
 
-def deactivate() -> None:
-    """Attempt to undo injected weapons and pylon additions.
-
-    This removes weapon definitions and weapon id mappings added by
-    `apply_f4e_expanded_weapons()` and removes added pylon entries where
-    possible. It's best-effort and intended for runtime disabling via UI.
-    """
-    from dcs import weapons_data, planes
-
-    # Remove weapon ids
-    for clsid in list(WEAPON_ID_OVERRIDES.keys()):
-        if clsid in weapons_data.weapon_ids:
-            try:
-                del weapons_data.weapon_ids[clsid]
-            except KeyError:
-                pass
-
-    # Remove weapon defs
-    for name in list(MISSING_WEAPON_DEFS.keys()):
-        if hasattr(weapons_data.Weapons, name):
-            try:
-                delattr(weapons_data.Weapons, name)
-            except Exception:
-                pass
-
-    # Remove pylon additions
-    for pylon_name, additions in PYLON_ADDITIONS.items():
-        pylon_class = getattr(planes.F_4E_45MC, pylon_name, None)
-        if pylon_class is None:
+def _build_pylon_class(pylon_number: int, additions: Iterable[str]) -> type:
+    attrs: Dict[str, object] = {}
+    for weapon_name in additions:
+        weapon = getattr(Weapons, weapon_name, None)
+        if weapon is None:
             continue
-        for weapon_name in additions:
-            if hasattr(pylon_class, weapon_name):
-                try:
-                    delattr(pylon_class, weapon_name)
-                except Exception:
-                    pass
-
-    _refresh_weapon_registry()
+        attrs[weapon_name] = (pylon_number, weapon)
+    return type(f"F4EExpandedPylon{pylon_number}", (), attrs)
 
 
-def _refresh_weapon_registry() -> None:
-    """Rebuild cached weapon registries after modifying pydcs weapon ids."""
-    try:
-        from game.data.weapons import Weapon, WeaponGroup
+def _build_pylon_additions() -> dict[str, type]:
+    pylons: dict[str, type] = {}
+    for pylon_name, additions in PYLON_ADDITIONS.items():
+        pylon_number = int(pylon_name.replace("Pylon", ""))
+        pylons[pylon_name] = _build_pylon_class(pylon_number, additions)
+    return pylons
 
-        Weapon._by_clsid.clear()
-        WeaponGroup._by_name.clear()
-        Weapon._loaded = False
-        WeaponGroup._loaded = False
-        Weapon._load_all()
-    except Exception:
-        # Best-effort: if the registry cannot be rebuilt, leave existing cache.
-        pass
+
+inject_weapons(WeaponsF4EExpanded)
+_inject_weapon_id_overrides()
+_F4E_EXPANDED_PYLONS = _build_pylon_additions()
+
+
+def inject_F4EExpanded() -> None:
+    """Inject expanded weapons into F-4E-45MC pylons."""
+    for pylon_name, additions in _F4E_EXPANDED_PYLONS.items():
+        target_pylon = getattr(F_4E_45MC, pylon_name, None)
+        if target_pylon is None:
+            continue
+        inject_pylon(target_pylon, additions)
+
+
+def eject_F4EExpanded() -> None:
+    """Remove expanded weapons from F-4E-45MC pylons."""
+    for pylon_name, additions in _F4E_EXPANDED_PYLONS.items():
+        target_pylon = getattr(F_4E_45MC, pylon_name, None)
+        if target_pylon is None:
+            continue
+        eject_pylon(target_pylon, additions)
+
+
+__all__ = ["inject_F4EExpanded", "eject_F4EExpanded", "WeaponsF4EExpanded"]

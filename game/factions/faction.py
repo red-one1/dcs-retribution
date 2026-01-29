@@ -379,6 +379,35 @@ class Faction:
             # so the settings can be applied again on load, if needed
             self.mod_settings = mod_settings
 
+        f4e_expanded_enabled = bool(
+            getattr(mod_settings, "f4e_expanded_weapons", False)
+        )
+        logging.info(
+            "Applying mod settings for %s: f4e_expanded_weapons=%s",
+            self.name,
+            f4e_expanded_enabled,
+        )
+
+        # global mod toggles
+        try:
+            if f4e_expanded_enabled:
+                from pydcs_extensions.f4e_expanded_weapons_pack import (
+                    inject_F4EExpanded,
+                )
+
+                inject_F4EExpanded()
+            else:
+                from pydcs_extensions.f4e_expanded_weapons_pack import (
+                    eject_F4EExpanded,
+                )
+
+                eject_F4EExpanded()
+        except Exception:
+            logging.exception(
+                "Failed to apply F-4E Expanded Weapons Pack for faction %s",
+                self.name,
+            )
+
         # aircraft
         if not mod_settings.a4_skyhawk:
             self.remove_aircraft("A-4E-C")
