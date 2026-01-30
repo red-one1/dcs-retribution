@@ -205,7 +205,7 @@ MISSING_WEAPON_DEFS: Dict[str, Dict[str, object]] = {
         "name": "2x Mk-83 - 1000lb GP Bomb LD (TER)",
         "weight": 1036,
     },
-    "_2x_SUU_25_x_8_LUU_2___Target_Marker_Flares__MER____": {
+    "_2x_SUU_25_x_8_LUU_2___Target_Marker_Flares__MER___": {
         "clsid": "{HB_F4E_SUU-25_MER_2x_Right}",
         "name": "2x SUU-25 x 8 LUU-2 - Target Marker Flares (MER)",
         "weight": 553.4,
@@ -413,7 +413,7 @@ WEAPON_ID_OVERRIDES: Dict[str, str] = {
     "{HB_F4E_MK-83_2x_Left}": "_2x_Mk_83___1000lb_GP_Bomb_LD__TER___",
     "{HB_F4E_MK-83_2x_Right}": "_2x_Mk_83___1000lb_GP_Bomb_LD__TER____",
     "{HB_F4E_SUU-25_MER_2x_Left}": "_2x_SUU_25_x_8_LUU_2___Target_Marker_Flares__MER___",
-    "{HB_F4E_SUU-25_MER_2x_Right}": "_2x_SUU_25_x_8_LUU_2___Target_Marker_Flares__MER____",
+    "{HB_F4E_SUU-25_MER_2x_Right}": "_2x_SUU_25_x_8_LUU_2___Target_Marker_Flares__MER___",
     "{HB_F4E_SUU-25_MER_2x}": "_2x_SUU_25_x_8_LUU_2___Target_Marker_Flares__MER_____",
     "{HB_F4ETGM-65D_LAU88_2x_Right}": "_2x_TGM_65D___Trg_Round_for_Mav_D__IIR___LAU_88_",
     "{HB_F4ETGM-65D_LAU88_2x_Left}": "_2x_TGM_65D___Trg_Round_for_Mav_D__IIR___LAU_88__",
@@ -621,7 +621,7 @@ PYLON_ADDITIONS: Dict[str, Iterable[str]] = {
         "AGM_78B_Standard_ARM_",
         "AGM_88C_HARM___High_Speed_Anti_Radiation_Missile_",
         "_2x_Mk_83___1000lb_GP_Bomb_LD__MER___",
-        "_2x_SUU_25_x_8_LUU_2___Target_Marker_Flares__MER____",
+        "_2x_SUU_25_x_8_LUU_2___Target_Marker_Flares__MER___",
         "_6x_BDU_33___25lb_Practice_Bomb_LD__MER__",
         "_6x_Mk_81___250lb_GP_Bomb_LD__MER__",
         "_6x_Mk_82_Snakeye___500lb_GP_Bomb_HD__MER__",
