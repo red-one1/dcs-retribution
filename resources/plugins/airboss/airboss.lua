@@ -81,7 +81,6 @@ if dcsRetribution then
         airboss_options.windowLengthOption = dcsRetribution.plugins.airboss.windowLengthOption
         airboss_options.despawnMinutesAfterLanding = dcsRetribution.plugins.airboss.despawnMinutesAfterLanding
     end
-
     -- Build carrier data lookup table
     if dcsRetribution.Carriers then
         for _, carrier in pairs(dcsRetribution.Carriers) do
@@ -90,7 +89,7 @@ if dcsRetribution then
         end
     end
 end
-
+    
 --    env.info("AIRBOSS Rescue Helo Enabled: " .. tostring(airboss_options.enableRescueHelo))
 --    env.info("AIRBOSS AWACS Enabled: " .. tostring(airboss_options.enableAWACS))
 --    env.info("AIRBOSS Tanker Enabled: " .. tostring(airboss_options.enableTanker))
