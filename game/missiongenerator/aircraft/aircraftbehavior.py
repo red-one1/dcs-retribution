@@ -53,6 +53,16 @@ class AircraftBehavior:
         self.task = task
         self.mission_data = mission_data
 
+    @staticmethod
+    def _add_debug_log(group: FlyingGroup[Any], message: str) -> None:
+        safe_message = message.replace("\\", "\\\\").replace("'", "\\'")
+        script = (
+            f"local msg = '{safe_message}'\n"
+            "if trigger and trigger.action then trigger.action.outText(msg, 10) end\n"
+            "if env and env.info then env.info(msg) end"
+        )
+        group.points[0].tasks.append(RunScript(script))
+
     def apply_to(
         self,
         flight: Flight,
@@ -152,6 +162,12 @@ class AircraftBehavior:
         group.points[0].tasks.append(OptReactOnThreat(react_on_threat))
         if roe is not None:
             group.points[0].tasks.append(OptROE(roe))
+            if flight.flight_type in (FlightType.ESCORT, FlightType.SWEEP):
+                self._add_debug_log(
+                    group,
+                    "DCSRetribution|%s|%s|ROE set to %s at startup"
+                    % (flight.flight_type.name, group.name, str(roe)),
+                )
         if restrict_jettison is not None:
             group.points[0].tasks.append(OptRestrictJettison(restrict_jettison))
         if rtb_winchester is not None:
@@ -213,6 +229,10 @@ class AircraftBehavior:
             ammo_type = OptRTBOnOutOfAmmo.Values.Cannon
 
         self.configure_behavior(flight, group, rtb_winchester=ammo_type)
+        self._add_debug_log(
+            group,
+            "DCSRetribution|Sweep|%s|Tasking set to %s" % (group.name, group.task),
+        )
 
     def configure_cas(self, group: FlyingGroup[Any], flight: Flight) -> None:
         self.configure_task(flight, group, CAS, [AFAC, AntishipStrike])
@@ -450,6 +470,10 @@ class AircraftBehavior:
         self.configure_task(flight, group, Escort)
         self.configure_behavior(
             flight, group, roe=OptROE.Values.OpenFire, restrict_jettison=True
+        )
+        self._add_debug_log(
+            group,
+            "DCSRetribution|Escort|%s|Tasking set to %s" % (group.name, group.task),
         )
 
     def configure_sead_escort(self, group: FlyingGroup[Any], flight: Flight) -> None:
