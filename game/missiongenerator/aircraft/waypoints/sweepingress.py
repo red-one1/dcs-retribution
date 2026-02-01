@@ -17,6 +17,11 @@ class SweepIngressBuilder(PydcsWaypointBuilder):
             waypoint.tasks.append(OptFormation.spread_four_open())
 
         waypoint.tasks.append(OptROE(value=OptROE.Values.OpenFireWeaponFree))
+        self.add_debug_log(
+            waypoint,
+            "DCSRetribution|Sweep|%s|ROE set to OpenFireWeaponFree at sweep ingress"
+            % self.group.name,
+        )
 
         if not isinstance(self.flight.flight_plan, SweepFlightPlan):
             flight_plan_type = self.flight.flight_plan.__class__.__name__
@@ -34,4 +39,9 @@ class SweepIngressBuilder(PydcsWaypointBuilder):
                     Targets.All.Air.Planes.MultiroleFighters,
                 ],
             )
+        )
+        self.add_debug_log(
+            waypoint,
+            "DCSRetribution|Sweep|%s|Engagement reason=sweep_ingress targets=[Fighters,MultiroleFighters] max_dist_nm=50"
+            % self.group.name,
         )

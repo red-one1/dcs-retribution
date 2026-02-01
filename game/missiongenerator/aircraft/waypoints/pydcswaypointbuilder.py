@@ -115,6 +115,15 @@ class PydcsWaypointBuilder:
                 )
             )
 
+    def add_debug_log(self, waypoint: MovingPoint, message: str) -> None:
+        safe_message = message.replace("\\", "\\\\").replace("'", "\\'")
+        script = (
+            f"local msg = '{safe_message}'\n"
+            "if trigger and trigger.action then trigger.action.outText(msg, 10) end\n"
+            "if env and env.info then env.info(msg) end"
+        )
+        waypoint.tasks.append(RunScript(script))
+
     def set_waypoint_tot(self, waypoint: MovingPoint, tot: datetime) -> None:
         self.waypoint.tot = tot
         if not self._viggen_client_tot():

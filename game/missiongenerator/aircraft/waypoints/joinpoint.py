@@ -51,6 +51,11 @@ class JoinPointBuilder(PydcsWaypointBuilder):
                     Targets.All.Naval.Ships.ArmedShips.LightArmedShips.id,
                 ]
             waypoint.tasks.append(OptROE(value=OptROE.Values.OpenFire))
+            self.add_debug_log(
+                waypoint,
+                "DCSRetribution|Escort|%s|ROE set to OpenFire at join point"
+                % self.group.name,
+            )
             self.configure_escort_tasks(
                 waypoint,
                 targets,
@@ -143,3 +148,10 @@ class JoinPointBuilder(PydcsWaypointBuilder):
         escort.stop_if_user_flag(f"split-{id(self.package)}", True)
 
         waypoint.tasks.append(escort)
+        if self.flight.flight_type.is_escort_type:
+            targets_label = ",".join(str(t) for t in target_types)
+            self.add_debug_log(
+                waypoint,
+                "DCSRetribution|Escort|%s|Engagement reason=escort_task targets=[%s] max_dist_nm=%.2f"
+                % (self.group.name, targets_label, max_dist),
+            )

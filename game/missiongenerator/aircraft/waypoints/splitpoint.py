@@ -46,6 +46,11 @@ class SplitPointBuilder(PydcsWaypointBuilder):
 
         if self.flight.flight_type == FlightType.ESCORT:
             waypoint.tasks.append(OptROE(value=OptROE.Values.OpenFire))
+            self.add_debug_log(
+                waypoint,
+                "DCSRetribution|Escort|%s|ROE set to OpenFire at split point"
+                % self.group.name,
+            )
 
         elif self.flight.flight_type in [
             FlightType.SEAD_SWEEP,
