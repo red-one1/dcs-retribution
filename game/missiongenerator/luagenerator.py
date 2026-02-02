@@ -295,6 +295,61 @@ class LuaGenerator:
         trigger.add_action(DoScript(String(lua_data.create_operations_lua())))
         self.mission.triggerrules.triggers.append(trigger)
 
+        if self.mission_data.escorts:
+            escort_lua = """
+            if dcsRetribution and dcsRetribution.Escorts then
+                local function get_group(id)
+                    if not id or id <= 0 then
+                        return nil
+                    end
+                    return Group.getByID(id)
+                end
+
+                local function set_roe(group, roe)
+                    if not group then
+                        return
+                    end
+                    local controller = group:getController()
+                    if controller then
+                        controller:setOption(AI.Option.Air.id.ROE, roe)
+                    end
+                end
+
+                local function escort_leash_update()
+                    if not dcsRetribution or not dcsRetribution.Escorts then
+                        return nil
+                    end
+
+                    for _, pair in pairs(dcsRetribution.Escorts) do
+                        local escort_group = get_group(tonumber(pair.escortGroupId))
+                        local escorted_group = get_group(tonumber(pair.escortedGroupId))
+                        if escort_group and escorted_group then
+                            local escort_unit = escort_group:getUnit(1)
+                            local escorted_unit = escorted_group:getUnit(1)
+                            if escort_unit and escorted_unit then
+                                local escort_pos = escort_unit:getPoint()
+                                local escorted_pos = escorted_unit:getPoint()
+                                local dx = escort_pos.x - escorted_pos.x
+                                local dz = escort_pos.z - escorted_pos.z
+                                local distance = math.sqrt(dx * dx + dz * dz)
+                                local max_dist = tonumber(pair.engagementRangeMeters) or 0
+                                if max_dist > 0 and distance > max_dist then
+                                    set_roe(escort_group, AI.Option.Air.val.ROE.WEAPON_HOLD)
+                                else
+                                    set_roe(escort_group, AI.Option.Air.val.ROE.OPEN_FIRE)
+                                end
+                            end
+                        end
+                    end
+
+                    return timer.getTime() + 10
+                end
+
+                timer.scheduleFunction(escort_leash_update, nil, timer.getTime() + 1)
+            end
+            """
+            self.inject_lua_trigger(escort_lua, "Escort leash")
+
     def inject_lua_trigger(self, contents: str, comment: str) -> None:
         trigger = TriggerStart(comment=comment)
         trigger.add_action(DoScript(String(contents)))
