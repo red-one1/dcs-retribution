@@ -82,7 +82,6 @@ class ModSettings:
     f15d_baz: bool = False
     f_15_idf: bool = False
     f_16_idf: bool = False
-    f4e_expanded_weapons: bool = False
     fa_18efg: bool = False
     fa18ef_tanker: bool = False
     f22_raptor: bool = False
