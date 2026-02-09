@@ -36,6 +36,10 @@ from game.dcs.shipunittype import ShipUnitType
 from game.dcs.unittype import UnitType
 from pydcs_extensions import inject_F15I, eject_F15I
 from pydcs_extensions.f16i_idf.f16i_idf import inject_F16I, eject_F16I
+from pydcs_extensions.f4e_expanded_weapons.f4e_expanded_weapons import (
+    inject_F4E,
+    eject_F4E,
+)
 
 if TYPE_CHECKING:
     from game.theater.start_generator import ModSettings
@@ -387,6 +391,35 @@ class Faction:
             # so the settings can be applied again on load, if needed
             self.mod_settings = mod_settings
 
+        f4e_expanded_enabled = bool(
+            getattr(mod_settings, "f4e_expanded_weapons", False)
+        )
+        logging.info(
+            "Applying mod settings for %s: f4e_expanded_weapons=%s",
+            self.name,
+            f4e_expanded_enabled,
+        )
+
+        # global mod toggles
+        try:
+            if f4e_expanded_enabled:
+                from pydcs_extensions.f4e_expanded_weapons_pack import (
+                    inject_F4EExpanded,
+                )
+
+                inject_F4EExpanded()
+            else:
+                from pydcs_extensions.f4e_expanded_weapons_pack import (
+                    eject_F4EExpanded,
+                )
+
+                eject_F4EExpanded()
+        except Exception:
+            logging.exception(
+                "Failed to apply F-4E Expanded Weapons Pack for faction %s",
+                self.name,
+            )
+
         # aircraft
         if not mod_settings.a4_skyhawk:
             self.remove_aircraft("A-4E-C")
@@ -463,6 +496,11 @@ class Faction:
             eject_F16I()
         else:
             inject_F16I()
+        # F-4E expanded weapons mod
+        if not mod_settings.f4e_expanded_weapons:
+            eject_F4E()
+        else:
+            inject_F4E()
         if not mod_settings.f22_raptor:
             self.remove_aircraft("F-22A")
         if not mod_settings.f84g_thunderjet:
