@@ -57,10 +57,6 @@ class StrikeIngressBuilder(PydcsWaypointBuilder):
                 group_attack=True,
                 altitude=waypoint.alt,
             )
-        if self.flight.unit_type.single_pass_dumb_bombs:
-            bombing.params["expend"] = Expend.All.value
-            bombing.params["attackQtyLimit"] = True
-            bombing.params["attackQty"] = 1
         waypoint.tasks.append(bombing)
 
     def add_strike_tasks(
