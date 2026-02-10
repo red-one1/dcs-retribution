@@ -243,7 +243,8 @@ class AircraftType(UnitType[Type[FlyingType]]):
     # without the need for a jamming pod
     has_built_in_jamming: bool
 
-    # If true, drop all dumb bombs in a single pass when possible.
+    # If true, prefer single-pass delivery of unguided ("dumb") bombs for DEAD ingress
+    # AttackGroup task generation when possible, instead of multiple bombing passes.
     single_pass_dumb_bombs: bool
 
     task_priorities: dict[FlightType, int]
