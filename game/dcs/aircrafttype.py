@@ -243,6 +243,9 @@ class AircraftType(UnitType[Type[FlyingType]]):
     # without the need for a jamming pod
     has_built_in_jamming: bool
 
+    # If true, drop all dumb bombs in a single pass when possible.
+    single_pass_dumb_bombs: bool
+
     task_priorities: dict[FlightType, int]
     laser_code_configs: list[LaserCodeConfig]
 
@@ -611,6 +614,7 @@ class AircraftType(UnitType[Type[FlyingType]]):
             has_built_in_target_pod=data.get("has_built_in_target_pod", False),
             has_built_in_ecm=data.get("has_built_in_ecm", False),
             has_built_in_jamming=data.get("has_built_in_jamming", False),
+            single_pass_dumb_bombs=data.get("single_pass_dumb_bombs", False),
             laser_code_configs=[
                 LaserCodeConfig.from_yaml(d) for d in data.get("laser_codes", [])
             ],
