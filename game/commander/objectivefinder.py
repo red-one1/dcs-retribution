@@ -41,6 +41,10 @@ class ObjectiveFinder:
         self.game = game
         self.is_player = is_player
 
+    def _in_area_of_operations(self, target: MissionTarget) -> bool:
+        coalition = self.game.coalition_for(self.is_player)
+        return coalition.is_in_area_of_operations(target.position)
+
     def enemy_air_defenses(self) -> Iterator[IadsGroundObject]:
         """Iterates over all enemy SAM sites."""
         for cp in self.enemy_control_points():
@@ -48,7 +52,9 @@ class ObjectiveFinder:
                 if ground_object.is_dead:
                     continue
 
-                if isinstance(ground_object, IadsGroundObject):
+                if isinstance(
+                    ground_object, IadsGroundObject
+                ) and self._in_area_of_operations(ground_object):
                     yield ground_object
 
     def enemy_ships(self) -> Iterator[NavalGroundObject]:
@@ -60,7 +66,8 @@ class ObjectiveFinder:
                 if ground_object.is_dead:
                     continue
 
-                yield ground_object
+                if self._in_area_of_operations(ground_object):
+                    yield ground_object
 
     def threatening_ships(self) -> Iterator[NavalGroundObject]:
         """Iterates over enemy ships near friendly control points.
@@ -127,6 +134,8 @@ class ObjectiveFinder:
                     continue
                 if ground_object.name in found_targets:
                     continue
+                if not self._in_area_of_operations(ground_object):
+                    continue
                 ranges: list[float] = []
                 for friendly_cp in self.friendly_control_points():
                     ranges.append(ground_object.distance_to(friendly_cp))
@@ -138,7 +147,9 @@ class ObjectiveFinder:
 
     def front_lines(self) -> Iterator[FrontLine]:
         """Iterates over all active front lines in the theater."""
-        yield from self.game.theater.conflicts()
+        for front_line in self.game.theater.conflicts():
+            if self._in_area_of_operations(front_line):
+                yield front_line
 
     def vulnerable_control_points(self) -> Iterator[ControlPoint]:
         """Iterates over friendly CPs that are vulnerable to enemy CPs.
@@ -185,6 +196,8 @@ class ObjectiveFinder:
                 control_point, Fob
             ):
                 continue
+            if not self._in_area_of_operations(control_point):
+                continue
             if (
                 control_point.allocated_aircraft(parking_type).total_present
                 >= min_aircraft
@@ -196,19 +209,25 @@ class ObjectiveFinder:
         if self.game.settings.perf_disable_convoys:
             return
         for front_line in self.front_lines():
-            yield from self.game.coalition_for(
+            convoys = self.game.coalition_for(
                 self.is_player
             ).transfers.convoys.travelling_to(
                 front_line.control_point_hostile_to(self.is_player)
             )
+            for convoy in convoys:
+                if self._in_area_of_operations(convoy):
+                    yield convoy
 
     def cargo_ships(self) -> Iterator[CargoShip]:
         for front_line in self.front_lines():
-            yield from self.game.coalition_for(
+            cargo_ships = self.game.coalition_for(
                 self.is_player
             ).transfers.cargo_ships.travelling_to(
                 front_line.control_point_hostile_to(self.is_player)
             )
+            for cargo_ship in cargo_ships:
+                if self._in_area_of_operations(cargo_ship):
+                    yield cargo_ship
 
     def friendly_control_points(self) -> Iterator[ControlPoint]:
         """Iterates over all friendly control points."""
@@ -260,7 +279,9 @@ class ObjectiveFinder:
         return (
             c
             for c in self.game.theater.controlpoints
-            if not c.is_friendly(self.is_player) and c.captured != Player.NEUTRAL
+            if not c.is_friendly(self.is_player)
+            and c.captured != Player.NEUTRAL
+            and self._in_area_of_operations(c)
         )
 
     def prioritized_points(self) -> list[ControlPoint]:
@@ -268,6 +289,8 @@ class ObjectiveFinder:
         capturable_later = []
         isolated = []
         for cp in self.game.theater.control_points_for(self.is_player.opponent):
+            if not self._in_area_of_operations(cp):
+                continue
             if cp.is_isolated:
                 isolated.append(cp)
                 continue
@@ -291,6 +314,8 @@ class ObjectiveFinder:
         )
 
         for cp in combined_control_points:
+            if not self._in_area_of_operations(cp):
+                continue
             if cp.is_isolated:
                 isolated.append(cp)
                 continue

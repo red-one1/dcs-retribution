@@ -19,7 +19,7 @@ import "./LiberationMap.css";
 import { Map } from "leaflet";
 import { useEffect, useRef } from "react";
 import { BasemapLayer } from "react-esri-leaflet";
-import { LayersControl, MapContainer, ScaleControl } from "react-leaflet";
+import { LayersControl, MapContainer, Pane, ScaleControl } from "react-leaflet";
 
 export default function LiberationMap() {
   const map = useRef<Map>(null);
@@ -29,6 +29,7 @@ export default function LiberationMap() {
   });
   return (
     <MapContainer zoom={map.current?.getZoom() ?? 8} zoomControl={false} ref={map}>
+      <Pane name="navmesh" style={{ zIndex: 650 }} />
       <ScaleControl />
       <LeafletRuler />
       <LayersControl collapsed={false}>

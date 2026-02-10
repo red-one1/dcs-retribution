@@ -117,6 +117,17 @@ const injectedRtkApi = api.injectEndpoints({
         params: { for_player: queryArg.forPlayer },
       }),
     }),
+    setNavmeshSelection: build.mutation<
+      SetNavmeshSelectionApiResponse,
+      SetNavmeshSelectionApiArg
+    >({
+      query: (queryArg) => ({
+        url: `/navmesh/selection`,
+        method: "PUT",
+        params: { for_player: queryArg.forPlayer },
+        body: queryArg.body,
+      }),
+    }),
     openNewFrontLinePackageDialog: build.mutation<
       OpenNewFrontLinePackageDialogApiResponse,
       OpenNewFrontLinePackageDialogApiArg
@@ -281,7 +292,13 @@ export type GetThreatZonesApiArg = void;
 export type GetNavmeshApiResponse =
   /** status 200 Successful Response */ NavMesh;
 export type GetNavmeshApiArg = {
-  forPlayer: boolean;
+  forPlayer: "Blue" | "Red";
+};
+export type SetNavmeshSelectionApiResponse =
+  /** status 204 Successful Response */ undefined;
+export type SetNavmeshSelectionApiArg = {
+  forPlayer: "Blue" | "Red";
+  body: NavMeshSelectionUpdate;
 };
 export type OpenNewFrontLinePackageDialogApiResponse =
   /** status 200 Successful Response */ any;
@@ -441,11 +458,19 @@ export type ThreatZoneContainer = {
   red: ThreatZones;
 };
 export type NavMeshPoly = {
+  id: number;
   poly: LatLng[][];
   threatened: boolean;
 };
 export type NavMesh = {
   polys: NavMeshPoly[];
+};
+export type NavMeshSelectionUpdate = {
+  poly_ids: number[];
+};
+export type NavMeshSelection = {
+  blue: number[];
+  red: number[];
 };
 export type NavMeshes = {
   blue: NavMesh;
@@ -464,6 +489,7 @@ export type Game = {
   iads_network: IadsNetwork;
   threat_zones: ThreatZoneContainer;
   navmeshes: NavMeshes;
+  navmesh_selection: NavMeshSelection;
   map_center?: LatLng;
   unculled_zones: UnculledZone[];
   map_zones: MapZones;
@@ -491,6 +517,7 @@ export const {
   useListUnculledZonesQuery,
   useGetThreatZonesQuery,
   useGetNavmeshQuery,
+  useSetNavmeshSelectionMutation,
   useOpenNewFrontLinePackageDialogMutation,
   useOpenNewTgoPackageDialogMutation,
   useOpenTgoInfoDialogMutation,
