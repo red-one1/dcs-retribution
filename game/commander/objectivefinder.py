@@ -8,6 +8,7 @@ from random import randint
 from typing import TYPE_CHECKING, TypeVar
 
 from game.ato.closestairfields import ClosestAirfields, ObjectiveDistanceCache
+from game.ato.flighttype import FlightType
 from game.theater import (
     Airfield,
     ControlPoint,
@@ -41,7 +42,21 @@ class ObjectiveFinder:
         self.game = game
         self.is_player = is_player
 
-    def _in_area_of_operations(self, target: MissionTarget) -> bool:
+    def _in_area_of_operations(
+        self,
+        target: MissionTarget,
+        tasks: FlightType | Iterable[FlightType] | None = None,
+    ) -> bool:
+        if tasks is None:
+            return True
+        if isinstance(tasks, FlightType):
+            should_apply = self.game.settings.is_aoo_task_enabled(tasks)
+        else:
+            should_apply = any(
+                self.game.settings.is_aoo_task_enabled(task) for task in tasks
+            )
+        if not should_apply:
+            return True
         coalition = self.game.coalition_for(self.is_player)
         return coalition.is_in_area_of_operations(target.position)
 
@@ -52,9 +67,7 @@ class ObjectiveFinder:
                 if ground_object.is_dead:
                     continue
 
-                if isinstance(
-                    ground_object, IadsGroundObject
-                ) and self._in_area_of_operations(ground_object):
+                if isinstance(ground_object, IadsGroundObject):
                     yield ground_object
 
     def enemy_ships(self) -> Iterator[NavalGroundObject]:
@@ -66,8 +79,7 @@ class ObjectiveFinder:
                 if ground_object.is_dead:
                     continue
 
-                if self._in_area_of_operations(ground_object):
-                    yield ground_object
+                yield ground_object
 
     def threatening_ships(self) -> Iterator[NavalGroundObject]:
         """Iterates over enemy ships near friendly control points.
@@ -134,7 +146,7 @@ class ObjectiveFinder:
                     continue
                 if ground_object.name in found_targets:
                     continue
-                if not self._in_area_of_operations(ground_object):
+                if not self._in_area_of_operations(ground_object, FlightType.STRIKE):
                     continue
                 ranges: list[float] = []
                 for friendly_cp in self.friendly_control_points():
@@ -145,19 +157,25 @@ class ObjectiveFinder:
         for target, _range in targets:
             yield target
 
-    def front_lines(self) -> Iterator[FrontLine]:
+    def front_lines(
+        self, tasks: FlightType | Iterable[FlightType] | None = None
+    ) -> Iterator[FrontLine]:
         """Iterates over all active front lines in the theater."""
         for front_line in self.game.theater.conflicts():
-            if self._in_area_of_operations(front_line):
+            if self._in_area_of_operations(front_line, tasks):
                 yield front_line
 
-    def vulnerable_control_points(self) -> Iterator[ControlPoint]:
+    def vulnerable_control_points(
+        self, tasks: FlightType | Iterable[FlightType] | None = None
+    ) -> Iterator[ControlPoint]:
         """Iterates over friendly CPs that are vulnerable to enemy CPs.
 
         Vulnerability is defined as any enemy CP within threat range of the
         CP.
         """
         for cp in self.friendly_control_points():
+            if not self._in_area_of_operations(cp, tasks):
+                continue
             if isinstance(cp, OffMapSpawn):
                 # Off-map spawn locations don't need protection.
                 continue
@@ -184,7 +202,11 @@ class ObjectiveFinder:
                     yield cp
                     break
 
-    def oca_targets(self, min_aircraft: int) -> Iterator[ControlPoint]:
+    def oca_targets(
+        self,
+        min_aircraft: int,
+        tasks: FlightType | Iterable[FlightType] | None = None,
+    ) -> Iterator[ControlPoint]:
         parking_type = ParkingType()
         parking_type.include_rotary_wing = True
         parking_type.include_fixed_wing = True
@@ -196,7 +218,7 @@ class ObjectiveFinder:
                 control_point, Fob
             ):
                 continue
-            if not self._in_area_of_operations(control_point):
+            if not self._in_area_of_operations(control_point, tasks):
                 continue
             if (
                 control_point.allocated_aircraft(parking_type).total_present
@@ -208,40 +230,46 @@ class ObjectiveFinder:
     def convoys(self) -> Iterator[Convoy]:
         if self.game.settings.perf_disable_convoys:
             return
-        for front_line in self.front_lines():
+        for front_line in self.front_lines(FlightType.BAI):
             convoys = self.game.coalition_for(
                 self.is_player
             ).transfers.convoys.travelling_to(
                 front_line.control_point_hostile_to(self.is_player)
             )
             for convoy in convoys:
-                if self._in_area_of_operations(convoy):
+                if self._in_area_of_operations(convoy, FlightType.BAI):
                     yield convoy
 
     def cargo_ships(self) -> Iterator[CargoShip]:
-        for front_line in self.front_lines():
+        for front_line in self.front_lines(FlightType.ANTISHIP):
             cargo_ships = self.game.coalition_for(
                 self.is_player
             ).transfers.cargo_ships.travelling_to(
                 front_line.control_point_hostile_to(self.is_player)
             )
             for cargo_ship in cargo_ships:
-                if self._in_area_of_operations(cargo_ship):
+                if self._in_area_of_operations(cargo_ship, FlightType.ANTISHIP):
                     yield cargo_ship
 
-    def friendly_control_points(self) -> Iterator[ControlPoint]:
+    def friendly_control_points(
+        self, tasks: FlightType | Iterable[FlightType] | None = None
+    ) -> Iterator[ControlPoint]:
         """Iterates over all friendly control points."""
         return (
-            c for c in self.game.theater.controlpoints if c.is_friendly(self.is_player)
+            c
+            for c in self.game.theater.controlpoints
+            if c.is_friendly(self.is_player) and self._in_area_of_operations(c, tasks)
         )
 
-    def farthest_friendly_control_point(self) -> ControlPoint:
+    def farthest_friendly_control_point(
+        self, tasks: FlightType | Iterable[FlightType] | None = None
+    ) -> ControlPoint | None:
         """Finds the friendly control point that is farthest from any threats."""
         threat_zones = self.game.threat_zone_for(self.is_player.opponent)
 
         farthest = None
         max_distance = meters(0)
-        for cp in self.friendly_control_points():
+        for cp in self.friendly_control_points(tasks):
             if isinstance(cp, OffMapSpawn):
                 continue
             distance = threat_zones.distance_to_threat(cp.position)
@@ -249,17 +277,17 @@ class ObjectiveFinder:
                 farthest = cp
                 max_distance = distance
 
-        if farthest is None:
-            raise RuntimeError("Found no friendly control points. You probably lost.")
         return farthest
 
-    def closest_friendly_control_point(self) -> ControlPoint:
+    def closest_friendly_control_point(
+        self, tasks: FlightType | Iterable[FlightType] | None = None
+    ) -> ControlPoint | None:
         """Finds the friendly control point that is closest to any threats."""
         threat_zones = self.game.threat_zone_for(self.is_player.opponent)
 
         closest = None
         min_distance = meters(math.inf)
-        for cp in self.friendly_control_points():
+        for cp in self.friendly_control_points(tasks):
             if isinstance(cp, OffMapSpawn):
                 continue
             distance = threat_zones.distance_to_threat(cp.position)
@@ -267,29 +295,29 @@ class ObjectiveFinder:
                 closest = cp
                 min_distance = distance
 
-        if closest is None:
-            raise RuntimeError("Found no friendly control points. You probably lost.")
         return closest
 
-    def friendly_naval_control_points(self) -> Iterator[ControlPoint]:
-        return (cp for cp in self.friendly_control_points() if cp.is_fleet)
+    def friendly_naval_control_points(
+        self, tasks: FlightType | Iterable[FlightType] | None = None
+    ) -> Iterator[ControlPoint]:
+        return (cp for cp in self.friendly_control_points(tasks) if cp.is_fleet)
 
     def enemy_control_points(self) -> Iterator[ControlPoint]:
         """Iterates over all enemy control points."""
         return (
             c
             for c in self.game.theater.controlpoints
-            if not c.is_friendly(self.is_player)
-            and c.captured != Player.NEUTRAL
-            and self._in_area_of_operations(c)
+            if not c.is_friendly(self.is_player) and c.captured != Player.NEUTRAL
         )
 
-    def prioritized_points(self) -> list[ControlPoint]:
+    def prioritized_points(
+        self, tasks: FlightType | Iterable[FlightType] | None = None
+    ) -> list[ControlPoint]:
         prioritized = []
         capturable_later = []
         isolated = []
         for cp in self.game.theater.control_points_for(self.is_player.opponent):
-            if not self._in_area_of_operations(cp):
+            if not self._in_area_of_operations(cp, tasks):
                 continue
             if cp.is_isolated:
                 isolated.append(cp)
@@ -302,7 +330,9 @@ class ObjectiveFinder:
         prioritized.extend(self._targets_by_range(isolated))
         return prioritized
 
-    def air_assault_targets(self) -> list[ControlPoint]:
+    def air_assault_targets(
+        self, tasks: FlightType | Iterable[FlightType] | None = None
+    ) -> list[ControlPoint]:
         """Returns control points suitable for air assault missions, including neutral bases."""
         prioritized = []
         capturable_later = []
@@ -314,7 +344,7 @@ class ObjectiveFinder:
         )
 
         for cp in combined_control_points:
-            if not self._in_area_of_operations(cp):
+            if not self._in_area_of_operations(cp, tasks):
                 continue
             if cp.is_isolated:
                 isolated.append(cp)
