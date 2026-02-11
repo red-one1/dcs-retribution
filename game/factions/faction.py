@@ -4,7 +4,6 @@ import itertools
 import logging
 from collections import defaultdict
 from dataclasses import dataclass, field
-import datetime
 from functools import cached_property
 from typing import Optional, Dict, Type, List, Any, Iterator, TYPE_CHECKING, Set
 
@@ -34,7 +33,7 @@ from game.dcs.countries import country_with_name
 from game.dcs.groundunittype import GroundUnitType
 from game.dcs.shipunittype import ShipUnitType
 from game.dcs.unittype import UnitType
-from pydcs_extensions import inject_F15I, eject_F15I
+from pydcs_extensions import inject_F15I, eject_F15I, eject_F4E, inject_F4E
 from pydcs_extensions.f16i_idf.f16i_idf import inject_F16I, eject_F16I
 from pydcs_extensions.f4e_expanded_weapons.f4e_expanded_weapons import (
     inject_F4E,
