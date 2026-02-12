@@ -44,12 +44,10 @@ class PackagePlanningTask(TheaterCommanderTask, Generic[MissionTargetT]):
         self.flights = []
 
     def preconditions_met(self, state: TheaterState) -> bool:
-        behavior = (
-            state.context.settings.auto_ato_behavior
-            if state.context.coalition.player.is_blue
-            else state.context.settings.auto_ato_behavior_red
-        )
-        if behavior is AutoAtoBehavior.Disabled:
+        if (
+            state.context.coalition.player.is_blue
+            and state.context.settings.auto_ato_behavior is AutoAtoBehavior.Disabled
+        ):
             return False
         return self.fulfill_mission(state)
 

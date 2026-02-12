@@ -616,18 +616,7 @@ class Settings:
         default=False,
     )
     auto_ato_behavior: AutoAtoBehavior = choices_option(
-        "Automatic package planning behavior for BLUE",
-        CAMPAIGN_MANAGEMENT_PAGE,
-        HQ_AUTOMATION_SECTION,
-        default=AutoAtoBehavior.Default,
-        choices={v.value: v for v in AutoAtoBehavior},
-        detail=(
-            "Aircraft auto-purchase is directed by the auto-planner, so disabling "
-            "auto-planning disables auto-purchase."
-        ),
-    )
-    auto_ato_behavior_red: AutoAtoBehavior = choices_option(
-        "Automatic package planning behavior for OPFOR",
+        "Automatic package planning behavior",
         CAMPAIGN_MANAGEMENT_PAGE,
         HQ_AUTOMATION_SECTION,
         default=AutoAtoBehavior.Default,
