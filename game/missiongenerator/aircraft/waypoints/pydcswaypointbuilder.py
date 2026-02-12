@@ -6,10 +6,10 @@ from typing import Any, Iterable, Union
 from dcs import Mission
 from dcs.planes import AJS37, F_14A_135_GR, F_14B, JF_17, F_15ESE
 from dcs.point import MovingPoint, PointAction
-from dcs.task import RunScript
+from dcs.task import OptRTBOnOutOfAmmo, RunScript
 from dcs.unitgroup import FlyingGroup
 
-from game.ato import Flight, FlightWaypoint
+from game.ato import Flight, FlightType, FlightWaypoint
 from game.ato.flightwaypointtype import FlightWaypointType
 from game.ato.starttype import StartType
 from game.ato.traveltime import GroundSpeed
@@ -113,6 +113,10 @@ class PydcsWaypointBuilder:
                     f"local g = Group.getByName('{self.group.name}')\n"
                     f"Group.destroy(g)"
                 )
+            )
+        if self.flight.flight_type == FlightType.SEAD_ESCORT:
+            waypoint.tasks.append(
+                OptRTBOnOutOfAmmo(OptRTBOnOutOfAmmo.Values.NoWeapon)
             )
 
     def set_waypoint_tot(self, waypoint: MovingPoint, tot: datetime) -> None:
