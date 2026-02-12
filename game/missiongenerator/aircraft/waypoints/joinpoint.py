@@ -5,7 +5,6 @@ from dcs.point import MovingPoint
 from dcs.task import (
     ControlledTask,
     EscortTaskAction,
-    EngageTargetsInZone,
     OptECMUsing,
     OptFormation,
     Targets,
@@ -90,7 +89,6 @@ class JoinPointBuilder(PydcsWaypointBuilder):
             waypoint.tasks.append(ecm_option)
 
     def handle_sead_escort(self, doctrine: Doctrine, waypoint: MovingPoint) -> None:
-        engage_targets = [Targets.All.GroundUnits.AirDefence.AAA.SAMRelated.id]
         if isinstance(self.flight.package.target, NavalControlPoint):
             self.configure_escort_tasks(
                 waypoint,
@@ -101,7 +99,6 @@ class JoinPointBuilder(PydcsWaypointBuilder):
                 max_dist=doctrine.sead_escort_engagement_range.nautical_miles,
                 vertical_spacing=doctrine.sead_escort_spacing.feet,
             )
-            engage_targets.append(Targets.All.Naval.id)
         else:
             self.configure_escort_tasks(
                 waypoint,
@@ -109,20 +106,6 @@ class JoinPointBuilder(PydcsWaypointBuilder):
                 max_dist=doctrine.sead_escort_engagement_range.nautical_miles,
                 vertical_spacing=doctrine.sead_escort_spacing.feet,
             )
-
-        waypoint.add_task(
-            ControlledTask(
-                EngageTargetsInZone(
-                    position=waypoint.position,
-                    radius=int(
-                        nautical_miles(
-                            doctrine.sead_escort_engagement_range.nautical_miles
-                        ).meters
-                    ),
-                    targets=engage_targets,
-                )
-            )
-        )
 
     def configure_escort_tasks(
         self,
