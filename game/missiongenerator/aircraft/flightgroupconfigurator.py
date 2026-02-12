@@ -194,7 +194,7 @@ class FlightGroupConfigurator:
         """
 
         trigger = TriggerStart()
-        trigger.add_action(DoScript(script_content))
+        trigger.add_action(DoScript(String(script_content)))
         self.mission.triggerrules.triggers.append(trigger)
 
     def register_escort_leash(self) -> None:
