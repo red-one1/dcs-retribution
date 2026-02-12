@@ -453,14 +453,17 @@ class AircraftBehavior:
         )
 
     def configure_sead_escort(self, group: FlyingGroup[Any], flight: Flight) -> None:
-        self.configure_task(flight, group, Escort)
+        self.configure_task(
+            flight,
+            group,
+            SEAD,
+            [CAS, AFAC, AntishipStrike, Escort],
+        ) # removed RTB_Winchester because if lead is winchester in ARM, whole flight goes home, which is undesirable for SEAD escorts since they may have plenty of missiles left to engage remaining threats. Instead, they will RTB on bingo fuel which is a more natural behavior for escorts and allows them to continue engaging threats until they are low on fuel.
         self.configure_behavior(
             flight,
             group,
             roe=OptROE.Values.OpenFire,
-            # Guided includes ARMs and TALDs (among other things, but those are the useful
-            # weapons for SEAD).
-            rtb_winchester=OptRTBOnOutOfAmmo.Values.Guided,
+            rtb_winchester=OptRTBOnOutOfAmmo.Values.NoWeapon,
             restrict_jettison=True,
             mission_uses_gun=False,
         )
