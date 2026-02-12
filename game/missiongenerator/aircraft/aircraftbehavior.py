@@ -453,7 +453,7 @@ class AircraftBehavior:
         )
 
     def configure_sead_escort(self, group: FlyingGroup[Any], flight: Flight) -> None:
-        self.configure_task(flight, group, Escort)
+        self.configure_task(flight, group, SEAD)
         self.configure_behavior(
             flight,
             group,
