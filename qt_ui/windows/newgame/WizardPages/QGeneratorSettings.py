@@ -332,6 +332,7 @@ class GeneratorOptions(QtWidgets.QWizardPage):
         self.chinesemilitaryassetspack.setChecked(
             s.get("chinesemilitaryassetspack", False)
         )
+        self.f4e_expanded_weapons.setChecked(s.get("f4e_expanded_weapons", False))
         self.russianmilitaryassetspack.setChecked(
             s.get("russianmilitaryassetspack", False)
         )

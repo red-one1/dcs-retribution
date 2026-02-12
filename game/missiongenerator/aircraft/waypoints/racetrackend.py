@@ -2,11 +2,15 @@ import logging
 
 from dcs.point import MovingPoint
 from dcs.task import (
+    EngageTargets,
+    OptROE,
     SetUnlimitedFuelCommand,
+    Targets,
 )
 
 from game.ato import FlightType
 from game.ato.flightplans.patrolling import PatrollingFlightPlan
+from game.utils import nautical_miles
 from .pydcswaypointbuilder import PydcsWaypointBuilder
 
 
@@ -24,6 +28,16 @@ class RaceTrackEndBuilder(PydcsWaypointBuilder):
             if settings.plugins.get("ewrj") and ai_jammer:
                 self.defensive_jamming(waypoint, "stop")
                 self.offensive_jamming(waypoint, "stop")
+
+        if self.flight.flight_type == FlightType.TARCAP:
+            # TARCAP self-defense after patrol: air-only engagement within 20nm.
+            waypoint.tasks.append(OptROE(value=OptROE.Values.OpenFireWeaponFree))
+            waypoint.tasks.append(
+                EngageTargets(
+                    max_distance=int(nautical_miles(20).meters),
+                    targets=[Targets.All.Air],
+                )
+            )
 
     def build(self) -> MovingPoint:
         waypoint = super().build()
