@@ -134,11 +134,11 @@ class Squadron:
         if not self.available_pilots:
             return self.claim_new_pilot_if_allowed()
 
-        # For opfor, so player/AI option is irrelevant.
-        if self.player != Player.BLUE:
-            return self.available_pilots.pop()
-
-        preference = self.settings.auto_ato_behavior
+        preference = (
+            self.settings.auto_ato_behavior
+            if self.player == Player.BLUE
+            else self.settings.auto_ato_behavior_red
+        )
 
         # No preference, so the first pilot is fine.
         if preference is AutoAtoBehavior.Default:
