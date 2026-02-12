@@ -5,8 +5,10 @@ from dcs.point import MovingPoint
 from dcs.task import (
     ControlledTask,
     EscortTaskAction,
+    EngageTargets,
     OptECMUsing,
     OptFormation,
+    OptRTBOnOutOfAmmo,
     OptROE,
     Targets,
     SetUnlimitedFuelCommand,
@@ -72,6 +74,9 @@ class JoinPointBuilder(PydcsWaypointBuilder):
 
             if self.flight.flight_type == FlightType.SEAD_ESCORT:
                 self.handle_sead_escort(doctrine, waypoint)
+                waypoint.tasks.append(
+                    OptRTBOnOutOfAmmo(OptRTBOnOutOfAmmo.Values.NoWeapon)
+                )
                 # Let the AI use ECM to preemptively defend themselves.
                 ecm_option = OptECMUsing(
                     value=OptECMUsing.Values.UseIfDetectedLockByRadar
@@ -91,23 +96,41 @@ class JoinPointBuilder(PydcsWaypointBuilder):
             waypoint.tasks.append(ecm_option)
 
     def handle_sead_escort(self, doctrine: Doctrine, waypoint: MovingPoint) -> None:
-        if isinstance(self.flight.package.target, NavalControlPoint):
-            self.configure_escort_tasks(
-                waypoint,
-                [
-                    Targets.All.Naval.id,
-                    Targets.All.GroundUnits.AirDefence.AAA.SAMRelated.id,
-                ],
-                max_dist=doctrine.sead_escort_engagement_range.nautical_miles,
-                vertical_spacing=doctrine.sead_escort_spacing.feet,
+        sead_targets = [
+            Targets.All.GroundUnits.AirDefence,
+            Targets.All.GroundUnits.AirDefence.AAA.SAMRelated,
+            Targets.All.GroundUnits.AirDefence.AAA.SAMRelated.SRSAM,
+            Targets.All.GroundUnits.AirDefence.AAA.SAMRelated.MRSAM,
+            Targets.All.GroundUnits.AirDefence.AAA.SAMRelated.LRSAM,
+        ]
+        sead_target_ids = [target.id for target in sead_targets]
+        if self.package.primary_flight is None or self.flight is self.package.primary_flight:
+            if isinstance(self.flight.package.target, NavalControlPoint):
+                self.configure_escort_tasks(
+                    waypoint,
+                    [Targets.All.Naval.id, *sead_target_ids],
+                    max_dist=doctrine.sead_escort_engagement_range.nautical_miles,
+                    vertical_spacing=doctrine.sead_escort_spacing.feet,
+                )
+            else:
+                self.configure_escort_tasks(
+                    waypoint,
+                    sead_target_ids,
+                    max_dist=doctrine.sead_escort_engagement_range.nautical_miles,
+                    vertical_spacing=doctrine.sead_escort_spacing.feet,
+                )
+
+        engage_dist = int(
+            nautical_miles(doctrine.sead_escort_engagement_range.nautical_miles).meters
+        )
+        waypoint.add_task(
+            ControlledTask(
+                EngageTargets(
+                    max_distance=engage_dist,
+                    targets=sead_targets,
+                )
             )
-        else:
-            self.configure_escort_tasks(
-                waypoint,
-                [Targets.All.GroundUnits.AirDefence.AAA.SAMRelated.id],
-                max_dist=doctrine.sead_escort_engagement_range.nautical_miles,
-                vertical_spacing=doctrine.sead_escort_spacing.feet,
-            )
+        )
 
     def configure_escort_tasks(
         self,

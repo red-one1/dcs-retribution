@@ -123,6 +123,8 @@ class FlightGroupConfigurator:
             self.mission_data,
         ).create_waypoints()
 
+        self.apply_sead_escort_no_weapon_rtb_option()
+
         # Special handling for landing waypoints when:
         # 1. It's an AI-only flight
         # 2. Aircraft are not helicopters/VTOL
@@ -173,6 +175,27 @@ class FlightGroupConfigurator:
         self.register_escort_leash()
 
         return flight_data
+
+    def apply_sead_escort_no_weapon_rtb_option(self) -> None:
+        if self.flight.flight_type != FlightType.SEAD_ESCORT:
+            return
+
+        script_content = f"""
+            local g = Group.getByName('{self.group.name}')
+            if g then
+                local ctrl = g:getController()
+                if ctrl then
+                    ctrl:setOption(
+                        AI.Option.Air.id.RTB_ON_OUT_OF_AMMO,
+                        AI.Option.Air.val.RTB_ON_OUT_OF_AMMO.NO_WEAPON
+                    )
+                end
+            end
+        """
+
+        trigger = TriggerStart()
+        trigger.add_action(DoScript(script_content))
+        self.mission.triggerrules.triggers.append(trigger)
 
     def register_escort_leash(self) -> None:
         if self.flight.flight_type not in [
