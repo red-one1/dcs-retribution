@@ -20,6 +20,9 @@ For each configured airbase, the plugin:
   - subtitles
   - radio transmission policy
   - verbosity
+- When `enableParkingGuards=true`, configures a default FLIGHTCONTROL parking guard as a one-unit ground group using `Soldier M4` for blue airfields and `Soldier AK` for red airfields
+- When parking guards are enabled, hooks FLIGHTCONTROL `Birth` and `EngineStartup` handling to set AI flights ready for takeoff so taxi clearance can proceed and guards can be removed in mission setups where readiness is not set by mission tasking
+- When parking guards are enabled, runs startup reconciliation passes that bind already-occupied parking aircraft to the local controller (when possible) and remove orphan guards for aircraft that are not controlled by that FLIGHTCONTROL instance
 - Optionally disables built-in DCS ATC (`SetRadioSilentMode(true)`)
 - Starts the controller (`fc:Start()`)
 - Stores instances in `FlightControlRetributionControllers[airbaseName]`
