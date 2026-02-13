@@ -111,6 +111,11 @@
             "defaultValue": true
         },
         {
+            "nameInUI": "Enable parking guards (default blue=M4, red=AK)",
+            "mnemonic": "enableParkingGuards",
+            "defaultValue": true
+        },
+        {
             "nameInUI": "FlightControl verbosity (0-5)",
             "mnemonic": "verbosity",
             "minimumValue": 0,
