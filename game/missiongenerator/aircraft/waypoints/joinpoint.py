@@ -56,7 +56,7 @@ class JoinPointBuilder(PydcsWaypointBuilder):
             self.configure_escort_tasks(
                 waypoint,
                 targets,
-                max_dist=doctrine.escort_engagement_range.nautical_miles * 0.66,
+                max_dist=doctrine.escort_engagement_range.nautical_miles,
                 vertical_spacing=doctrine.escort_spacing.feet,
             )
 
