@@ -244,7 +244,7 @@ local function escort_leash_update()
 
                 local max_dist = tonumber(pair.engagementRangeMeters) or 0
                 if max_dist > 0 and distance > max_dist then
-                    escort_leash_set_roe(escort_group, AI.Option.Air.val.ROE.WEAPON_HOLD)
+                    escort_leash_set_roe(escort_group, AI.Option.Air.val.ROE.RETURN_FIRE)
                 else
                     escort_leash_set_roe(escort_group, AI.Option.Air.val.ROE.OPEN_FIRE)
                 end
