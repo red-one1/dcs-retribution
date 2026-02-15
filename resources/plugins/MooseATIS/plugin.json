@@ -1,0 +1,104 @@
+{
+    "nameInUI": "Moose ATIS",
+    "defaultValue": false,
+    "specificOptions": [
+        {
+            "nameInUI": "Enable Blue Coalition ATIS",
+            "mnemonic": "enableBlue",
+            "defaultValue": true
+        },
+        {
+            "nameInUI": "Enable Red Coalition ATIS",
+            "mnemonic": "enableRed",
+            "defaultValue": false
+        },
+        {
+            "nameInUI": "Include FARPs/Helipads",
+            "mnemonic": "includeFarps",
+            "defaultValue": false
+        },
+        {
+            "nameInUI": "Blue ATIS Frequency (MHz)",
+            "mnemonic": "blueFrequency",
+            "minimumValue": 30,
+            "maximumValue": 399,
+            "defaultValue": 251
+        },
+        {
+            "nameInUI": "Red ATIS Frequency (MHz)",
+            "mnemonic": "redFrequency",
+            "minimumValue": 30,
+            "maximumValue": 399,
+            "defaultValue": 124
+        },
+        {
+            "nameInUI": "Use FM (otherwise AM)",
+            "mnemonic": "useFM",
+            "defaultValue": false
+        },
+        {
+            "nameInUI": "Use DCS Airbase ATC Frequencies",
+            "mnemonic": "useDcsAirbaseAtcFrequencies",
+            "defaultValue": true
+        },
+        {
+            "nameInUI": "Use Metric Units",
+            "mnemonic": "setMetricUnits",
+            "defaultValue": false
+        },
+        {
+            "nameInUI": "Transmit Only With Players",
+            "mnemonic": "transmitOnlyWithPlayers",
+            "defaultValue": true
+        },
+        {
+            "nameInUI": "Show F10 Map Marks",
+            "mnemonic": "setMapMarks",
+            "defaultValue": false
+        },
+        {
+            "nameInUI": "Report Runway Length",
+            "mnemonic": "reportRunwayLength",
+            "defaultValue": false
+        },
+        {
+            "nameInUI": "Report Airfield Elevation",
+            "mnemonic": "reportElevation",
+            "defaultValue": false
+        },
+        {
+            "nameInUI": "SRS Port",
+            "mnemonic": "srsPort",
+            "minimumValue": 1000,
+            "maximumValue": 65000,
+            "defaultValue": 5002
+        },
+        {
+            "nameInUI": "Queue Update Time (sec)",
+            "mnemonic": "queueUpdateSeconds",
+            "minimumValue": 10,
+            "maximumValue": 600,
+            "defaultValue": 90
+        },
+        {
+            "nameInUI": "ATIS Start Delay (sec)",
+            "mnemonic": "startDelaySeconds",
+            "minimumValue": 0,
+            "maximumValue": 600,
+            "defaultValue": 3
+        },
+        {
+            "nameInUI": "Debug Logging",
+            "mnemonic": "debug",
+            "defaultValue": false
+        }
+    ],
+    "scriptsWorkOrders": [],
+    "configurationWorkOrders": [
+        {
+            "file": "moose_atis.lua",
+            "mnemonic": "MooseATIS-config"
+        }
+    ],
+    "otherResourceFiles": []
+}

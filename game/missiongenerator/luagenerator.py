@@ -14,6 +14,7 @@ from dcs.triggers import TriggerStart
 from game.ato import FlightType
 from game.data.units import UnitClass
 from game.dcs.aircrafttype import AircraftType
+from game.dcs.beacons import BeaconType, Beacons
 from game.plugins import LuaPluginManager
 from game.theater import TheaterGroundObject
 from game.theater.iadsnetwork.iadsrole import IadsRole
@@ -52,7 +53,136 @@ class LuaGenerator:
         install_path = lua_data.add_item("installPath")
         install_path.set_value(os.path.abspath("."))
 
-        lua_data.add_item("Airbases")
+        airbases_object = lua_data.add_item("Airbases")
+        for cp in self.game.theater.controlpoints:
+            airport = cp.dcs_airport
+            if airport is None:
+                continue
+
+            airbase_item = airbases_object.add_item()
+            airbase_item.add_key_value("name", airport.name)
+
+            if cp.captured.is_blue:
+                side = "blue"
+            elif cp.captured.is_red:
+                side = "red"
+            else:
+                side = "neutral"
+            airbase_item.add_key_value("side", side)
+
+            atc_radio = airport.atc_radio
+            if atc_radio is not None:
+                airbase_item.add_key_value("atc_hf_hz", str(atc_radio.hf_hz))
+                airbase_item.add_key_value(
+                    "atc_vhf_low_hz", str(atc_radio.vhf_low_hz)
+                )
+                airbase_item.add_key_value(
+                    "atc_vhf_high_hz", str(atc_radio.vhf_high_hz)
+                )
+                airbase_item.add_key_value("atc_uhf_hz", str(atc_radio.uhf_hz))
+
+            runway_by_beacon_id: dict[str, str] = {}
+            for runway in airport.runways:
+                for approach in (runway.main, runway.opposite):
+                    for beacon_data in approach.beacons:
+                        runway_by_beacon_id[beacon_data.id] = approach.name
+
+            ils_entries: set[tuple[int, str]] = set()
+            ndb_inner_entries: set[tuple[int, str]] = set()
+            ndb_outer_entries: set[tuple[int, str]] = set()
+            prmg_entries: set[tuple[int, str]] = set()
+
+            tacan_set = False
+            vor_set = False
+            rsbn_set = False
+
+            for beacon_data in airport.beacons:
+                try:
+                    beacon = Beacons.with_id(beacon_data.id, self.game.theater)
+                except KeyError:
+                    continue
+
+                runway_name = runway_by_beacon_id.get(beacon_data.id, "")
+
+                if beacon.is_tacan and beacon.channel is not None and not tacan_set:
+                    airbase_item.add_key_value("tacan_channel", str(beacon.channel))
+                    tacan_set = True
+                    continue
+
+                if (
+                    beacon.beacon_type
+                    in (BeaconType.BEACON_TYPE_VOR, BeaconType.BEACON_TYPE_VOR_DME)
+                    and not vor_set
+                ):
+                    airbase_item.add_key_value(
+                        "vor_mhz", f"{beacon.hertz / 1000000.0:.3f}"
+                    )
+                    vor_set = True
+                    continue
+
+                if (
+                    beacon.beacon_type is BeaconType.BEACON_TYPE_RSBN
+                    and beacon.channel is not None
+                    and not rsbn_set
+                ):
+                    airbase_item.add_key_value("rsbn_channel", str(beacon.channel))
+                    rsbn_set = True
+                    continue
+
+                if beacon.beacon_type is BeaconType.BEACON_TYPE_ILS_GLIDESLOPE:
+                    ils_entries.add((beacon.hertz, runway_name))
+                    continue
+
+                if beacon.beacon_type is BeaconType.BEACON_TYPE_ILS_FAR_HOMER:
+                    ndb_outer_entries.add((beacon.hertz, runway_name))
+                    continue
+
+                if beacon.beacon_type is BeaconType.BEACON_TYPE_ILS_NEAR_HOMER:
+                    ndb_inner_entries.add((beacon.hertz, runway_name))
+                    continue
+
+                if (
+                    beacon.beacon_type is BeaconType.BEACON_TYPE_PRMG_LOCALIZER
+                    and beacon.channel is not None
+                ):
+                    prmg_entries.add((beacon.channel, runway_name))
+
+            if ils_entries:
+                ils_object = airbase_item.add_item("ils")
+                for hertz, runway_name in sorted(ils_entries):
+                    ils_item = ils_object.add_item()
+                    ils_item.add_key_value("frequency_mhz", f"{hertz / 1000000.0:.3f}")
+                    if runway_name:
+                        ils_item.add_key_value("runway", runway_name)
+
+            if ndb_outer_entries:
+                ndb_outer_object = airbase_item.add_item("ndb_outer")
+                for hertz, runway_name in sorted(ndb_outer_entries):
+                    ndb_outer_item = ndb_outer_object.add_item()
+                    ndb_outer_item.add_key_value(
+                        "frequency_khz", f"{hertz / 1000.0:.2f}"
+                    )
+                    if runway_name:
+                        ndb_outer_item.add_key_value("runway", runway_name)
+
+            if ndb_inner_entries:
+                ndb_inner_object = airbase_item.add_item("ndb_inner")
+                for hertz, runway_name in sorted(ndb_inner_entries):
+                    ndb_inner_item = ndb_inner_object.add_item()
+                    ndb_inner_item.add_key_value(
+                        "frequency_khz", f"{hertz / 1000.0:.2f}"
+                    )
+                    if runway_name:
+                        ndb_inner_item.add_key_value("runway", runway_name)
+
+            if prmg_entries:
+                prmg_object = airbase_item.add_item("prmg")
+                for channel, runway_name in sorted(prmg_entries):
+                    prmg_item = prmg_object.add_item()
+                    prmg_item.add_key_value("channel", str(channel))
+                    if runway_name:
+                        prmg_item.add_key_value("runway", runway_name)
+
         carriers_object = lua_data.add_item("Carriers")
 
         for carrier in self.mission_data.carriers:
