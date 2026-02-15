@@ -9,7 +9,7 @@ This plugin creates MOOSE `ATIS` instances for Retribution airbases by coalition
 - Iterates all MOOSE airbases using `AIRBASE.GetAllAirbases()`.
 - Filters out ships.
 - Optionally includes FARPs/helipads.
-- Tries to use per-airbase ATC frequencies exported by Retribution (`dcsRetribution.Airbases`) from pydcs terrain radio data.
+- Tries to use per-airbase ATC frequencies exported by Retribution (`dcsRetribution.Airbases`) from pydcs terrain radio data, then sets ATIS to `ATC + atisOffsetMHz`.
 - Falls back to coalition frequencies when no per-airbase radio data is available.
 - Auto-applies available nav aids per airbase from exported beacon data:
 	- TACAN (`SetTACAN`)
@@ -26,7 +26,8 @@ This plugin creates MOOSE `ATIS` instances for Retribution airbases by coalition
 - `includeFarps`: include helipads/FARPs.
 - `blueFrequency` / `redFrequency`: coalition fallback ATIS frequencies in MHz.
 - `useFM`: use FM modulation instead of AM.
-- `useDcsAirbaseAtcFrequencies`: prefer exported DCS airbase ATC frequencies (`UHF -> VHF high -> VHF low -> HF`).
+- `useDcsAirbaseAtcFrequencies`: prefer exported DCS airbase ATC frequencies (`UHF -> VHF high -> VHF low -> HF`) and transmit ATIS at `ATC + atisOffsetMHz`.
+- `atisOffsetMHz`: offset added to DCS ATC frequency for ATIS transmission (default `0.5`).
 - `setMetricUnits`: enable metric readouts.
 - `transmitOnlyWithPlayers`: suppress SRS transmissions when no players are alive.
 - `setMapMarks`: enable F10 map marks.

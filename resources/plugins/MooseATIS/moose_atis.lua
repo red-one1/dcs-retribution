@@ -8,6 +8,7 @@ MooseATISOptions = {
     redFrequency = 124,
     useFM = false,
     useDcsAirbaseAtcFrequencies = true,
+    atisOffsetMHz = 0.5,
     setMetricUnits = false,
     transmitOnlyWithPlayers = true,
     setMapMarks = false,
@@ -28,6 +29,7 @@ if dcsRetribution and dcsRetribution.plugins and dcsRetribution.plugins.MooseATI
     MooseATISOptions.redFrequency = p.redFrequency
     MooseATISOptions.useFM = p.useFM
     MooseATISOptions.useDcsAirbaseAtcFrequencies = p.useDcsAirbaseAtcFrequencies
+    MooseATISOptions.atisOffsetMHz = tonumber(p.atisOffsetMHz) or MooseATISOptions.atisOffsetMHz
     MooseATISOptions.setMetricUnits = p.setMetricUnits
     MooseATISOptions.transmitOnlyWithPlayers = p.transmitOnlyWithPlayers
     MooseATISOptions.setMapMarks = p.setMapMarks
@@ -134,7 +136,8 @@ local function get_frequency_for_airbase(airbase)
             for _, field_name in ipairs(ordered_fields) do
                 local mhz = hz_to_mhz(data[field_name])
                 if mhz then
-                    return mhz, get_modulation_for_band(field_name), "dcs." .. field_name
+                    local offset_mhz = tonumber(MooseATISOptions.atisOffsetMHz) or 0
+                    return mhz + offset_mhz, get_modulation_for_band(field_name), string.format("dcs.%s+%.3f", field_name, offset_mhz)
                 end
             end
             atis_debug(string.format("No usable DCS ATC frequency for %s", airbase_name))

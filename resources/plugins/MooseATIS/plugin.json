@@ -37,9 +37,16 @@
             "defaultValue": false
         },
         {
-            "nameInUI": "Use DCS Airbase ATC Frequencies",
+            "nameInUI": "Use DCS Airbase ATC + 0.500 MHz",
             "mnemonic": "useDcsAirbaseAtcFrequencies",
             "defaultValue": true
+        },
+        {
+            "nameInUI": "ATIS Offset from ATC (MHz)",
+            "mnemonic": "atisOffsetMHz",
+            "minimumValue": 0,
+            "maximumValue": 5,
+            "defaultValue": 0.5
         },
         {
             "nameInUI": "Use Metric Units",
