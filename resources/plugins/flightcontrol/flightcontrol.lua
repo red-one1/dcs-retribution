@@ -18,6 +18,7 @@ local flightcontrol_options = {
     markHoldingPatterns = true,
     radioOnlyIfPlayers = true,
     subtitles = true,
+    disableSrsRadio = false,
     disableDcsAtc = true,
     enableParkingGuards = true,
     verbosity = 0,
@@ -49,6 +50,7 @@ if dcsRetribution and dcsRetribution.plugins and dcsRetribution.plugins.flightco
     _fc_apply_option("markHoldingPatterns")
     _fc_apply_option("radioOnlyIfPlayers")
     _fc_apply_option("subtitles")
+    _fc_apply_option("disableSrsRadio")
     _fc_apply_option("disableDcsAtc")
     _fc_apply_option("enableParkingGuards")
     _fc_apply_option("verbosity")
@@ -226,6 +228,28 @@ local function _fc_apply_common_options(fc)
     end
 
     fc:SetVerbosity(flightcontrol_options.verbosity)
+end
+
+local function _fc_disable_srs_radio(fc)
+    if not flightcontrol_options.disableSrsRadio then
+        return
+    end
+
+    if fc._retributionSrsDisabled then
+        return
+    end
+
+    function fc:TransmissionTower(Text, Flight, Delay)
+        self.Tlastmessage = timer.getAbsTime() + (Delay or 0)
+        self:T(self.lid .. string.format("Radio Tower skipped (SRS disabled): %s", tostring(Text)))
+    end
+
+    function fc:TransmissionPilot(Text, Flight, Delay)
+        self.Tlastmessage = timer.getAbsTime() + (Delay or 0)
+        self:T(self.lid .. string.format("Radio Pilot skipped (SRS disabled): %s", tostring(Text)))
+    end
+
+    fc._retributionSrsDisabled = true
 end
 
 local function _fc_mark_ai_group_ready_for_takeoff(group_name, expected_airbase_name)
@@ -425,6 +449,7 @@ local function _fc_configure_airbase(airbase)
     end
 
     _fc_apply_common_options(fc)
+    _fc_disable_srs_radio(fc)
     _fc_configure_parking_guards(fc, side)
     _fc_enable_ai_takeoff_readiness_hooks(fc)
 

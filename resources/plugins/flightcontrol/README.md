@@ -19,6 +19,7 @@ For each configured airbase, the plugin:
   - hold pattern marker visibility
   - subtitles
   - radio transmission policy
+   - optional SRS/TTS transmission suppression for testing (`disableSrsRadio`)
   - verbosity
 - When `enableParkingGuards=true`, configures a default FLIGHTCONTROL parking guard as a one-unit ground group using `Soldier M4` for blue airfields and `Soldier AK` for red airfields
 - When parking guards are enabled, hooks FLIGHTCONTROL `Birth` and `EngineStartup` handling to set AI flights ready for takeoff so taxi clearance can proceed and guards can be removed in mission setups where readiness is not set by mission tasking
@@ -117,3 +118,4 @@ This hook is called once per created controller after common options are applied
 
 - Editor lint warnings about `env`, `radio`, `dcsRetribution` are expected in plain Lua static analysis; these globals are available in DCS mission runtime.
 - If future missions require band-priority customization, add an option for preferred band order and resolve it before fallback.
+- For crash/isolation tests, set plugin option `disableSrsRadio=true` to keep FLIGHTCONTROL active while suppressing its SRS/TTS transmissions.
