@@ -64,7 +64,7 @@ class DeadIngressBuilder(PydcsWaypointBuilder):
             task = AttackGroup(
                 miz_group.id,
                 weapon_type=WeaponType.Unguided,
-                attack_limit=attack_limit,
+                attack_limit=1,
                 expend=Expend.All,
                 direction=math.radians(dir),
                 altitude=waypoint.alt,

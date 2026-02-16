@@ -233,7 +233,7 @@ class GeneratorOptions(QtWidgets.QWizardPage):
             ("F-4B/C Phantom II (2.8.7.204)", self.f4bc_phantom),
             ("F-4E Expanded Weapons (v1.0.11)", self.f4e_expanded_weapons),
             ("F-84G Thunderjet (v2.5.7.01)", self.f84g_thunderjet),
-            ("F-111C Aardvark (Warpig Production v2.260103)", self.f111c),
+            ("F-111C Aardvark (Warpig Production v2.260208)", self.f111c),
             ("F9F Panther (v2.8.7.101)", self.f9f_panther),
             ("F/A-18E/F/G Super Hornet (version 2.4.5)", self.fa_18efg),
             ("F/A-18E/F Super Hornet AI Tanker (version 2.4.5)", self.fa18ef_tanker),
@@ -244,7 +244,7 @@ class GeneratorOptions(QtWidgets.QWizardPage):
             ("MiG-31BM (v2.62)", self.mig31bm_foxhound),
             ("Military Aircraft Mod (v1.7.2 - AI Only)", self.mam),
             ("Mirage III (v2.5.7.01)", self.mirage_3),
-            ("OH-6 Cayuse (v1.2)", self.oh_6),
+            ("OH-6 Cayuse (v1.6)", self.oh_6),
             ("OH-6 Vietnam Asset Pack (v1.0)", self.oh_6_vietnamassetpack),
             ("OV-10A Bronco", self.ov10a_bronco),
             ("Saab 105/SK-60B (v1.2.1)", self.sk_60),
@@ -343,3 +343,6 @@ class GeneratorOptions(QtWidgets.QWizardPage):
         self.tornado_adv.setChecked(s.get("tornado_adv", False))
         self.vsnf35.setChecked(s.get("vsnf35", False))
         self.f111c.setChecked(s.get("f111c", False))
+        self.oh_6.setChecked(s.get("oh_6", False))
+        self.oh_6_vietnamassetpack.setChecked(s.get("oh_6_vietnamassetpack", False))
+        self.mam.setChecked(s.get("mam", False))
