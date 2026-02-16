@@ -12,7 +12,6 @@ manufacturer: Grumman
 origin: USA
 price: 10
 role: Carrier-based Attack
-single_pass_dumb_bombs: true
 variants:
   A-6E Intruder: {}
 tasks:

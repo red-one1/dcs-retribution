@@ -60,7 +60,6 @@ class DeadIngressBuilder(PydcsWaypointBuilder):
 
             dir = target.position.heading_between_point(waypoint.position)
 
-            attack_limit = 1 if self.flight.unit_type.single_pass_dumb_bombs else None
             task = AttackGroup(
                 miz_group.id,
                 weapon_type=WeaponType.Unguided,

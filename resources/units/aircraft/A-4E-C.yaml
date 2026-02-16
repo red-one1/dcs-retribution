@@ -13,7 +13,6 @@ origin: USA
 price: 7
 role: Carrier-based Attack/Light Fighter
 gunfighter: true
-single_pass_dumb_bombs: true
 variants:
   A-4E Skyhawk: {}
 tasks:
