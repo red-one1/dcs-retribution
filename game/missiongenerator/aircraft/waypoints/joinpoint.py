@@ -8,7 +8,6 @@ from dcs.task import (
     EngageTargets,
     OptECMUsing,
     OptFormation,
-    OptRTBOnOutOfAmmo,
     OptROE,
     Targets,
     SetUnlimitedFuelCommand,
@@ -74,9 +73,6 @@ class JoinPointBuilder(PydcsWaypointBuilder):
 
             if self.flight.flight_type == FlightType.SEAD_ESCORT:
                 self.handle_sead_escort(doctrine, waypoint)
-                waypoint.tasks.append(
-                    OptRTBOnOutOfAmmo(OptRTBOnOutOfAmmo.Values.NoWeapon)
-                )
                 # Let the AI use ECM to preemptively defend themselves.
                 ecm_option = OptECMUsing(
                     value=OptECMUsing.Values.UseIfDetectedLockByRadar
