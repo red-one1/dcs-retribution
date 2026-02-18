@@ -28,7 +28,6 @@ from game.radio.tacan import (
     OutOfTacanChannelsError,
 )
 from game.runways import RunwayData
-from game.missiongenerator.missiondata import EscortInfo
 from game.squadrons import Pilot
 from .aircraftbehavior import AircraftBehavior
 from .aircraftpainter import AircraftPainter
@@ -172,8 +171,6 @@ class FlightGroupConfigurator:
             laser_codes=laser_codes,
         )
 
-        self.register_escort_leash()
-
         return flight_data
 
     def apply_sead_escort_no_weapon_rtb_option(self) -> None:
@@ -196,38 +193,6 @@ class FlightGroupConfigurator:
         trigger = TriggerStart()
         trigger.add_action(DoScript(String(script_content)))
         self.mission.triggerrules.triggers.append(trigger)
-
-    def register_escort_leash(self) -> None:
-        if self.flight.flight_type not in [
-            FlightType.ESCORT,
-            FlightType.SEAD_ESCORT,
-        ]:
-            return
-
-        if self.flight.package.primary_flight is None:
-            return
-
-        escort_group_id = self.flight.group_id
-        escorted_group_id = self.flight.package.primary_flight.group_id
-        if escort_group_id <= 0 or escorted_group_id <= 0:
-            return
-
-        engagement_range = (
-            self.flight.coalition.doctrine.sead_escort_engagement_range
-            if self.flight.flight_type == FlightType.SEAD_ESCORT
-            else self.flight.coalition.doctrine.escort_engagement_range
-        ).meters
-
-        if self.flight.is_helo:
-            engagement_range *= 0.25
-
-        self.mission_data.escorts.append(
-            EscortInfo(
-                escort_group_id=escort_group_id,
-                escorted_group_id=escorted_group_id,
-                engagement_range_meters=int(engagement_range),
-            )
-        )
 
     def configure_flight_member(
         self, unit: FlyingUnit, member: FlightMember, laser_codes: list[Optional[int]]
