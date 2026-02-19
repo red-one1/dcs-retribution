@@ -393,7 +393,10 @@ class Faction:
             self.remove_aircraft("Hercules")
         if not mod_settings.oh_6:
             self.remove_aircraft("OH-6A")
-        if not mod_settings.oh_6_vietnamassetpack:
+        if (
+            not mod_settings.oh_6_vietnamassetpack
+            and not mod_settings.vietnamwarvessels
+        ):
             self.remove_vehicle("vap_mutt_gun")
             self.remove_vehicle("vap_type63_mlrs")
             self.remove_vehicle("vap_vc_bicycle_mortar")
@@ -736,6 +739,19 @@ class Faction:
             self.remove_aircraft("uh2c")  # "UH-2C Seasprite"
             self.remove_aircraft("vwv_ch46d")  # "CH-46D Sea Knight"
             self.remove_aircraft("vwv_ch46d_late")  # "CH-46D Sea Knight (Late)"
+            self.remove_vehicle("vwv_vn_guardTower")
+            self.remove_vehicle("vap_m35_gun_truck")
+            self.remove_vehicle("vap_vc_tunnel")
+            self.remove_vehicle("vap_civ_zis_150")
+            self.remove_vehicle("_vap_loudspeakersVietnam")
+            self.remove_vehicle("vwv_cgo_usConex")
+            self.remove_vehicle("vwv_cgo_usBlu82C130")
+            self.remove_vehicle("vwv_farp_marsdenmat")
+            self.remove_vehicle("vap_oh6_cargo")
+            self.remove_vehicle("vap_us_farp_1")
+            self.remove_vehicle("vap_us_farp_2")
+            self.remove_vehicle("vap_us_farp_3")
+            self.remove_vehicle("vap_us_farp_4")
         # Chinese Military Assets Pack
         if not mod_settings.chinesemilitaryassetspack:
             self.remove_vehicle("CH_PCL181_155")
