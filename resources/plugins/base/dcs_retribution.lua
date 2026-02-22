@@ -26,14 +26,17 @@ local function messageAll(message)
 end
 
 function write_state()
-    local _debriefing_file_location = debriefing_file_location
-    if not debriefing_file_location then 
-        _debriefing_file_location = "[nil]"
+    if not debriefing_file_location then
+        error("Unable to save DCS Retribution state: debriefing_file_location is nil")
     end
 
-    local fp = io.open(_debriefing_file_location, 'w')
+    if not json then
+        error("Unable to save DCS Retribution state: JSON library is not loaded")
+    end
+
+    local fp, open_error = io.open(debriefing_file_location, 'w')
     if not fp then
-        error("Unable to open file for writing: " .. tostring(_debriefing_file_location))
+        error("Unable to open file for writing: " .. tostring(debriefing_file_location) .. " (" .. tostring(open_error) .. ")")
     end
     local game_state = {
         ["crash_events"] = crash_events,
@@ -44,17 +47,12 @@ function write_state()
         ["mission_ended"] = mission_ended,
         ["destroyed_objects_positions"] = destroyed_objects_positions,
     }
-    if not json then
-        local message = string.format("Unable to save DCS Retribution state to %s, JSON library is not loaded !", _debriefing_file_location)
-        logger:error(message)
-        messageAll(message)
-    end
     fp:write(json:encode(game_state))
     fp:close()
 end
 
 local function canWrite(name)
-    local f = io.open(name, "w")
+    local f = io.open(name, "a")
     if f then
         f:close()
         return true
