@@ -44,7 +44,9 @@ class PollDebriefingFileThread(Thread):
                     os.path.isfile("state.json")
                     and os.path.getmtime("state.json") > last_modified
                 ):
-                    debriefing = self.mission_sim.debrief_current_state(Path("state.json"))
+                    debriefing = self.mission_sim.debrief_current_state(
+                        Path("state.json")
+                    )
                     self.callback(debriefing)
                     last_modified = os.path.getmtime("state.json")
                     if debriefing.state_data.mission_ended:
