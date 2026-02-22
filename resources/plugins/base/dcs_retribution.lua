@@ -27,8 +27,8 @@ end
 
 function write_state()
     local _debriefing_file_location = debriefing_file_location
-    if not debriefing_file_location then 
-        _debriefing_file_location = "[nil]"
+    if not debriefing_file_location or debriefing_file_location == "" then
+        error("Unable to save DCS Retribution state: debriefing file path is unavailable")
     end
 
     if not json then
@@ -48,12 +48,17 @@ function write_state()
         ["mission_ended"] = mission_ended,
         ["destroyed_objects_positions"] = destroyed_objects_positions,
     }
-    fp:write(json:encode(game_state))
+    local ok, write_error = pcall(function()
+        fp:write(json:encode(game_state))
+    end)
     fp:close()
+    if not ok then
+        error(write_error)
+    end
 end
 
 local function canWrite(name)
-    local f = io.open(name, "w")
+    local f = io.open(name, "a")
     if f then
         f:close()
         return true
@@ -126,6 +131,7 @@ local function discoverDebriefingFilePath()
 end
 
 debriefing_file_location = discoverDebriefingFilePath()
+local error_message_shown = false
 
 write_state_error_handling = function()
     local _debriefing_file_location = debriefing_file_location
@@ -138,12 +144,16 @@ write_state_error_handling = function()
     if dirty_state then
         if pcall(write_state) then
             dirty_state = false -- Reset dirty flag after successful write
+            error_message_shown = false
         else
-            messageAll("Unable to write DCS Retribution state to ".._debriefing_file_location..
-                    "\nYou can abort the mission in DCS Retribution.\n"..
-                    "\n\nPlease fix your setup in DCS Retribution, make sure you are pointing to the right installation directory from the File/Preferences menu. Then after fixing the path restart DCS Retribution, and then restart DCS."..
-                    "\n\nYou can also try to fix the issue manually by replacing the file <dcs_installation_directory>/Scripts/MissionScripting.lua by the one provided there : <dcs_retribution_folder>/resources/scripts/MissionScripting.lua. And then restart DCS. (This will also have to be done again after each DCS update)"..
-                    "\n\nIt's not worth playing, the state of the mission will not be recorded.")
+            if not error_message_shown then
+                messageAll("Unable to write DCS Retribution state to ".._debriefing_file_location..
+                        "\nYou can abort the mission in DCS Retribution.\n"..
+                        "\n\nPlease fix your setup in DCS Retribution, make sure you are pointing to the right installation directory from the File/Preferences menu. Then after fixing the path restart DCS Retribution, and then restart DCS."..
+                        "\n\nYou can also try to fix the issue manually by replacing the file <dcs_installation_directory>/Scripts/MissionScripting.lua by the one provided there : <dcs_retribution_folder>/resources/scripts/MissionScripting.lua. And then restart DCS. (This will also have to be done again after each DCS update)"..
+                        "\n\nIt's not worth playing, the state of the mission will not be recorded.")
+                error_message_shown = true
+            end
         end
     end
 

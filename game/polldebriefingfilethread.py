@@ -52,7 +52,7 @@ class PollDebriefingFileThread(Thread):
                     if debriefing.state_data.mission_ended:
                         break
             except (json.JSONDecodeError, OSError, ValueError, KeyError):
-                logging.exception(
+                logging.warning(
                     "Failed to read state.json. Probably attempted read while DCS "
                     "was still writing the file. Will retry in 5 seconds."
                 )
