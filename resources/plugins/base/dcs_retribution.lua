@@ -32,6 +32,9 @@ function write_state()
     end
 
     local fp = io.open(_debriefing_file_location, 'w')
+    if not fp then
+        error("Unable to open file for writing: " .. tostring(_debriefing_file_location))
+    end
     local game_state = {
         ["crash_events"] = crash_events,
         ["dead_events"] = dead_events,
@@ -125,6 +128,7 @@ end
 
 debriefing_file_location = discoverDebriefingFilePath()
 
+local error_message_shown = false
 write_state_error_handling = function()
     local _debriefing_file_location = debriefing_file_location
     if not debriefing_file_location then 
@@ -136,17 +140,25 @@ write_state_error_handling = function()
     if dirty_state then
         if pcall(write_state) then
             dirty_state = false -- Reset dirty flag after successful write
+            error_message_shown = false
         else
-            messageAll("Unable to write DCS Retribution state to ".._debriefing_file_location..
-                    "\nYou can abort the mission in DCS Retribution.\n"..
-                    "\n\nPlease fix your setup in DCS Retribution, make sure you are pointing to the right installation directory from the File/Preferences menu. Then after fixing the path restart DCS Retribution, and then restart DCS."..
-                    "\n\nYou can also try to fix the issue manually by replacing the file <dcs_installation_directory>/Scripts/MissionScripting.lua by the one provided there : <dcs_retribution_folder>/resources/scripts/MissionScripting.lua. And then restart DCS. (This will also have to be done again after each DCS update)"..
-                    "\n\nIt's not worth playing, the state of the mission will not be recorded.")
+            if not error_message_shown then
+                messageAll("Unable to write DCS Retribution state to ".._debriefing_file_location..
+                        "\nYou can abort the mission in DCS Retribution.\n"..
+                        "\n\nPlease fix your setup in DCS Retribution, make sure you are pointing to the right installation directory from the File/Preferences menu. Then after fixing the path restart DCS Retribution, and then restart DCS."..
+                        "\n\nYou can also try to fix the issue manually by replacing the file <dcs_installation_directory>/Scripts/MissionScripting.lua by the one provided there : <dcs_retribution_folder>/resources/scripts/MissionScripting.lua. And then restart DCS. (This will also have to be done again after each DCS update)"..
+                        "\n\nIt's not worth playing, the state of the mission will not be recorded.")
+                error_message_shown = true
+            end
         end
     end
 
     -- reschedule
-    mist.scheduleFunction(write_state_error_handling, {}, timer.getTime() + WRITESTATE_SCHEDULE_IN_SECONDS)
+    local schedule_time = WRITESTATE_SCHEDULE_IN_SECONDS
+    if mission_ended and dirty_state then
+        schedule_time = 1
+    end
+    mist.scheduleFunction(write_state_error_handling, {}, timer.getTime() + schedule_time)
 end
 
 activeWeapons = {}
@@ -187,7 +199,11 @@ local function onEvent(event)
     if event.id == world.event.S_EVENT_MISSION_END then
         mission_ended = true
         dirty_state = true
-        write_state()
+        if pcall(write_state) then
+            dirty_state = false
+        else
+            mist.scheduleFunction(write_state_error_handling, {}, timer.getTime() + 1)
+        end
     end
 
 end
