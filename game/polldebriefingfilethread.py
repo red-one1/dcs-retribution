@@ -44,13 +44,14 @@ class PollDebriefingFileThread(Thread):
                     os.path.isfile("state.json")
                     and os.path.getmtime("state.json") > last_modified
                 ):
-                    self.callback(
-                        self.mission_sim.debrief_current_state(Path("state.json"))
-                    )
-                    break
-            except json.JSONDecodeError:
+                    debriefing = self.mission_sim.debrief_current_state(Path("state.json"))
+                    self.callback(debriefing)
+                    last_modified = os.path.getmtime("state.json")
+                    if debriefing.state_data.mission_ended:
+                        break
+            except (json.JSONDecodeError, OSError, ValueError, KeyError):
                 logging.exception(
-                    "Failed to decode state.json. Probably attempted read while DCS "
+                    "Failed to read state.json. Probably attempted read while DCS "
                     "was still writing the file. Will retry in 5 seconds."
                 )
             time.sleep(5)

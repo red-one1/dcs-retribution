@@ -31,7 +31,10 @@ function write_state()
         _debriefing_file_location = "[nil]"
     end
 
-    local fp = io.open(_debriefing_file_location, 'w')
+    local fp, open_error = io.open(_debriefing_file_location, 'w')
+    if not fp then
+        error("Unable to open state file for writing: "..tostring(_debriefing_file_location).." ("..tostring(open_error)..")")
+    end
     local game_state = {
         ["crash_events"] = crash_events,
         ["dead_events"] = dead_events,
@@ -42,9 +45,7 @@ function write_state()
         ["destroyed_objects_positions"] = destroyed_objects_positions,
     }
     if not json then
-        local message = string.format("Unable to save DCS Retribution state to %s, JSON library is not loaded !", _debriefing_file_location)
-        logger:error(message)
-        messageAll(message)
+        error("Unable to save DCS Retribution state, JSON library is not loaded")
     end
     fp:write(json:encode(game_state))
     fp:close()
@@ -145,8 +146,13 @@ write_state_error_handling = function()
         end
     end
 
-    -- reschedule
-    mist.scheduleFunction(write_state_error_handling, {}, timer.getTime() + WRITESTATE_SCHEDULE_IN_SECONDS)
+    -- Reschedule quickly if mission is over and we still have unsaved changes,
+    -- otherwise use the normal cadence.
+    local next_schedule_in_seconds = WRITESTATE_SCHEDULE_IN_SECONDS
+    if mission_ended and dirty_state then
+        next_schedule_in_seconds = 1
+    end
+    mist.scheduleFunction(write_state_error_handling, {}, timer.getTime() + next_schedule_in_seconds)
 end
 
 activeWeapons = {}
@@ -187,7 +193,9 @@ local function onEvent(event)
     if event.id == world.event.S_EVENT_MISSION_END then
         mission_ended = true
         dirty_state = true
-        write_state()
+        if pcall(write_state) then
+            dirty_state = false
+        end
     end
 
 end
