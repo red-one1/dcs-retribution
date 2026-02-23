@@ -651,9 +651,27 @@ class Settings:
         default=True,
     )
 
-    # OPFOR HQ Automation — these mirror the blue-side settings above and take
-    # effect when the human player switches to the OPFOR commander perspective.
-    # When the player is NOT commanding OPFOR, red always uses full automation.
+    # OPFOR Commander Mode — opt-in feature that lets the human player take
+    # full command of the OPFOR side (budget, purchases, transfers, mission
+    # planning).  When disabled (the default), OPFOR is fully AI-controlled
+    # and the "Show/Plan OPFOR's ATO" checkbox only previews OPFOR flights.
+    enable_opfor_commander: bool = boolean_option(
+        "Enable OPFOR Commander Mode",
+        CAMPAIGN_MANAGEMENT_PAGE,
+        HQ_AUTOMATION_SECTION,
+        default=False,
+        detail=(
+            "When enabled, toggling 'Show/Plan OPFOR ATO' switches the entire "
+            "UI to the OPFOR perspective — budget, base management, purchases, "
+            "and flight planning all operate on the red side.  The settings "
+            "below control which tasks the AI still handles for OPFOR."
+        ),
+    )
+
+    # OPFOR HQ Automation — these mirror the blue-side settings above and only
+    # take effect when 'Enable OPFOR Commander Mode' is ON.  When the master
+    # toggle is OFF, OPFOR always uses full AI automation (matching default
+    # game behaviour).
     automate_runway_repair_red: bool = boolean_option(
         "Automate OPFOR runway repairs",
         CAMPAIGN_MANAGEMENT_PAGE,

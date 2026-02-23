@@ -238,12 +238,18 @@ class Coalition:
             manage_runways = self.game.settings.automate_runway_repair
             manage_front_line = self.game.settings.automate_front_line_reinforcements
             manage_aircraft = self.game.settings.automate_aircraft_reinforcements
-        else:
+        elif self.game.settings.enable_opfor_commander:
+            # OPFOR Commander Mode: respect the red-specific automation prefs.
             manage_runways = self.game.settings.automate_runway_repair_red
             manage_front_line = (
                 self.game.settings.automate_front_line_reinforcements_red
             )
             manage_aircraft = self.game.settings.automate_aircraft_reinforcements_red
+        else:
+            # Default: red side is fully AI-automated.
+            manage_runways = True
+            manage_front_line = True
+            manage_aircraft = True
 
         self.budget = ProcurementAi(
             self.game,

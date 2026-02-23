@@ -566,8 +566,19 @@ class GameModel:
         self.init_comms_registry()
 
     @property
+    def opfor_commander_enabled(self) -> bool:
+        """True when OPFOR Commander Mode is turned on in settings."""
+        return self.game is not None and self.game.settings.enable_opfor_commander
+
+    @property
     def current_player(self) -> Player:
-        """Returns the Player enum for the currently active perspective."""
+        """Returns the Player enum for the currently active perspective.
+
+        Always returns BLUE unless OPFOR Commander Mode is enabled **and**
+        the user has toggled the OPFOR perspective.
+        """
+        if not self.opfor_commander_enabled:
+            return Player.BLUE
         return Player.BLUE if self.is_ownfor else Player.RED
 
     @property

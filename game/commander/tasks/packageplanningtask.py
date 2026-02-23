@@ -47,9 +47,11 @@ class PackagePlanningTask(TheaterCommanderTask, Generic[MissionTargetT]):
         if state.context.coalition.player.is_blue:
             if state.context.settings.auto_ato_behavior is AutoAtoBehavior.Disabled:
                 return False
-        else:
+        elif state.context.settings.enable_opfor_commander:
+            # OPFOR Commander Mode: respect the red-specific ATO setting.
             if state.context.settings.auto_ato_behavior_red is AutoAtoBehavior.Disabled:
                 return False
+        # else: default — red AI always plans missions.
         return self.fulfill_mission(state)
 
     def apply_effects(self, state: TheaterState) -> None:
