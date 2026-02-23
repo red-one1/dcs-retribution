@@ -10,6 +10,7 @@ from PySide6.QtWidgets import (
 
 from game import Game
 from game.ato.flight import Flight
+from game.theater.player import Player
 from qt_ui.uiconstants import EVENT_ICONS
 from qt_ui.widgets.combos.QPredefinedWaypointSelectionComboBox import (
     QPredefinedWaypointSelectionComboBox,
@@ -30,7 +31,13 @@ class QPredefinedWaypointSelectionWindow(QDialog):
     # List of FlightWaypoint
     waypoints_added = Signal(list)
 
-    def __init__(self, game: Game, flight: Flight, flight_waypoint_list):
+    def __init__(
+        self,
+        game: Game,
+        flight: Flight,
+        flight_waypoint_list,
+        player: Player = Player.BLUE,
+    ):
         super(QPredefinedWaypointSelectionWindow, self).__init__()
         self.game = game
         self.flight = flight
@@ -41,7 +48,9 @@ class QPredefinedWaypointSelectionWindow(QDialog):
         self.setWindowIcon(EVENT_ICONS["strike"])
         self.flight_waypoint_list = flight_waypoint_list
 
-        self.wpt_selection_box = QPredefinedWaypointSelectionComboBox(self.game)
+        self.wpt_selection_box = QPredefinedWaypointSelectionComboBox(
+            self.game, player=player
+        )
         self.wpt_selection_box.setMinimumWidth(200)
         self.wpt_selection_box.currentTextChanged.connect(self.on_select_wpt_changed)
         self.selected_waypoints = []

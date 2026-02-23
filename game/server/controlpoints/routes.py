@@ -35,7 +35,7 @@ def get_control_point(
             status.HTTP_404_NOT_FOUND,
             detail=f"Game has no control point with ID {cp_id}",
         )
-    return ControlPointJs.for_control_point(cp)
+    return ControlPointJs.for_control_point(cp, GameContext.get_model().current_player)
 
 
 @router.get(
@@ -76,7 +76,8 @@ def set_destination(
         )
     if not cp.moveable:
         raise HTTPException(status.HTTP_403_FORBIDDEN, detail=f"{cp} is not mobile")
-    if not cp.captured.is_blue:
+    current_player = GameContext.get_model().current_player
+    if cp.captured != current_player:
         raise HTTPException(
             status.HTTP_403_FORBIDDEN, detail=f"{cp} is not owned by the player"
         )
@@ -121,7 +122,8 @@ def cancel_travel(cp_id: UUID, game: Game = Depends(GameContext.require)) -> Non
         )
     if not cp.moveable:
         raise HTTPException(status.HTTP_403_FORBIDDEN, detail=f"{cp} is not mobile")
-    if not cp.captured.is_blue:
+    current_player = GameContext.get_model().current_player
+    if cp.captured != current_player:
         raise HTTPException(
             status.HTTP_403_FORBIDDEN, detail=f"{cp} is not owned by the player"
         )

@@ -103,7 +103,7 @@ class FinancesLayout(QGridLayout):
 
 
 class QFinancesMenu(QDialog):
-    def __init__(self, game: Game):
+    def __init__(self, game: Game, player: Player = Player.BLUE):
         super(QFinancesMenu, self).__init__()
 
         self.game = game
@@ -112,4 +112,4 @@ class QFinancesMenu(QDialog):
         self.setWindowIcon(CONST.ICONS["Money"])
         self.setMinimumSize(450, 200)
 
-        self.setLayout(FinancesLayout(game, player=Player.BLUE))
+        self.setLayout(FinancesLayout(game, player=player))

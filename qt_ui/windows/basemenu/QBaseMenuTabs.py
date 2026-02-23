@@ -12,7 +12,12 @@ class QBaseMenuTabs(QTabWidget):
     def __init__(self, cp: ControlPoint, game_model: GameModel):
         super(QBaseMenuTabs, self).__init__()
 
-        if cp.captured.is_red:
+        # A CP is "enemy" if it belongs to the side the player is NOT currently
+        # commanding. When is_ownfor is True the player commands blue, so red CPs
+        # are enemy.  When is_ownfor is False the player commands red, so blue CPs
+        # are enemy.
+        is_enemy = cp.captured != game_model.current_player
+        if is_enemy:
             self.intel = QIntelInfo(cp)
             self.addTab(self.intel, "Intel")
 

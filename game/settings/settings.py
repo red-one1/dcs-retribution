@@ -650,6 +650,40 @@ class Settings:
         HQ_AUTOMATION_SECTION,
         default=True,
     )
+
+    # OPFOR HQ Automation — these mirror the blue-side settings above and take
+    # effect when the human player switches to the OPFOR commander perspective.
+    # When the player is NOT commanding OPFOR, red always uses full automation.
+    automate_runway_repair_red: bool = boolean_option(
+        "Automate OPFOR runway repairs",
+        CAMPAIGN_MANAGEMENT_PAGE,
+        HQ_AUTOMATION_SECTION,
+        default=True,
+    )
+    automate_front_line_reinforcements_red: bool = boolean_option(
+        "Automate OPFOR front-line purchases",
+        CAMPAIGN_MANAGEMENT_PAGE,
+        HQ_AUTOMATION_SECTION,
+        default=True,
+    )
+    automate_aircraft_reinforcements_red: bool = boolean_option(
+        "Automate OPFOR aircraft purchases",
+        CAMPAIGN_MANAGEMENT_PAGE,
+        HQ_AUTOMATION_SECTION,
+        default=True,
+    )
+    auto_ato_behavior_red: AutoAtoBehavior = choices_option(
+        "Automatic OPFOR package planning behavior",
+        CAMPAIGN_MANAGEMENT_PAGE,
+        HQ_AUTOMATION_SECTION,
+        default=AutoAtoBehavior.Default,
+        choices={v.value: v for v in AutoAtoBehavior},
+        detail=(
+            "Controls whether the AI auto-planner creates mission packages for "
+            "OPFOR. Disable to plan OPFOR air missions manually."
+        ),
+    )
+
     auto_procurement_balance: int = bounded_int_option(
         "AI ground unit procurement budget ratio (%) for OWNFOR",
         CAMPAIGN_MANAGEMENT_PAGE,

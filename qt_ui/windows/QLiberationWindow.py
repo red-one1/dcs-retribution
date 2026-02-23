@@ -585,7 +585,7 @@ class QLiberationWindow(QMainWindow):
         self.subwindow.show()
 
     def showSettingsDialog(self) -> None:
-        self.dialog = QSettingsWindow(self.game)
+        self.dialog = QSettingsWindow(self.game, game_model=self.game_model)
         self.dialog.show()
 
     def showStatsDialog(self):
@@ -605,7 +605,7 @@ class QLiberationWindow(QMainWindow):
 
     def onDebriefing(self, debrief: Debriefing):
         logging.info("On Debriefing")
-        self.debriefing = QDebriefingWindow(debrief)
+        self.debriefing = QDebriefingWindow(debrief, game_model=self.game_model)
         self.debriefing.show()
         self.game_model.init_comms_registry()
 

@@ -23,6 +23,7 @@ class QPredefinedWaypointSelectionComboBox(QFilteredComboBox):
         include_units=True,
         include_enemy=True,
         include_friendly=True,
+        player: Player = Player.BLUE,
     ):
         super(QPredefinedWaypointSelectionComboBox, self).__init__(parent)
         self.game = game
@@ -32,6 +33,7 @@ class QPredefinedWaypointSelectionComboBox(QFilteredComboBox):
         self.include_units = include_units
         self.include_enemy = include_enemy
         self.include_friendly = include_friendly
+        self.player = player
         self.find_possible_waypoints()
 
     def get_selected_waypoints(self, include_all_from_same_location=False):
@@ -94,7 +96,7 @@ class QPredefinedWaypointSelectionComboBox(QFilteredComboBox):
                 wpt.targets.append(target)
                 wpt.obj_name = tgo.obj_name
                 wpt.waypoint_type = FlightWaypointType.CUSTOM
-                if tgo.is_friendly(to_player=Player.BLUE):
+                if tgo.is_friendly(to_player=self.player):
                     wpt.description = f"Friendly unit: {target.name}"
                 else:
                     wpt.description = f"Enemy unit: {target.name}"
@@ -103,8 +105,10 @@ class QPredefinedWaypointSelectionComboBox(QFilteredComboBox):
 
         if self.include_airbases:
             for cp in self.game.theater.controlpoints:
-                if (self.include_enemy and cp.captured.is_red) or (
-                    self.include_friendly and cp.captured.is_blue
+                is_enemy_cp = cp.captured != self.player
+                is_friendly_cp = cp.captured == self.player
+                if (self.include_enemy and is_enemy_cp) or (
+                    self.include_friendly and is_friendly_cp
                 ):
                     wpt = FlightWaypoint(
                         cp.name,
@@ -113,7 +117,7 @@ class QPredefinedWaypointSelectionComboBox(QFilteredComboBox):
                         Distance.from_meters(0),
                     )
                     wpt.alt_type = "RADIO"
-                    if cp.captured.is_blue:
+                    if is_friendly_cp:
                         wpt.description = (
                             "Position of " + cp.name + " [Friendly Airbase]"
                         )

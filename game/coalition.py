@@ -239,9 +239,11 @@ class Coalition:
             manage_front_line = self.game.settings.automate_front_line_reinforcements
             manage_aircraft = self.game.settings.automate_aircraft_reinforcements
         else:
-            manage_runways = True
-            manage_front_line = True
-            manage_aircraft = True
+            manage_runways = self.game.settings.automate_runway_repair_red
+            manage_front_line = (
+                self.game.settings.automate_front_line_reinforcements_red
+            )
+            manage_aircraft = self.game.settings.automate_aircraft_reinforcements_red
 
         self.budget = ProcurementAi(
             self.game,

@@ -20,5 +20,5 @@ class QGroundForcesHQ(QFrame):
     def init_ui(self):
         layout = QGridLayout()
         layout.addWidget(QArmorRecruitmentMenu(self.cp, self.game_model), 0, 0)
-        layout.addWidget(QGroundForcesStrategy(self.cp, self.game_model.game), 0, 1)
+        layout.addWidget(QGroundForcesStrategy(self.cp, self.game_model), 0, 1)
         self.setLayout(layout)

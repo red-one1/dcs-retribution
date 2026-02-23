@@ -51,7 +51,8 @@ class QBaseMenu2(QDialog):
         self.game_model = game_model
         self.objectName = "menuDialogue"
 
-        if self.cp.captured.is_blue:
+        self.is_own_cp = self.cp.captured == self.game_model.current_player
+        if self.is_own_cp:
             self.deliveryEvent = None
 
         self.setWindowIcon(EVENT_ICONS["capture"])
@@ -86,7 +87,7 @@ class QBaseMenu2(QDialog):
         self.freq_widget = None
         self.link4_widget = None
 
-        is_friendly = cp.is_friendly(Player.BLUE)
+        is_friendly = cp.is_friendly(game_model.current_player)
         if is_friendly and isinstance(cp, RadioFrequencyContainer):
             self.freq_widget = QFrequencyWidget(cp, self.game_model)
             cp_settings.addWidget(self.freq_widget, counter // 2, counter % 2)
@@ -146,14 +147,16 @@ class QBaseMenu2(QDialog):
         bottom_row = QHBoxLayout()
         main_layout.addLayout(bottom_row)
 
-        if FlightType.OCA_RUNWAY in self.cp.mission_types(for_player=Player.BLUE):
+        if FlightType.OCA_RUNWAY in self.cp.mission_types(
+            for_player=self.game_model.current_player
+        ):
             runway_attack_button = QPushButton("Attack airfield")
             bottom_row.addWidget(runway_attack_button)
 
             runway_attack_button.setProperty("style", "btn-danger")
             runway_attack_button.clicked.connect(self.new_package)
 
-        if self.cp.captured.is_blue and self.has_transfer_destinations:
+        if self.is_own_cp and self.has_transfer_destinations:
             transfer_button = QPushButton("Transfer Units")
             transfer_button.setProperty("style", "btn-success")
             bottom_row.addWidget(transfer_button)
@@ -167,7 +170,9 @@ class QBaseMenu2(QDialog):
             capture_button.clicked.connect(self.cheat_capture)
 
         self.budget_display = QLabel(
-            UnitTransactionFrame.BUDGET_FORMAT.format(self.game_model.game.blue.budget)
+            UnitTransactionFrame.BUDGET_FORMAT.format(
+                self.game_model.current_coalition.budget
+            )
         )
         self.budget_display.setAlignment(
             Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignBottom
@@ -232,11 +237,11 @@ class QBaseMenu2(QDialog):
 
     @property
     def can_repair_runway(self) -> bool:
-        return self.cp.captured.is_blue and self.cp.runway_can_be_repaired
+        return self.is_own_cp and self.cp.runway_can_be_repaired
 
     @property
     def can_afford_runway_repair(self) -> bool:
-        return self.game_model.game.blue.budget >= RUNWAY_REPAIR_COST
+        return self.game_model.current_coalition.budget >= RUNWAY_REPAIR_COST
 
     def begin_runway_repair(self) -> None:
         if not self.can_afford_runway_repair:
@@ -244,7 +249,7 @@ class QBaseMenu2(QDialog):
                 self,
                 "Cannot repair runway",
                 f"Runway repair costs ${RUNWAY_REPAIR_COST}M but you have "
-                f"only ${self.game_model.game.blue.budget}M available.",
+                f"only ${self.game_model.current_coalition.budget}M available.",
                 QMessageBox.StandardButton.Ok,
             )
             return
@@ -258,7 +263,7 @@ class QBaseMenu2(QDialog):
             return
 
         self.cp.begin_runway_repair()
-        self.game_model.game.blue.budget -= RUNWAY_REPAIR_COST
+        self.game_model.current_coalition.budget -= RUNWAY_REPAIR_COST
         self.update_repair_button()
         self.update_intel_summary()
         GameUpdateSignal.get_instance().updateGame(self.game_model.game)
@@ -266,7 +271,7 @@ class QBaseMenu2(QDialog):
     def update_repair_button(self) -> None:
         self.repair_button.setVisible(True)
         turns_remaining = self.cp.runway_status.repair_turns_remaining
-        if self.cp.captured.is_blue and turns_remaining is not None:
+        if self.is_own_cp and turns_remaining is not None:
             self.repair_button.setText("Repairing...")
             self.repair_button.setDisabled(True)
             return
@@ -392,5 +397,7 @@ class QBaseMenu2(QDialog):
 
     def update_budget(self, game: Game) -> None:
         self.budget_display.setText(
-            UnitTransactionFrame.BUDGET_FORMAT.format(game.blue.budget)
+            UnitTransactionFrame.BUDGET_FORMAT.format(
+                self.game_model.current_coalition.budget
+            )
         )

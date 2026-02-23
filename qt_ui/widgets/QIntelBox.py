@@ -1,4 +1,6 @@
-from typing import Optional
+from __future__ import annotations
+
+from typing import Optional, TYPE_CHECKING
 
 from PySide6.QtWidgets import (
     QGridLayout,
@@ -13,13 +15,17 @@ from game.income import Income
 from game.theater import Player
 from qt_ui.windows.intel import IntelWindow
 
+if TYPE_CHECKING:
+    from qt_ui.models import GameModel
+
 
 class QIntelBox(QGroupBox):
-    def __init__(self, game: Game) -> None:
+    def __init__(self, game: Game, game_model: Optional[GameModel] = None) -> None:
         super().__init__("Intel")
         self.setProperty("style", "IntelSummary")
 
         self.game = game
+        self.game_model = game_model
 
         columns = QHBoxLayout()
         self.setLayout(columns)
@@ -77,8 +83,13 @@ class QIntelBox(QGroupBox):
 
     def economic_strength_text(self) -> str:
         assert self.game is not None
-        own = Income(self.game, player=Player.BLUE).total
-        enemy = Income(self.game, player=Player.RED).total
+        if self.game_model is not None:
+            own_player = self.game_model.current_player
+        else:
+            own_player = Player.BLUE
+        enemy_player = own_player.opponent
+        own = Income(self.game, player=own_player).total
+        enemy = Income(self.game, player=enemy_player).total
 
         if not enemy:
             return "enemy economy ruined"
@@ -120,5 +131,10 @@ class QIntelBox(QGroupBox):
             self.ground_strength.setText("gathering intel")
 
     def open_details_window(self) -> None:
-        self.details_window = IntelWindow(self.game)
+        if self.game_model is not None:
+            self.details_window = IntelWindow(
+                self.game, player=self.game_model.current_player
+            )
+        else:
+            self.details_window = IntelWindow(self.game)
         self.details_window.show()

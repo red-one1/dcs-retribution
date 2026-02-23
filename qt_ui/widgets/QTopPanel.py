@@ -44,7 +44,7 @@ class QTopPanel(QFrame):
         self.setMaximumHeight(70)
 
         self.conditionsWidget = QConditionsWidget(sim_controller)
-        self.budgetBox = QBudgetBox(self.game)
+        self.budgetBox = QBudgetBox(self.game, game_model=self.game_model)
 
         pass_turn_text = "Pass Turn"
         if not self.game or self.game.turn == 0:
@@ -75,7 +75,7 @@ class QTopPanel(QFrame):
         self.transfers.setProperty("style", "btn-primary")
         self.transfers.clicked.connect(self.open_transfers)
 
-        self.intel_box = QIntelBox(self.game)
+        self.intel_box = QIntelBox(self.game, game_model=self.game_model)
 
         self.buttonBox = QGroupBox("Misc")
         self.buttonBoxLayout = QHBoxLayout()
@@ -192,7 +192,7 @@ class QTopPanel(QFrame):
             package.time_over_target = estimator.earliest_tot()
 
     def ato_has_clients(self) -> bool:
-        for package in self.game.blue.ato.packages:
+        for package in self.game_model.current_coalition.ato.packages:
             for flight in package.flights:
                 if flight.client_count > 0:
                     return True
@@ -264,7 +264,7 @@ class QTopPanel(QFrame):
 
     def check_no_missing_pilots(self) -> bool:
         missing_pilots = []
-        for package in self.game.blue.ato.packages:
+        for package in self.game_model.current_coalition.ato.packages:
             for flight in package.flights:
                 if flight.missing_pilots > 0:
                     missing_pilots.append((package, flight))

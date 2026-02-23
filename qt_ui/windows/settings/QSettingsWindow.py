@@ -345,10 +345,13 @@ class AutoSettingsPage(QWidget):
 
 
 class QSettingsWindow(QDialog):
-    def __init__(self, game: Game):
+    def __init__(self, game: Game, game_model=None):
         super().__init__()
         self.game = game
-        self.setLayout(QSettingsWidget(game.settings, game).layout)
+        self.game_model = game_model
+        self.setLayout(
+            QSettingsWidget(game.settings, game, game_model=game_model).layout
+        )
 
         self.setModal(True)
         self.setWindowTitle("Settings")
@@ -367,11 +370,14 @@ class QSettingsWindow(QDialog):
 
 
 class QSettingsWidget(QtWidgets.QWizardPage, SettingsContainer):
-    def __init__(self, settings: Settings, game: Optional[Game] = None):
+    def __init__(
+        self, settings: Settings, game: Optional[Game] = None, game_model=None
+    ):
         super().__init__()
 
         self.settings = game.settings if game else settings
         self.game = game
+        self.game_model = game_model
 
         self.pages: dict[str, AutoSettingsPage] = {}
         for page in Settings.pages():
@@ -490,7 +496,10 @@ class QSettingsWidget(QtWidgets.QWizardPage, SettingsContainer):
 
     def cheatMoney(self, amount):
         logging.info("CHEATING FOR AMOUNT : " + str(amount) + "M")
-        self.game.blue.budget += amount
+        if self.game_model is not None:
+            self.game.coalition_for(self.game_model.current_player).budget += amount
+        else:
+            self.game.blue.budget += amount
         GameUpdateSignal.get_instance().updateGame(self.game)
 
     def applySettings(self):

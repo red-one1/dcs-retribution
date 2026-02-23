@@ -146,11 +146,11 @@ class IntelTabs(QTabWidget):
 
 
 class IntelWindow(QDialog):
-    def __init__(self, game: Game):
+    def __init__(self, game: Game, player: Player = Player.BLUE):
         super().__init__()
 
         self.game = game
-        self.player = Player.BLUE
+        self.player = player
         self.setModal(True)
         self.setWindowTitle("Intelligence")
         self.setWindowIcon(ICONS["Statistics"])
@@ -174,7 +174,7 @@ class IntelWindow(QDialog):
 
         # Add the new layout
         own_faction = QCheckBox("Enemy Info")
-        own_faction.setChecked(self.player.is_red)
+        own_faction.setChecked(False)
         own_faction.stateChanged.connect(self.on_faction_changed)
 
         intel_tabs = IntelTabs(self.game, self.player)

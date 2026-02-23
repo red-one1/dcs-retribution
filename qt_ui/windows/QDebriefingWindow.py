@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 import logging
-from typing import Callable, Dict, TypeVar
+from typing import Callable, Dict, Optional, TypeVar, TYPE_CHECKING
 
 from PySide6.QtGui import QIcon, QPixmap, QCloseEvent
 from PySide6.QtWidgets import (
@@ -16,6 +18,9 @@ from PySide6.QtWidgets import (
 from game.debriefing import Debriefing
 from game.theater import Player
 from qt_ui.windows.GameUpdateSignal import GameUpdateSignal
+
+if TYPE_CHECKING:
+    from qt_ui.models import GameModel
 
 T = TypeVar("T")
 
@@ -73,9 +78,15 @@ class ScrollingCasualtyReportContainer(QGroupBox):
 
 
 class QDebriefingWindow(QDialog):
-    def __init__(self, debriefing: Debriefing):
+    def __init__(self, debriefing: Debriefing, game_model: Optional[GameModel] = None):
         super(QDebriefingWindow, self).__init__()
         self.debriefing = debriefing
+
+        if game_model is not None:
+            own_player = game_model.current_player
+        else:
+            own_player = Player.BLUE
+        enemy_player = own_player.opponent
 
         self.setModal(True)
         self.setWindowTitle("Debriefing")
@@ -95,12 +106,12 @@ class QDebriefingWindow(QDialog):
         layout.addWidget(title)
 
         player_lost_units = ScrollingCasualtyReportContainer(
-            debriefing, player=Player.BLUE
+            debriefing, player=own_player
         )
         layout.addWidget(player_lost_units)
 
         enemy_lost_units = ScrollingCasualtyReportContainer(
-            debriefing, player=Player.RED
+            debriefing, player=enemy_player
         )
         layout.addWidget(enemy_lost_units, 1)
 

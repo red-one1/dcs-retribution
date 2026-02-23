@@ -32,7 +32,9 @@ from qt_ui.widgets.QLabeledWidget import QLabeledWidget
 
 
 class TransferDestinationComboBox(QComboBox):
-    def __init__(self, game: Game, origin: ControlPoint) -> None:
+    def __init__(
+        self, game: Game, origin: ControlPoint, player: Player = Player.BLUE
+    ) -> None:
         super().__init__()
         self.game = game
         self.origin = origin
@@ -40,7 +42,7 @@ class TransferDestinationComboBox(QComboBox):
         for cp in self.game.theater.controlpoints:
             if (
                 cp != self.origin
-                and cp.is_friendly(to_player=Player.BLUE)
+                and cp.is_friendly(to_player=player)
                 and cp.can_deploy_ground_units
             ):
                 self.addItem(cp.name, cp)
@@ -83,10 +85,12 @@ class UnitTransferList(QFrame):
 
 
 class TransferOptionsPanel(QVBoxLayout):
-    def __init__(self, game: Game, origin: ControlPoint) -> None:
+    def __init__(
+        self, game: Game, origin: ControlPoint, player: Player = Player.BLUE
+    ) -> None:
         super().__init__()
 
-        self.source_combo_box = TransferDestinationComboBox(game, origin)
+        self.source_combo_box = TransferDestinationComboBox(game, origin, player=player)
         self.transport_type = QComboBox()
         self.transport_type.addItem("Auto", "auto")
         self.transport_type.addItem("Airlift", "airlift")
@@ -175,7 +179,9 @@ class ScrollingUnitTransferGrid(QFrame):
         task_box_layout = QGridLayout()
 
         unit_types = set(
-            self.game_model.game.faction_for(player=Player.BLUE).ground_units
+            self.game_model.game.faction_for(
+                player=self.game_model.current_player
+            ).ground_units
         )
         sorted_units = sorted(
             {u for u in unit_types if self.cp.base.total_units_of_type(u)},
@@ -292,7 +298,9 @@ class NewUnitTransferDialog(QDialog):
         layout = QVBoxLayout()
         self.setLayout(layout)
 
-        self.dest_panel = TransferOptionsPanel(game_model.game, origin)
+        self.dest_panel = TransferOptionsPanel(
+            game_model.game, origin, player=game_model.current_player
+        )
         layout.addLayout(self.dest_panel)
 
         self.transfer_panel = ScrollingUnitTransferGrid(origin, game_model)

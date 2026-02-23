@@ -80,14 +80,14 @@ class QGroundObjectMenu(QDialog):
 
     def init_ui(self):
         self.mainLayout = QVBoxLayout()
-        self.budget = QBudgetBox(self.game)
+        self.budget = QBudgetBox(self.game, game_model=self.game_model)
         self.budget.setGame(self.game)
 
         self.doLayout()
 
         if isinstance(self.ground_object, BuildingGroundObject):
             self.mainLayout.addWidget(self.buildingBox)
-            if self.cp.captured.is_blue:
+            if self.cp.captured == self.game_model.current_player:
                 self.mainLayout.addWidget(self.financesBox)
         else:
             self.mainLayout.addWidget(self.intelBox)
@@ -121,7 +121,7 @@ class QGroundObjectMenu(QDialog):
         if self.cp.captured.is_neutral:
             return False
         buysell_allowed = self.game.settings.enable_enemy_buy_sell
-        buysell_allowed |= self.cp.captured.is_blue
+        buysell_allowed |= self.cp.captured == self.game_model.current_player
         return buysell_allowed
 
     def doLayout(self):
@@ -135,7 +135,11 @@ class QGroundObjectMenu(QDialog):
                     QLabel(f"<b>Unit {str(unit.display_name)}</b>"), i, 0
                 )
 
-                if not unit.alive and unit.repairable and self.cp.captured.is_blue:
+                if (
+                    not unit.alive
+                    and unit.repairable
+                    and self.cp.captured == self.game_model.current_player
+                ):
                     price = unit.unit_type.price if unit.unit_type else 0
                     repair = QPushButton(f"Repair [{price}M]")
                     repair.setProperty("style", "btn-success")
@@ -267,8 +271,9 @@ class QGroundObjectMenu(QDialog):
             self.sell_all_button.setText("Disband (+$" + str(self.total_value) + "M)")
 
     def repair_unit(self, unit, price):
-        if self.game.blue.budget > price:
-            self.game.blue.budget -= price
+        coalition = self.game.coalition_for(self.game_model.current_player)
+        if coalition.budget > price:
+            coalition.budget -= price
             unit.alive = True
             GameUpdateSignal.get_instance().updateGame(self.game)
 

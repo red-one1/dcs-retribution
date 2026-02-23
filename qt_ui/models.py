@@ -17,6 +17,7 @@ from game.ato.airtaaskingorder import AirTaskingOrder
 from game.ato.flight import Flight
 from game.ato.flighttype import FlightType
 from game.ato.package import Package
+from game.coalition import Coalition
 from game.game import Game
 from game.radio.RadioFrequencyContainer import RadioFrequencyContainer
 from game.radio.radios import RadioFrequency
@@ -563,6 +564,16 @@ class GameModel:
         self.allocated_tacan: list[TacanChannel] = list()
         self.allocated_icls: list[int] = list()
         self.init_comms_registry()
+
+    @property
+    def current_player(self) -> Player:
+        """Returns the Player enum for the currently active perspective."""
+        return Player.BLUE if self.is_ownfor else Player.RED
+
+    @property
+    def current_coalition(self) -> Coalition:
+        """Returns the Coalition object for the currently active perspective."""
+        return self.game.coalition_for(self.current_player)
 
     def ato_model_for(self, player: Player) -> AtoModel:
         if player.is_blue:

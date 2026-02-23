@@ -23,6 +23,7 @@ from game.ato.flightwaypoint import FlightWaypoint
 from game.ato.loadouts import Loadout
 from game.ato.package import Package
 from game.theater import Player
+from qt_ui.models import GameModel
 from qt_ui.windows.mission.flight.waypoints.QFlightWaypointList import (
     QFlightWaypointList,
 )
@@ -34,10 +35,21 @@ from qt_ui.windows.mission.flight.waypoints.QPredefinedWaypointSelectionWindow i
 class QFlightWaypointTab(QFrame):
     loadout_changed = Signal()
 
-    def __init__(self, game: Game, package: Package, flight: Flight):
+    def __init__(
+        self,
+        game: Game,
+        package: Package,
+        flight: Flight,
+        game_model: Optional[GameModel] = None,
+    ):
         super(QFlightWaypointTab, self).__init__()
         self.game = game
-        self.coalition = game.coalition_for(player=Player.BLUE)
+        self.game_model = game_model
+        if game_model is not None:
+            player = game_model.current_player
+        else:
+            player = Player.BLUE
+        self.coalition = game.coalition_for(player=player)
         self.package = package
         self.flight = flight
 
@@ -62,7 +74,11 @@ class QFlightWaypointTab(QFrame):
         rlayout.addWidget(QLabel("<small>AI compatible</small>"))
 
         self.recreate_buttons.clear()
-        for task in self.package.target.mission_types(for_player=Player.BLUE):
+        if self.game_model is not None:
+            player = self.game_model.current_player
+        else:
+            player = Player.BLUE
+        for task in self.package.target.mission_types(for_player=player):
             if task == FlightType.AIR_ASSAULT and not self.game.settings.plugin_option(
                 "ctld"
             ):
@@ -176,8 +192,12 @@ class QFlightWaypointTab(QFrame):
         return result == QMessageBox.StandardButton.Yes
 
     def on_fast_waypoint(self):
+        if self.game_model is not None:
+            player = self.game_model.current_player
+        else:
+            player = Player.BLUE
         self.subwindow = QPredefinedWaypointSelectionWindow(
-            self.game, self.flight, self.flight_waypoint_list
+            self.game, self.flight, self.flight_waypoint_list, player=player
         )
         self.subwindow.waypoints_added.connect(self.on_waypoints_added)
         self.subwindow.show()
