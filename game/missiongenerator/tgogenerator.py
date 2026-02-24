@@ -1513,7 +1513,6 @@ class TgoGenerator:
         )
         self.mission_data = mission_data
         self._portable_tacan_callsigns: set[str] = set()
-        self._portable_tacan_callsigns: set[str] = set()
 
     def generate(self) -> None:
         for cp in self.game.theater.controlpoints:
