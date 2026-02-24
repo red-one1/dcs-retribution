@@ -8,6 +8,7 @@ import pytest
 
 from game.missiongenerator.tgogenerator import PortableTacanGenerator
 from game.radio.tacan import (
+    OutOfTacanChannelsError,
     TacanBand,
     TacanChannel,
     TacanRegistry,
@@ -79,6 +80,25 @@ class TestCallsignDerivation:
         assert cs != "KUT"
         assert len(cs) == 3
         assert cs in gen.used_callsigns
+
+    def test_duplicate_varies_two_chars(self) -> None:
+        """When base is taken, the new callsign keeps first char and varies last two."""
+        gen = self._make_generator(used={"KUT"})
+        cs = gen._derive_callsign("Kutaisi")
+        # First collision: suffix=1 -> divmod(0,26) -> (0,0) -> K + A + A
+        assert cs == "KAA"
+
+    def test_callsign_exhaustion_raises(self) -> None:
+        """RuntimeError should be raised when all 676 variants are exhausted."""
+        # Fill all possible 3-letter callsigns starting with 'K'
+        used: set[str] = set()
+        used.add("KUT")  # the base
+        for i in range(26):
+            for j in range(26):
+                used.add("K" + chr(ord("A") + i) + chr(ord("A") + j))
+        gen = self._make_generator(used=used)
+        with pytest.raises(RuntimeError, match="Exhausted TACAN callsign variants"):
+            gen._derive_callsign("Kutaisi")
 
     def test_callsign_added_to_used(self) -> None:
         gen = self._make_generator()

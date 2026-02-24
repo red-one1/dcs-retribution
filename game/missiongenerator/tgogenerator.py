@@ -63,7 +63,13 @@ from game.missiongenerator.missiondata import CarrierInfo, MissionData
 from game.point_with_heading import PointWithHeading
 from game.radio.RadioFrequencyContainer import RadioFrequencyContainer
 from game.radio.radios import RadioFrequency, RadioRegistry
-from game.radio.tacan import TacanBand, TacanChannel, TacanRegistry, TacanUsage
+from game.radio.tacan import (
+    OutOfTacanChannelsError,
+    TacanBand,
+    TacanChannel,
+    TacanRegistry,
+    TacanUsage,
+)
 from game.runways import RunwayAssigner, RunwayData
 from game.theater import (
     ControlPoint,
@@ -1409,7 +1415,7 @@ class PortableTacanGenerator:
             tacan = self.tacan_registry.alloc_for_band(
                 TacanBand.X, TacanUsage.TransmitReceive
             )
-        except Exception:
+        except OutOfTacanChannelsError:
             logging.warning(
                 "No TACAN channels available for portable beacon at %s",
                 self.airfield.name,
@@ -1468,10 +1474,18 @@ class PortableTacanGenerator:
         base = alpha[:3] if len(alpha) >= 3 else alpha.ljust(3, "X")
         callsign = base
         suffix = 0
+        max_variants = 26 * 26  # two-letter space for last two characters
         while callsign in self.used_callsigns:
             suffix += 1
-            # Replace last char to make unique
-            callsign = base[:2] + chr(ord("A") + (suffix % 26))
+            if suffix > max_variants:
+                raise RuntimeError(
+                    f"Exhausted TACAN callsign variants for base '{base}'"
+                )
+            # Vary the last two characters deterministically over AA..ZZ
+            first_offset, second_offset = divmod(suffix - 1, 26)
+            callsign = (
+                base[0] + chr(ord("A") + first_offset) + chr(ord("A") + second_offset)
+            )
         self.used_callsigns.add(callsign)
         return callsign
 
