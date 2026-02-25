@@ -23,6 +23,9 @@ role: Reconnaissance/Fighter Bomber
 gunfighter: false
 variants:
   F-111C Aardvark: {}
+altitudes:
+  cruise: 28000  # strike ingress profile: https://en.wikipedia.org/wiki/F-111C_Aardvark
+  combat: 16000  # strike ingress profile: https://en.wikipedia.org/wiki/F-111C_Aardvark
 tasks:
   Anti-ship: 500
   Armed Recon: 450

@@ -10,5 +10,8 @@ patrol:
 variants:
   Tu-126: null
   Tu-126 Moss: null
+altitudes:
+  cruise: 25000  # Evidence: https://en.wikipedia.org/wiki/Tu_126
+  combat: 15000  # Evidence: https://en.wikipedia.org/wiki/Tu_126
 tasks:
   AEW&C: 11

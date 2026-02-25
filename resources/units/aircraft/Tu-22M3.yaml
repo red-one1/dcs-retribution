@@ -15,6 +15,9 @@ price: 40
 role: Strategic/Maritime Strike Bomber
 variants:
   Tu-22M3 Backfire-C: {}
+altitudes:
+  cruise: 36000  # Evidence: https://en.wikipedia.org/wiki/Tupolev_Tu-22M
+  combat: 28000  # Evidence: https://en.wikipedia.org/wiki/Tupolev_Tu-22M
 tasks:
   Anti-ship: 170
   OCA/Runway: 650

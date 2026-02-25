@@ -25,6 +25,9 @@ radios:
   # communications with FAC and ground units, which don't currently have
   # radios assigned, so no channels to configure.
 kneeboard_units: "metric"
+altitudes:
+  cruise: 4000  # rotary-wing mission profile: https://en.wikipedia.org/wiki/Ka-50_Hokum
+  combat: 800  # rotary-wing mission profile: https://en.wikipedia.org/wiki/Ka-50_Hokum
 tasks:
   BAI: 430
   CAS: 430

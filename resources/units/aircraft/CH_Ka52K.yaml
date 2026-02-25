@@ -23,6 +23,9 @@ default_livery: CH_KA52K
 variants:
   "[CH] Ka-52K": {}
 kneeboard_units: "metric"
+altitudes:
+  cruise: 1000  # Ka-52K navalized Ka-52 operating profile reference: https://en.wikipedia.org/wiki/Kamov_Ka-52
+  combat: 200   # Attack helicopter low-altitude combat profile: https://en.wikipedia.org/wiki/Kamov_Ka-52
 tasks:
   Anti-ship: 500
   BAI: 440

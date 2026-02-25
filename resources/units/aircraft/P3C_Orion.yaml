@@ -17,5 +17,8 @@ price: 35
 role: Maritime Patrol/Anti-Ship
 variants:
   P-3C Orion: {}
+altitudes:
+  cruise: 24000  # Evidence: https://en.wikipedia.org/wiki/P_3C_Orion
+  combat: 12000  # Evidence: https://en.wikipedia.org/wiki/P_3C_Orion
 tasks:
   Anti-ship: 180

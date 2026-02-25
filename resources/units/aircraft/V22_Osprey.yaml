@@ -12,5 +12,8 @@ role: Transport
 max_range: 1000
 variants:
   V22 Osprey: {}
+altitudes:
+  cruise: 1500  # Evidence: https://en.wikipedia.org/wiki/Bell_Boeing_V-22_Osprey
+  combat: 300  # Evidence: https://en.wikipedia.org/wiki/Bell_Boeing_V-22_Osprey
 tasks:
   Transport: 130

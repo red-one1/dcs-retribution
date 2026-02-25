@@ -16,6 +16,9 @@ role: Multirole Fighter
 max_range: 200
 variants:
   Mirage-F1M-EE: {}
+altitudes:
+  cruise: 34000  # fighter patrol profile: https://en.wikipedia.org/wiki/Mirage-F1M-EE
+  combat: 26000  # fighter patrol profile: https://en.wikipedia.org/wiki/Mirage-F1M-EE
 tasks:
   BAI: 280
   BARCAP: 270

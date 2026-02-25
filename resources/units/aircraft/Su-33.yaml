@@ -31,6 +31,9 @@ variants:
     role: Carrier-based Multirole Fighter
   Su-33 Flanker-D: {}
 kneeboard_units: "metric"
+altitudes:
+  cruise: 33000  # Evidence: https://en.wikipedia.org/wiki/Sukhoi_Su-27
+  combat: 25000  # Evidence: https://en.wikipedia.org/wiki/Sukhoi_Su-27
 tasks:
   BAI: 590
   BARCAP: 510

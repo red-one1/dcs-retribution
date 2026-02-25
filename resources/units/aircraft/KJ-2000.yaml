@@ -4,5 +4,8 @@ patrol:
   altitude: 40000
 variants:
   KJ-2000: null
+altitudes:
+  cruise: 26000  # platform operating profile: https://en.wikipedia.org/wiki/KJ-2000
+  combat: 16000  # platform operating profile: https://en.wikipedia.org/wiki/KJ-2000
 tasks:
   AEW&C: 0

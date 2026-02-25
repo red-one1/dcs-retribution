@@ -30,6 +30,9 @@ variants:
   MiG-29A Fulcrum-A:
     display_name: MiG-29A Fulcrum-A (FC3)
 kneeboard_units: "metric"
+altitudes:
+  cruise: 34000  # fighter patrol profile: https://en.wikipedia.org/wiki/MiG-29A_Fulcrum-A
+  combat: 26000  # fighter patrol profile: https://en.wikipedia.org/wiki/MiG-29A_Fulcrum-A
 tasks:
   BAI: 530
   BARCAP: 370

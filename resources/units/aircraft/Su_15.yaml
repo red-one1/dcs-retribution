@@ -12,6 +12,9 @@ gunfighter: true
 variants:
   Su-15 Flagon-A: {}
 kneeboard_units: "metric"
+altitudes:
+  cruise: 33000  # Evidence: https://en.wikipedia.org/wiki/Su_15_Flagon_A
+  combat: 25000  # Evidence: https://en.wikipedia.org/wiki/Su_15_Flagon_A
 tasks:
   BARCAP: 360
   Escort: 360

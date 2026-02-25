@@ -1,6 +1,9 @@
 price: 6
 variants:
   RQ-1A Predator: null
+altitudes:
+  cruise: 25000  # Evidence: https://en.wikipedia.org/wiki/General_Atomics_MQ-1_Predator
+  combat: 15000  # Evidence: https://en.wikipedia.org/wiki/General_Atomics_MQ-1_Predator
 tasks:
   BAI: 0
   CAS: 0

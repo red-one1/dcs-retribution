@@ -14,5 +14,8 @@ patrol:
 variants:
   E-2C Hawkeye: {}
   E-2D Advanced Hawkeye: {}
+altitudes:
+  cruise: 25000  # E-2 operational altitude and patrol profile reference: https://en.wikipedia.org/wiki/Northrop_Grumman_E-2_Hawkeye
+  combat: 25000  # AEW station altitude profile for carrier group support: https://en.wikipedia.org/wiki/Northrop_Grumman_E-2_Hawkeye
 tasks:
   AEW&C: 20

@@ -6,6 +6,9 @@ cabin_size: 10
 can_carry_crates: true
 variants:
   UH-60A: null
+altitudes:
+  cruise: 1500  # Evidence: https://en.wikipedia.org/wiki/Sikorsky_UH-60_Black_Hawk
+  combat: 300  # Evidence: https://en.wikipedia.org/wiki/Sikorsky_UH-60_Black_Hawk
 tasks:
   Air Assault: 60
   Transport: 40

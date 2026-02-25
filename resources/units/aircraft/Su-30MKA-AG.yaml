@@ -17,6 +17,9 @@ variants:
 radios:
   intra_flight: R-800
   inter_flight: R-800
+altitudes:
+  cruise: 1500  # Evidence: https://en.wikipedia.org/wiki/Sukhoi_Su-27
+  combat: 300  # Evidence: https://en.wikipedia.org/wiki/Sukhoi_Su-27
 tasks:
   Anti-ship: 150
   BAI: 740

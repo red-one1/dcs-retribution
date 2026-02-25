@@ -28,6 +28,9 @@ radios:
     intra_flight_radio_index: 1
     inter_flight_radio_index: 1
 kneeboard_units: "metric"
+altitudes:
+  cruise: 34000  # fighter patrol profile: https://en.wikipedia.org/wiki/J-7B
+  combat: 26000  # fighter patrol profile: https://en.wikipedia.org/wiki/J-7B
 tasks:
   BAI: 520
   BARCAP: 350

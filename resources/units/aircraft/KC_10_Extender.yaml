@@ -18,5 +18,8 @@ patrol:
   altitude: 24000
 variants:
   KC-10 Extender (Boom): {}
+altitudes:
+  cruise: 28000  # support mission altitude: https://en.wikipedia.org/wiki/KC-10_Extender_Boom
+  combat: 18000  # support mission altitude: https://en.wikipedia.org/wiki/KC-10_Extender_Boom
 tasks:
   Refueling: 50

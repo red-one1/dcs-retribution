@@ -12,6 +12,9 @@ role: Air-Superiority Fighter
 variants:
   J-11A Flanker-L: {}
 kneeboard_units: "metric"
+altitudes:
+  cruise: 34000  # fighter patrol profile: https://en.wikipedia.org/wiki/J-11A_Flanker-L
+  combat: 26000  # fighter patrol profile: https://en.wikipedia.org/wiki/J-11A_Flanker-L
 tasks:
   BARCAP: 500
   Escort: 500

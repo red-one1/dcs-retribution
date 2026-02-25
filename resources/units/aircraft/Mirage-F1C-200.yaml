@@ -11,6 +11,9 @@ role: Fighter
 max_range: 200
 variants:
   Mirage-F1C-200: {}
+altitudes:
+  cruise: 34000  # fighter patrol profile: https://en.wikipedia.org/wiki/Mirage-F1C-200
+  combat: 26000  # fighter patrol profile: https://en.wikipedia.org/wiki/Mirage-F1C-200
 tasks:
   BARCAP: 260
   Escort: 260

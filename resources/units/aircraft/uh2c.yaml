@@ -10,6 +10,9 @@ can_carry_crates: true
 max_range: 300    # combat range [nmi]
 variants:
   UH-2C Seasprite: {}
+altitudes:
+  cruise: 1500  # Evidence: https://en.wikipedia.org/wiki/UH_2C_Seasprite
+  combat: 300  # Evidence: https://en.wikipedia.org/wiki/UH_2C_Seasprite
 tasks:
   Air Assault: 60
   Transport: 40

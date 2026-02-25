@@ -22,6 +22,9 @@ radios:
   intra_flight: RSI-6K HF
   inter_flight: RSI-6K HF
 kneeboard_units: "metric"
+altitudes:
+  cruise: 34000  # fighter patrol profile: https://en.wikipedia.org/wiki/MiG-15bis_Fagot
+  combat: 26000  # fighter patrol profile: https://en.wikipedia.org/wiki/MiG-15bis_Fagot
 tasks:
   BAI: 360
   BARCAP: 140
