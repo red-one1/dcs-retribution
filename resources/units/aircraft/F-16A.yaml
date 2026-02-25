@@ -6,6 +6,8 @@ variants:
 altitudes:
   cruise: 34000  # fighter patrol profile: https://en.wikipedia.org/wiki/F-16A
   combat: 26000  # fighter patrol profile: https://en.wikipedia.org/wiki/F-16A
+patrol:
+  altitude: 34000
 tasks:
   BARCAP: 420
   CAS: 340

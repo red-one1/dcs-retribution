@@ -30,7 +30,9 @@ variants:
   MiG-25PD Foxbat-E: {}
 altitudes:
   cruise: 34000  # fighter patrol profile: https://en.wikipedia.org/wiki/MiG-25PD_Foxbat-E
-  combat: 26000  # fighter patrol profile: https://en.wikipedia.org/wiki/MiG-25PD_Foxbat-E
+  combat: 34000  # fighter patrol profile: https://en.wikipedia.org/wiki/MiG-25PD_Foxbat-E
+patrol:
+  altitude: 34000
 tasks:
   BARCAP: 390
   Escort: 390

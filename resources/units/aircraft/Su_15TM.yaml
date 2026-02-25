@@ -18,6 +18,8 @@ kneeboard_units: "metric"
 altitudes:
   cruise: 33000  # Evidence: https://en.wikipedia.org/wiki/Su_15TM_Flagon_E
   combat: 25000  # Evidence: https://en.wikipedia.org/wiki/Su_15TM_Flagon_E
+patrol:
+  altitude: 33000
 tasks:
   BARCAP: 370
   Escort: 370

@@ -31,6 +31,8 @@ kneeboard_units: "metric"
 altitudes:
   cruise: 34000  # fighter patrol profile: https://en.wikipedia.org/wiki/J-7B
   combat: 26000  # fighter patrol profile: https://en.wikipedia.org/wiki/J-7B
+patrol:
+  altitude: 34000
 tasks:
   BAI: 520
   BARCAP: 350

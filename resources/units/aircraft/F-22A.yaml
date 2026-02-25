@@ -20,6 +20,8 @@ radios:
 altitudes:
   cruise: 34000  # fighter patrol profile: https://en.wikipedia.org/wiki/F-22A_Raptor
   combat: 26000  # fighter patrol profile: https://en.wikipedia.org/wiki/F-22A_Raptor
+patrol:
+  altitude: 34000
 tasks:
   BARCAP: 550
   Escort: 550

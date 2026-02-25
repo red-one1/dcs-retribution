@@ -15,6 +15,8 @@ variants:
 altitudes:
   cruise: 36000  # F-15C performance envelope reference: https://en.wikipedia.org/wiki/McDonnell_Douglas_F-15_Eagle
   combat: 28000  # Practical CAP/intercept combat altitude profile: https://en.wikipedia.org/wiki/McDonnell_Douglas_F-15_Eagle
+patrol:
+  altitude: 36000
 tasks:
   BARCAP: 540
   Escort: 540

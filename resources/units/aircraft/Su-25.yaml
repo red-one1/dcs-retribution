@@ -18,7 +18,9 @@ variants:
 kneeboard_units: "metric"
 altitudes:
   cruise: 33000  # Evidence: https://en.wikipedia.org/wiki/Sukhoi_Su-25
-  combat: 25000  # Evidence: https://en.wikipedia.org/wiki/Sukhoi_Su-25
+  combat: 10000  # Evidence: https://en.wikipedia.org/wiki/Sukhoi_Su-25
+patrol:
+  altitude: 33000
 tasks:
   BAI: 770
   CAS: 770
