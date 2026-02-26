@@ -280,6 +280,7 @@ class AirWingTabs(QTabWidget):
             game_model.game.coalition_for(Player.BLUE).faction,
             self,
             show_jtac=True,
+            show_doctrine=True,
         )
         qfu_ownfor.preset_groups_changed.connect(self.preset_group_updated_ownfor)
         self.addTab(
@@ -290,6 +291,7 @@ class AirWingTabs(QTabWidget):
             game_model.game.coalition_for(Player.RED).faction,
             self,
             show_jtac=True,
+            show_doctrine=True,
         )
         qfu_opfor.preset_groups_changed.connect(self.preset_group_updated_opfor)
         self.addTab(
