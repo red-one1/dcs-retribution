@@ -19,6 +19,9 @@ kneeboard_units: "metric"
 #   NS430allow: true
 #   NetCrewControlPriority: 1
 #   SoloFlight: false
+altitudes:
+  cruise: 34000  # fighter patrol profile: https://en.wikipedia.org/wiki/L-39ZA_Albatros
+  combat: 26000  # fighter patrol profile: https://en.wikipedia.org/wiki/L-39ZA_Albatros
 tasks:
   BAI: 220
   BARCAP: 120

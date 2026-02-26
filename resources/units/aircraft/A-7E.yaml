@@ -13,6 +13,9 @@ price: 10
 role: Carrier-based Attack
 single_pass_dumb_bombs: true
 gunfighter: true
+altitudes:
+  cruise: 24000 # https://en.wikipedia.org/wiki/LTV_A-7_Corsair_II
+  combat: 12000
 variants:
   A-7E Corsair II: {}
 tasks:

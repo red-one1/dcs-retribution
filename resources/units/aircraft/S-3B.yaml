@@ -18,6 +18,9 @@ price: 10
 role: Carrier-based Attack
 variants:
   S-3B Viking: {}
+altitudes:
+  cruise: 22000  # Evidence: https://en.wikipedia.org/wiki/S_3B_Viking
+  combat: 12000  # Evidence: https://en.wikipedia.org/wiki/S_3B_Viking
 tasks:
   Anti-ship: 130
   BAI: 570

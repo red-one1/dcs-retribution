@@ -17,6 +17,9 @@ manufacturer: Saab
 origin: Sweden
 price: 15
 role: Attack/Reconnaissance
+altitudes:
+  cruise: 26000 # https://en.wikipedia.org/wiki/Saab_37_Viggen
+  combat: 1000
 variants:
   AJS-37 Viggen: {}
 radios:

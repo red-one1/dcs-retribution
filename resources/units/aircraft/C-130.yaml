@@ -1,6 +1,9 @@
 description: The C-130 is a military transport aircraft.
 price: 15
 max_range: 1000
+altitudes:
+  cruise: 23000 # https://en.wikipedia.org/wiki/Lockheed_C-130_Hercules
+  combat: 12000
 variants:
   C-130: null
 tasks:

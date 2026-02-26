@@ -10,6 +10,9 @@ carrier_capable: true
 gunfighter: false
 variants:
   A-6A Intruder: {}
+altitudes:
+  cruise: 22000  # Evidence: https://en.wikipedia.org/wiki/A_6A_Intruder
+  combat: 12000  # Evidence: https://en.wikipedia.org/wiki/A_6A_Intruder
 tasks:
   Anti-ship: 150
   BAI: 350

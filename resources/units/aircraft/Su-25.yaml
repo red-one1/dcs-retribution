@@ -16,6 +16,11 @@ default_livery: forest camo scheme #1 (native)
 variants:
   Su-25 Frogfoot: {}
 kneeboard_units: "metric"
+altitudes:
+  cruise: 33000  # Evidence: https://en.wikipedia.org/wiki/Sukhoi_Su-25
+  combat: 10000  # Evidence: https://en.wikipedia.org/wiki/Sukhoi_Su-25
+patrol:
+  altitude: 33000
 tasks:
   BAI: 770
   CAS: 770

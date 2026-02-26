@@ -7,6 +7,9 @@ variants:
   RF-101B Voodoo: {}
 max_range: 600
 gunfighter: false
+altitudes:
+  cruise: 25000  # Evidence: https://en.wikipedia.org/wiki/McDonnell_RF_101B_Voodoo
+  combat: 15000  # Evidence: https://en.wikipedia.org/wiki/McDonnell_RF_101B_Voodoo
 tasks:
   Armed Recon: 300
   Strike: 1    # current VWV version (v2.3.0) does not have any weapons for Voodoo

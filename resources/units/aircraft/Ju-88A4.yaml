@@ -19,6 +19,9 @@ price: 14
 role: Tactical/Torpedo Bomber
 variants:
   Ju 88 A-4: {}
+altitudes:
+  cruise: 18000  # WWII piston-engine profile: https://en.wikipedia.org/wiki/Ju_88_A-4
+  combat: 12000  # WWII piston-engine profile: https://en.wikipedia.org/wiki/Ju_88_A-4
 tasks:
   Anti-ship: 30
   BAI: 150

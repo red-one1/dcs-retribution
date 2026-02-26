@@ -14,6 +14,9 @@ variants:
 radios:
   intra_flight: R&S Series 6000
   inter_flight: R&S Series 6000
+altitudes:
+  cruise: 34000  # fighter patrol profile: https://en.wikipedia.org/wiki/JAS_39_Gripen_BVR
+  combat: 26000  # fighter patrol profile: https://en.wikipedia.org/wiki/JAS_39_Gripen_BVR
 tasks:
   BARCAP: 430
   Escort: 430

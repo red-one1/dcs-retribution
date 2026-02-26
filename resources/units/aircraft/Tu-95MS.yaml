@@ -16,5 +16,8 @@ price: 35
 role: Strategic Bomber
 variants:
   Tu-95MS Bear-H: {}
+altitudes:
+  cruise: 36000  # Evidence: https://en.wikipedia.org/wiki/Tupolev_Tu-95
+  combat: 28000  # Evidence: https://en.wikipedia.org/wiki/Tupolev_Tu-95
 tasks:
   Strike: 670

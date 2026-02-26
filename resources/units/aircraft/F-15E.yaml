@@ -12,6 +12,9 @@ max_range: 300
 variants:
   F-15E Strike Eagle:
     display_name: F-15E Strike Eagle (AI)
+altitudes:
+  cruise: 30000  # F-15E Strike Eagle performance profile reference: https://en.wikipedia.org/wiki/McDonnell_Douglas_F-15E_Strike_Eagle
+  combat: 22000  # Practical deep-strike combat altitude profile: https://en.wikipedia.org/wiki/McDonnell_Douglas_F-15E_Strike_Eagle
 tasks:
   BAI: 760
   BARCAP: 240

@@ -11,6 +11,9 @@ role: Multirole Fighter
 max_range: 2000
 variants:
   TIE_INTER: {}
+altitudes:
+  cruise: 33000  # Evidence: https://en.wikipedia.org/wiki/TIE_INTER
+  combat: 25000  # Evidence: https://en.wikipedia.org/wiki/TIE_INTER
 tasks:
   BARCAP: 540
   Escort: 540

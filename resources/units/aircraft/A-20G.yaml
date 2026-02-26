@@ -13,6 +13,9 @@ manufacturer: Douglas
 origin: USA
 price: 12
 role: Medium Bomber/Attack
+altitudes:
+  cruise: 12000 # https://en.wikipedia.org/wiki/Douglas_A-20_Havoc
+  combat: 8000
 variants:
   A-20G Havoc: {}
   Boston Mk.III: {}

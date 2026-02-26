@@ -1,6 +1,9 @@
 price: 8
 variants:
   WingLoong-I: null
+altitudes:
+  cruise: 25000  # Evidence: https://en.wikipedia.org/wiki/CAIG_Wing_Loong
+  combat: 15000  # Evidence: https://en.wikipedia.org/wiki/CAIG_Wing_Loong
 tasks:
   BAI: 20
   CAS: 20

@@ -26,6 +26,9 @@ fuel:
 variants:
   F-35C Lightning II: {}
 utc_kneeboard: true
+altitudes:
+  cruise: 33000  # Evidence: https://en.wikipedia.org/wiki/F_35C_Lightning_II
+  combat: 25000  # Evidence: https://en.wikipedia.org/wiki/F_35C_Lightning_II
 tasks:
   BARCAP: 450
   Escort: 450

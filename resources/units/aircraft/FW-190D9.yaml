@@ -21,6 +21,9 @@ variants:
 kneeboard_units: "metric"
 # default_overrides:
 #   FW_MW50TankContents: 1
+altitudes:
+  cruise: 18000  # WWII piston-engine profile: https://en.wikipedia.org/wiki/Fw_190_D-9_Dora
+  combat: 12000  # WWII piston-engine profile: https://en.wikipedia.org/wiki/Fw_190_D-9_Dora
 tasks:
   BAI: 40
   BARCAP: 50

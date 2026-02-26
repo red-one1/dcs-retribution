@@ -20,6 +20,11 @@ variants:
   F-4EJ Kai Phantom II: {}
   F-4F Phantom II: {}
   Phantom F.3: {}
+altitudes:
+  cruise: 35000  # strike ingress profile: https://en.wikipedia.org/wiki/F-4E-45MC_Phantom_II
+  combat: 30000  # strike ingress profile: https://en.wikipedia.org/wiki/F-4E-45MC_Phantom_II
+patrol:
+  altitude: 35000
 tasks:
   BAI: 580
   BARCAP: 410

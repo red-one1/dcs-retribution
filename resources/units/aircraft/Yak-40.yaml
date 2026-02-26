@@ -2,5 +2,8 @@ price: 25
 max_range: 600
 variants:
   Yak-40: null
+altitudes:
+  cruise: 24000  # Evidence: https://en.wikipedia.org/wiki/Yak_40
+  combat: 12000  # Evidence: https://en.wikipedia.org/wiki/Yak_40
 tasks:
   Transport: 100

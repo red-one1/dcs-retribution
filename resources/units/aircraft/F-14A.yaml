@@ -25,6 +25,11 @@ max_range: 350
 default_livery: vf-142 `ghost riders`
 variants:
   F-14A Tomcat (AI): {}
+altitudes:
+  cruise: 32000  # F-14 performance envelope reference: https://en.wikipedia.org/wiki/Grumman_F-14_Tomcat
+  combat: 25000  # Practical fleet-defense combat altitude profile: https://en.wikipedia.org/wiki/Grumman_F-14_Tomcat
+patrol:
+  altitude: 32000
 tasks:
   BARCAP: 520
   Escort: 520

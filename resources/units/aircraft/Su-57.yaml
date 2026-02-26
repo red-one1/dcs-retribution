@@ -13,6 +13,9 @@ price: 40
 role: Stealth Air-Superiority Fighter
 variants:
   Su-57 Felon: {}
+altitudes:
+  cruise: 33000  # Evidence: https://en.wikipedia.org/wiki/Sukhoi_Su-27
+  combat: 25000  # Evidence: https://en.wikipedia.org/wiki/Sukhoi_Su-27
 tasks:
   BARCAP: 560
   Escort: 560

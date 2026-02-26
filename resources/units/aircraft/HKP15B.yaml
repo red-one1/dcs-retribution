@@ -10,6 +10,9 @@ role: Transport
 price: 5
 variants:
   "[CH] HKP15B": null
+altitudes:
+  cruise: 4000  # rotary-wing mission profile: https://en.wikipedia.org/wiki/CH_HKP15B
+  combat: 800  # rotary-wing mission profile: https://en.wikipedia.org/wiki/CH_HKP15B
 tasks:
   Air Assault: 50
   Transport: 90

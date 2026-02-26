@@ -14,6 +14,9 @@ variants:
 radios:
   intra_flight: R&S Series 6000
   inter_flight: R&S Series 6000
+altitudes:
+  cruise: 28000  # strike ingress profile: https://en.wikipedia.org/wiki/JAS_39_Gripen_A_G
+  combat: 16000  # strike ingress profile: https://en.wikipedia.org/wiki/JAS_39_Gripen_A_G
 tasks:
   Anti-ship: 140
   BAI: 710
