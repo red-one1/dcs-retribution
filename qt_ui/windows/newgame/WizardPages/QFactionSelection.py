@@ -26,6 +26,7 @@ from game import persistency
 from game.armedforces.forcegroup import ForceGroup
 from game.ato import FlightType
 from game.campaignloader import Campaign
+from game.data.doctrine import ALL_DOCTRINES
 from game.dcs.aircrafttype import AircraftType
 from game.dcs.groundunittype import GroundUnitType
 from game.dcs.shipunittype import ShipUnitType
@@ -38,15 +39,23 @@ from qt_ui.windows.newgame.jinja_env import jinja_env
 class QFactionUnits(QScrollArea):
     preset_groups_changed = Signal(Faction)
 
-    def __init__(self, faction: Faction, parent=None, show_jtac: bool = False):
+    def __init__(
+        self,
+        faction: Faction,
+        parent=None,
+        show_jtac: bool = False,
+        show_doctrine: bool = False,
+    ):
         super().__init__()
         self.setWidgetResizable(True)
         self.content = QWidget()
         self.setWidget(self.content)
         self.parent = parent
         self.faction = faction
-        self._create_checkboxes(show_jtac)
+        self.doctrine_combo: Optional[QComboBox] = None
+        self._create_checkboxes(show_jtac, show_doctrine)
         self.show_jtac = show_jtac
+        self.show_doctrine = show_doctrine
 
     def _add_checkboxes(
         self,
@@ -68,11 +77,26 @@ class QFactionUnits(QScrollArea):
         counter += 1
         return counter
 
-    def _create_checkboxes(self, show_jtac: bool) -> None:
+    def _create_checkboxes(self, show_jtac: bool, show_doctrine: bool) -> None:
         counter = 0
         self.checkboxes: dict[str, QCheckBox] = {}
         grid = QGridLayout()
         grid.setColumnStretch(1, 1)
+        if show_doctrine:
+            self.doctrine_combo = QComboBox()
+            doctrine_options = list(ALL_DOCTRINES)
+            if self.faction.doctrine not in doctrine_options:
+                doctrine_options.insert(0, self.faction.doctrine)
+
+            for doctrine in doctrine_options:
+                self.doctrine_combo.addItem(doctrine.name, doctrine)
+
+            self.doctrine_combo.setCurrentText(self.faction.doctrine.name)
+            self.doctrine_combo.currentIndexChanged.connect(self._set_doctrine)
+            grid.addWidget(QLabel("<strong>Doctrine:</strong>"), counter, 0)
+            grid.addWidget(self.doctrine_combo, counter, 1)
+            counter += 2
+
         self.add_ac_combo = QComboBox()
         hbox = self._create_aircraft_combobox(
             self.add_ac_combo,
@@ -216,6 +240,9 @@ class QFactionUnits(QScrollArea):
     def _set_jtac(self, state: bool) -> None:
         self.faction.has_jtac = state
 
+    def _set_doctrine(self, _: int) -> None:
+        self.faction.doctrine = self.doctrine_combo.currentData()
+
     def _aircraft_predicate(self, ac: AircraftType):
         if (
             FlightType.AEWC not in ac.task_priorities
@@ -309,7 +336,7 @@ class QFactionUnits(QScrollArea):
         self.faction = faction
         self.content = QWidget()
         self.setWidget(self.content)
-        self._create_checkboxes(self.show_jtac)
+        self._create_checkboxes(self.show_jtac, self.show_doctrine)
         self.update()
         if self.parent:
             self.parent.update()

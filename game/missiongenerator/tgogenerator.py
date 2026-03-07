@@ -459,7 +459,7 @@ class GroundObjectGenerator:
         t = TriggerOnce(Event.NoEvent, f"MapObjectIsDead Trigger {trigger_zone.id}")
         t.add_condition(MapObjectIsDead(trigger_zone.id))
         script_string = String(
-            f'dead_events[#dead_events + 1] = "{trigger_zone.name}"; dirty_state = true'
+            f'dead_events[#dead_events + 1] = "{trigger_zone.name}"\ndirty_state = true'
         )
         t.actions.append(DoScript(script_string))
         self.m.triggerrules.triggers.append(t)

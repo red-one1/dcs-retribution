@@ -134,6 +134,11 @@ class Faction:
     #: weapons groups to their introduction years.
     weapons_introduction_year_overrides: Dict[str, int] = field(default_factory=dict)
 
+    def __setstate__(self, state: dict[str, Any]) -> None:
+        self.__dict__.update(state)
+        if not hasattr(self, "weapons_introduction_year_overrides"):
+            self.weapons_introduction_year_overrides = {}
+
     def has_access_to_dcs_type(self, unit_type: Type[DcsUnitType]) -> bool:
         # Vehicle and Ship Units
         if any(unit_type == u.dcs_unit_type for u in self.accessible_units):

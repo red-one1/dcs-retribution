@@ -104,8 +104,11 @@ class Weapon:
 
     def available_on(self, date: datetime.date, faction: Faction) -> bool:
         introduction_year = self.weapon_group.introduction_year
-        if self.weapon_group.name in faction.weapons_introduction_year_overrides:
-            introduction_year = faction.weapons_introduction_year_overrides[
+        faction_introduction_year_overrides = getattr(
+            faction, "weapons_introduction_year_overrides", {}
+        )
+        if self.weapon_group.name in faction_introduction_year_overrides:
+            introduction_year = faction_introduction_year_overrides[
                 self.weapon_group.name
             ]
         if introduction_year is None:
