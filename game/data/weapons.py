@@ -5,13 +5,14 @@ import inspect
 import logging
 from dataclasses import dataclass, field
 from enum import unique, Enum
-from functools import cached_property
+from functools import cached_property, lru_cache
 from pathlib import Path
-from typing import Iterator, Optional, Any, ClassVar
+from typing import Iterator, Optional, Any, ClassVar, Dict
 
 import yaml
 from dcs.flyingunit import FlyingUnit
 from dcs.weapons_data import weapon_ids
+from dcs.weapon_settings import WeaponSettings, has_settings, create_settings
 
 from game.dcs.aircrafttype import AircraftType
 from game.factions.faction import Faction
@@ -123,6 +124,51 @@ class Weapon:
             yield from fallback.weapons
             fallback = fallback.fallback
 
+    def has_settings(self) -> bool:
+        try:
+            return has_settings(self.pydcs_data)
+        except Exception:
+            return False
+
+    def create_settings(
+        self, initial_values: Optional[Dict[str, Any]] = None
+    ) -> Optional[WeaponSettings]:
+        """Create settings, optionally loading initial values."""
+        ws = create_settings(self.pydcs_data)
+        if ws and initial_values:
+            ws.from_dict(initial_values)
+        return ws
+
+    @lru_cache(maxsize=1)
+    def get_target_overrides(self, targets: tuple[Any]) -> Dict[str, Any]:
+        """
+        Get weapon settings overrides for specific targets.
+
+        Args:
+            targets: Tuple of target IDs (strings)
+
+        Returns:
+            Dictionary of setting overrides, empty dict if none apply
+
+        The target_overrides in weapon YAML is a list of override rules.
+        Each rule has unit_ids (list) and settings (dict).
+        First matching rule wins.
+        """
+        if targets and self.weapon_group.target_overrides:
+            target_overrides_list = self.weapon_group.target_overrides
+            target_ids = set(targets)
+
+            for override_rule in target_overrides_list:
+                rule_unit_ids = set(override_rule.get("unit_ids", []))
+                try:
+                    if target_ids & rule_unit_ids:
+                        return override_rule["settings"].copy()
+                except Exception as e:
+                    raise ValueError(
+                        f"Error processing target overrides for {self.name}, targets: {targets}: {e}"
+                    )
+        return {}
+
 
 @unique
 class WeaponType(Enum):
@@ -158,6 +204,9 @@ class WeaponGroup:
 
     #: The specific weapons that belong to this weapon group.
     weapons: list[Weapon] = field(init=False, default_factory=list)
+
+    #: Target-based overrides for weapon settings
+    target_overrides: list[Dict[str, Any]] = field(init=False, default_factory=list)
 
     _by_name: ClassVar[dict[str, WeaponGroup]] = {}
     _loaded: ClassVar[bool] = False
@@ -213,6 +262,10 @@ class WeaponGroup:
             if fallback_name:
                 links.append((name, fallback_name))
             group = WeaponGroup(name, weapon_type, year, fallback_name)
+
+            target_overrides = data.get("target_overrides", {})
+            object.__setattr__(group, "target_overrides", target_overrides)
+
             for clsid in data["clsids"]:
                 weapon = Weapon(clsid, group)
                 Weapon.register(weapon)
@@ -287,13 +340,25 @@ class Pylon:
         # configuration.
         return weapon in self.allowed or weapon.clsid == "<CLEAN>"
 
-    def equip(self, unit: FlyingUnit, weapon: Weapon) -> None:
+    def equip(
+        self,
+        unit: FlyingUnit,
+        weapon: Weapon,
+        settings: Optional[Dict[str, Any]] = None,
+    ) -> None:
         if not self.can_equip(weapon):
             logging.error(f"Pylon {self.number} cannot equip {weapon.name}")
-        unit.load_pylon(self.make_pydcs_assignment(weapon), self.number)
+        assignment = self.make_pydcs_assignment(weapon, settings)
+        unit.load_pylon(assignment, self.number)
 
-    def make_pydcs_assignment(self, weapon: Weapon) -> PydcsWeaponAssignment:
-        return self.number, weapon.pydcs_data
+    def make_pydcs_assignment(
+        self, weapon: Weapon, settings: Optional[Dict[str, Any]] = None
+    ) -> PydcsWeaponAssignment:
+        weapon_data = dict(weapon.pydcs_data)
+        # Add settings if provided and weapon supports them
+        if settings and weapon.has_settings():
+            weapon_data["settings"] = settings
+        return self.number, weapon_data
 
     def available_on(self, date: datetime.date, faction: Faction) -> Iterator[Weapon]:
         for weapon in self.allowed:

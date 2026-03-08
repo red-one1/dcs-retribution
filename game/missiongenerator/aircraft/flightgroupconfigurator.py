@@ -380,17 +380,26 @@ class FlightGroupConfigurator:
 
         loadout = member.loadout
         if self.game.settings.restrict_weapons_by_date:
+            # Always apply target overrides for AI, only for players if setting is enabled
+            should_apply_overrides = (
+                not member.is_player
+                or self.game.settings.apply_target_overrides_to_loadouts
+            )
+            target = self.flight.package.target if should_apply_overrides else None
             loadout = loadout.degrade_for_date(
                 self.flight.unit_type,
                 self.game.date,
                 self.flight.squadron.coalition.faction,
+                target,
             )
 
         for pylon_number, weapon in loadout.pylons.items():
             if weapon is None:
                 continue
             pylon = Pylon.for_aircraft(self.flight.unit_type, pylon_number)
-            pylon.equip(unit, weapon)
+            # Get weapon settings for this pylon if they exist
+            settings = loadout.pylon_settings.get(pylon_number)
+            pylon.equip(unit, weapon, settings)
 
     def setup_fuel(self) -> None:
         fuel = self.flight.state.estimate_fuel()
