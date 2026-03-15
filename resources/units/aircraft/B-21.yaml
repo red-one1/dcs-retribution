@@ -12,6 +12,9 @@ role: Strategic Bomber
 max_range: 1000
 variants:
   "[CH] B-21": {}
+altitudes:
+  cruise: 36000  # bomber mission profile: https://en.wikipedia.org/wiki/CH_B-21
+  combat: 28000  # bomber mission profile: https://en.wikipedia.org/wiki/CH_B-21
 tasks:
   Anti-ship: 100
   BAI: 370

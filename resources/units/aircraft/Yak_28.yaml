@@ -16,6 +16,9 @@ variants:
   Yak-28: {}
   Yak-28 Firebar: {}
 kneeboard_units: "metric"
+altitudes:
+  cruise: 33000  # Evidence: https://en.wikipedia.org/wiki/Yak_28
+  combat: 25000  # Evidence: https://en.wikipedia.org/wiki/Yak_28
 tasks:
   BARCAP: 350
   Escort: 350

@@ -8,6 +8,9 @@ price: 6
 default_livery: standard
 variants:
   CH-47D: null
+altitudes:
+  cruise: 5000  # CH-47D helicopter operating altitude profile: https://en.wikipedia.org/wiki/Boeing_CH-47_Chinook
+  combat: 1000  # Low-level tactical assault/transport profile: https://en.wikipedia.org/wiki/Boeing_CH-47_Chinook
 tasks:
   Air Assault: 90
   Transport: 70

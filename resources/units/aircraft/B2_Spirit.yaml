@@ -13,6 +13,9 @@ origin: USA
 price: 45
 role: Strategic Bomber
 max_range: 1000
+altitudes:
+  cruise: 40000 # https://en.wikipedia.org/wiki/Northrop_Grumman_B-2_Spirit
+  combat: 30000
 variants:
   "B-2 Spirit": {}
 tasks:

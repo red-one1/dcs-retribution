@@ -11,6 +11,9 @@ kneeboard_units: "imperial"
 #   Flare_Gun: 1
 #   ResinLights: 0.15
 #   SoloFlight: false
+altitudes:
+  cruise: 18000  # WWII piston-engine profile: https://en.wikipedia.org/wiki/MosquitoFBMkVI
+  combat: 12000  # WWII piston-engine profile: https://en.wikipedia.org/wiki/MosquitoFBMkVI
 tasks:
   Anti-ship: 20
   BAI: 70

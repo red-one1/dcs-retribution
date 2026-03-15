@@ -47,6 +47,11 @@ utc_kneeboard: true
 #   HelmetMountedDevice: 1
 #   InnerBoard: 0
 #   OuterBoard: 0
+altitudes:
+  cruise: 32000  # strike ingress profile: https://en.wikipedia.org/wiki/F_A-18E_Super_Hornet
+  combat: 16000  # strike ingress profile: https://en.wikipedia.org/wiki/F_A-18E_Super_Hornet
+patrol:
+  altitude: 32000
 tasks:
   Anti-ship: 150
   BAI: 740

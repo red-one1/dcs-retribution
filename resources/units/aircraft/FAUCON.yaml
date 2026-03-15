@@ -11,6 +11,9 @@ role: Multirole Fighter
 max_range: 2000
 variants:
   FAUCON: {}
+altitudes:
+  cruise: 34000  # fictional starfighter baseline: https://starwars.fandom.com/wiki/Millennium_Falcon
+  combat: 26000  # fictional starfighter baseline: https://starwars.fandom.com/wiki/Millennium_Falcon
 tasks:
   BARCAP: 540
   Escort: 540

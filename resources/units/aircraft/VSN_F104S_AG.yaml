@@ -15,6 +15,9 @@ max_range: 100
 gunfighter: true
 variants:
   F-104S Starfighter A/G: {}
+altitudes:
+  cruise: 36000  # Evidence: https://en.wikipedia.org/wiki/F_104S_Starfighter_A_G
+  combat: 28000  # Evidence: https://en.wikipedia.org/wiki/F_104S_Starfighter_A_G
 tasks:
   Anti-ship: 150
   BAI: 140

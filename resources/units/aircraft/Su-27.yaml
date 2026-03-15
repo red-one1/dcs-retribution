@@ -19,6 +19,11 @@ default_livery: Air Force Standard
 variants:
   Su-27 Flanker-B: {}
 kneeboard_units: "metric"
+altitudes:
+  cruise: 33000  # Evidence: https://en.wikipedia.org/wiki/Sukhoi_Su-27
+  combat: 25000  # Evidence: https://en.wikipedia.org/wiki/Sukhoi_Su-27
+patrol:
+  altitude: 33000
 tasks:
   BARCAP: 480
   Escort: 480

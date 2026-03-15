@@ -16,6 +16,9 @@ price: 35
 role: Strategic Bomber
 variants:
   Tu-95K Bear-C: {}
+altitudes:
+  cruise: 36000  # Evidence: https://en.wikipedia.org/wiki/Tu_95K_Bear_C
+  combat: 28000  # Evidence: https://en.wikipedia.org/wiki/Tu_95K_Bear_C
 tasks:
   Strike: 650
   Anti-ship: 490

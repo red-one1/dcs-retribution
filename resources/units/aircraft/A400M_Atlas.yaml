@@ -11,6 +11,9 @@ origin: Europe
 price: 25
 role: Transport
 max_range: 1000
+altitudes:
+  cruise: 28000 # https://en.wikipedia.org/wiki/Airbus_A400M_Atlas
+  combat: 18000
 variants:
   A400M Atlas: {}
 tasks:

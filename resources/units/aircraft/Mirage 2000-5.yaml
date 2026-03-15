@@ -15,6 +15,9 @@ role: Multirole Fighter
 max_range: 400
 variants:
   Mirage 2000-5: {}
+altitudes:
+  cruise: 34000  # fighter patrol profile: https://en.wikipedia.org/wiki/Mirage_2000-5
+  combat: 26000  # fighter patrol profile: https://en.wikipedia.org/wiki/Mirage_2000-5
 tasks:
   BARCAP: 340
   Escort: 340

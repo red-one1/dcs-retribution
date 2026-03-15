@@ -14,6 +14,9 @@ role: Carrier-based Attack/Light Fighter
 gunfighter: true
 variants:
   F9F Panther: {}
+altitudes:
+  cruise: 33000  # Evidence: https://en.wikipedia.org/wiki/F9F_Panther
+  combat: 25000  # Evidence: https://en.wikipedia.org/wiki/F9F_Panther
 tasks:
   BAI: 650
   BARCAP: 150

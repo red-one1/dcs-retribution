@@ -15,5 +15,8 @@ price: 35
 role: Maritime Patrol/Anti-Ship
 variants:
   Tu-142 Bear-F: {}
+altitudes:
+  cruise: 25000  # Evidence: https://en.wikipedia.org/wiki/Tu_142_Bear_F
+  combat: 15000  # Evidence: https://en.wikipedia.org/wiki/Tu_142_Bear_F
 tasks:
   Anti-ship: 180

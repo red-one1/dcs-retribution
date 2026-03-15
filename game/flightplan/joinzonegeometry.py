@@ -23,7 +23,7 @@ class JoinZoneGeometry:
     The zones themselves are stored in the class rather than just the resulting join
     point so that the zones can be drawn in the map for debugging purposes.
     Join placement is additionally randomized to keep join points closer to home than
-    the target (25% to 40% of the home-to-target distance).
+    the target (35% to 36% of the home-to-target distance).
     """
 
     def __init__(

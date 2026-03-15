@@ -15,6 +15,9 @@ max_range: 100
 gunfighter: true
 variants:
   F-104S Starfighter: {}
+altitudes:
+  cruise: 33000  # Evidence: https://en.wikipedia.org/wiki/F_104S_Starfighter
+  combat: 25000  # Evidence: https://en.wikipedia.org/wiki/F_104S_Starfighter
 tasks:
   BARCAP: 250
   Escort: 150

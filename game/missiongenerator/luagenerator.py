@@ -52,8 +52,56 @@ class LuaGenerator:
         install_path = lua_data.add_item("installPath")
         install_path.set_value(os.path.abspath("."))
 
-        lua_data.add_item("Airbases")
+        airbases_object = lua_data.add_item("Airbases")
+        for runway in self.mission_data.runways:
+            if runway.tacan is not None:
+                airbase_item = airbases_object.add_item()
+                airbase_item.add_key_value("name", runway.airfield_name)
+                airbase_item.add_key_value("tacan", str(runway.tacan))
+                airbase_item.add_key_value(
+                    "tacan_callsign", runway.tacan_callsign or ""
+                )
+
         carriers_object = lua_data.add_item("Carriers")
+
+        seen_airbases: set[str] = set()
+        for cp in self.game.theater.controlpoints:
+            airport = getattr(cp, "airport", None)
+            if airport is None:
+                continue
+
+            airbase_name = getattr(airport, "name", None)
+            if airbase_name is None or airbase_name in seen_airbases:
+                continue
+
+            seen_airbases.add(airbase_name)
+
+            if cp.captured.is_blue:
+                side = "blue"
+            elif cp.captured.is_red:
+                side = "red"
+            else:
+                side = "neutral"
+
+            airbase_item = airbases_object.add_item()
+            airbase_item.add_key_value("name", airbase_name)
+            airbase_item.add_key_value("id", str(airport.id))
+            airbase_item.add_key_value("side", side)
+
+            atc_radio = getattr(airport, "atc_radio", None)
+            if atc_radio is not None:
+                if atc_radio.hf_hz is not None:
+                    airbase_item.add_key_value("atc_hf_hz", str(atc_radio.hf_hz))
+                if atc_radio.vhf_low_hz is not None:
+                    airbase_item.add_key_value(
+                        "atc_vhf_low_hz", str(atc_radio.vhf_low_hz)
+                    )
+                if atc_radio.vhf_high_hz is not None:
+                    airbase_item.add_key_value(
+                        "atc_vhf_high_hz", str(atc_radio.vhf_high_hz)
+                    )
+                if atc_radio.uhf_hz is not None:
+                    airbase_item.add_key_value("atc_uhf_hz", str(atc_radio.uhf_hz))
 
         for carrier in self.mission_data.carriers:
             carrier_item = carriers_object.add_item()
@@ -273,9 +321,73 @@ class LuaGenerator:
                 forward_observer = forward_observer_object.add_item()
                 forward_observer.add_key_value("unitName", client_unit.name)
 
+        escorts_object = lua_data.add_item("Escorts")
+        for escort in self.mission_data.escorts:
+            escort_item = escorts_object.add_item()
+            escort_item.add_key_value("escortGroupId", str(escort.escort_group_id))
+            escort_item.add_key_value("escortedGroupId", str(escort.escorted_group_id))
+            escort_item.add_key_value(
+                "engagementRangeMeters", str(escort.engagement_range_meters)
+            )
+
         trigger = TriggerStart(comment="Set DCS Retribution data")
         trigger.add_action(DoScript(String(lua_data.create_operations_lua())))
         self.mission.triggerrules.triggers.append(trigger)
+
+        if self.mission_data.escorts:
+            escort_lua = """
+            if dcsRetribution and dcsRetribution.Escorts then
+                local function get_group(id)
+                    if not id or id <= 0 then
+                        return nil
+                    end
+                    return Group.getByID(id)
+                end
+
+                local function set_roe(group, roe)
+                    if not group then
+                        return
+                    end
+                    local controller = group:getController()
+                    if controller then
+                        controller:setOption(AI.Option.Air.id.ROE, roe)
+                    end
+                end
+
+                local function escort_leash_update()
+                    if not dcsRetribution or not dcsRetribution.Escorts then
+                        return nil
+                    end
+
+                    for _, pair in pairs(dcsRetribution.Escorts) do
+                        local escort_group = get_group(tonumber(pair.escortGroupId))
+                        local escorted_group = get_group(tonumber(pair.escortedGroupId))
+                        if escort_group and escorted_group then
+                            local escort_unit = escort_group:getUnit(1)
+                            local escorted_unit = escorted_group:getUnit(1)
+                            if escort_unit and escorted_unit then
+                                local escort_pos = escort_unit:getPoint()
+                                local escorted_pos = escorted_unit:getPoint()
+                                local dx = escort_pos.x - escorted_pos.x
+                                local dz = escort_pos.z - escorted_pos.z
+                                local distance = math.sqrt(dx * dx + dz * dz)
+                                local max_dist = tonumber(pair.engagementRangeMeters) or 0
+                                if max_dist > 0 and distance > max_dist then
+                                    set_roe(escort_group, AI.Option.Air.val.ROE.WEAPON_HOLD)
+                                else
+                                    set_roe(escort_group, AI.Option.Air.val.ROE.OPEN_FIRE)
+                                end
+                            end
+                        end
+                    end
+
+                    return timer.getTime() + 10
+                end
+
+                timer.scheduleFunction(escort_leash_update, nil, timer.getTime() + 1)
+            end
+            """
+            self.inject_lua_trigger(escort_lua, "Escort leash")
 
     def inject_lua_trigger(self, contents: str, comment: str) -> None:
         trigger = TriggerStart(comment=comment)

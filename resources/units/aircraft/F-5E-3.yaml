@@ -45,6 +45,9 @@ radios:
 #   LaserCode1: 8
 #   LaserCode10: 8
 #   LaserCode100: 6
+altitudes:
+  cruise: 34000  # fighter patrol profile: https://en.wikipedia.org/wiki/F-5E_Tiger_II
+  combat: 26000  # fighter patrol profile: https://en.wikipedia.org/wiki/F-5E_Tiger_II
 tasks:
   BAI: 260
   BARCAP: 200

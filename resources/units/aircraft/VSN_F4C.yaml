@@ -18,6 +18,9 @@ max_range: 370
 carrier_capable: false
 variants:
   F-4C Phantom II: {}
+altitudes:
+  cruise: 36000  # Evidence: https://en.wikipedia.org/wiki/F_4C_Phantom_II
+  combat: 28000  # Evidence: https://en.wikipedia.org/wiki/F_4C_Phantom_II
 tasks:
   BAI: 170
   BARCAP: 210

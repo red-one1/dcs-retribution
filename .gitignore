@@ -25,3 +25,7 @@ env/
 /resources/plugins/pretense/pretense_output.lua
 
 *.psd
+resources/plugins/base/Moose_commented.lua
+
+AGENTS.md
+/resources/plugins/base/Moose_commented.lua

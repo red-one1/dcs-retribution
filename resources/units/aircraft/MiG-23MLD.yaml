@@ -20,6 +20,11 @@ variants:
   MiG-23ML Flogger-G:
     introduced: 1981
   MiG-23MLD Flogger-K: {}
+altitudes:
+  cruise: 34000  # fighter patrol profile: https://en.wikipedia.org/wiki/MiG-23ML_Flogger-G
+  combat: 26000  # fighter patrol profile: https://en.wikipedia.org/wiki/MiG-23ML_Flogger-G
+patrol:
+  altitude: 34000
 tasks:
   CAS: 120
   BARCAP: 360

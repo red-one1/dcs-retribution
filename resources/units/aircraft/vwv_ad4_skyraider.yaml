@@ -12,6 +12,9 @@ carrier_capable: true
 max_range: 1000    # combat range [nmi]
 variants:
   AD-4 Skyraider: {}
+altitudes:
+  cruise: 12000  # Evidence: https://en.wikipedia.org/wiki/Douglas_A-1_Skyraider
+  combat: 8000  # Evidence: https://en.wikipedia.org/wiki/Douglas_A-1_Skyraider
 tasks:    # defined in flighttype.py
   Anti-ship: 200
   BAI: 300

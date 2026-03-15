@@ -7,6 +7,9 @@ description: The CH-53 is a military transport helicopter.
 price: 6
 variants:
   CH-53E: null
+altitudes:
+  cruise: 6000  # CH-53E transport helicopter operating altitude profile: https://en.wikipedia.org/wiki/Sikorsky_CH-53E_Super_Stallion
+  combat: 1200  # Low-level assault transport mission profile: https://en.wikipedia.org/wiki/Sikorsky_CH-53E_Super_Stallion
 tasks:
   Air Assault: 100
   Transport: 80

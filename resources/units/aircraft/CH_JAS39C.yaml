@@ -10,6 +10,9 @@ price: 21
 role: Fighter
 variants:
   "[CH] JAS 39C Gripen": {}
+altitudes:
+  cruise: 30000  # Gripen operational altitude envelope reference: https://en.wikipedia.org/wiki/Saab_JAS_39_Gripen
+  combat: 20000  # Practical fighter combat altitude in DCS planning: https://en.wikipedia.org/wiki/Saab_JAS_39_Gripen
 tasks:
   BAI: 750
   DEAD: 750

@@ -19,6 +19,11 @@ gunfighter: true
 variants:
   MiG-15bis Fagot (FC): {}
 kneeboard_units: "metric"
+altitudes:
+  cruise: 34000  # fighter patrol profile: https://en.wikipedia.org/wiki/MiG-15bis_Fagot_FC
+  combat: 26000  # fighter patrol profile: https://en.wikipedia.org/wiki/MiG-15bis_Fagot_FC
+patrol:
+  altitude: 34000
 tasks:
   BAI: 360
   BARCAP: 140

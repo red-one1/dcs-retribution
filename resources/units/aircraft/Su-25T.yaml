@@ -16,6 +16,9 @@ default_livery: af standard 1
 variants:
   Su-25T Frogfoot: {}
 kneeboard_units: "metric"
+altitudes:
+  cruise: 33000  # Evidence: https://en.wikipedia.org/wiki/Sukhoi_Su-25
+  combat: 25000  # Evidence: https://en.wikipedia.org/wiki/Sukhoi_Su-25
 tasks:
   BAI: 780
   CAS: 780

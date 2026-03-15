@@ -14,6 +14,9 @@ role: Air-Superiority Fighter
 max_range: 2000
 variants:
   TIE: {}
+altitudes:
+  cruise: 33000  # Evidence: https://en.wikipedia.org/wiki/TIE
+  combat: 25000  # Evidence: https://en.wikipedia.org/wiki/TIE
 tasks:
   BARCAP: 540
   Escort: 540
