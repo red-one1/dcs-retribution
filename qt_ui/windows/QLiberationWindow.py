@@ -545,6 +545,10 @@ class QLiberationWindow(QMainWindow):
             "ingax01",
             "M-Chimiste",
             "tmz42",
+            "Drexyl",
+            "Druss99",
+            "Biggus22",
+            "StillClock1,"
         ]
         text = (
             "<h3>DCS Retribution " + VERSION + "</h3>" + "<b>Source code : </b>"

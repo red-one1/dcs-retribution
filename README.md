@@ -2,8 +2,6 @@
 
 (Github Readme Banner and Splash screen Artwork by Andriy Dankovych, CC BY-SA 4.0)
 
-[![Patreon](https://img.shields.io/badge/patreon-become%20a%20patron-orange?logo=patreon)](https://patreon.com/dcsliberation)
-
 [![Download](https://img.shields.io/github/downloads/dcs-retribution/dcs-retribution/total?label=Download)](https://github.com/dcs-retribution/dcs-retribution/releases)
 
 [![Discord](https://img.shields.io/discord/1015931619187621999?label=Discord&logo=discord)](https://discord.gg/b4x34Bg4We)
@@ -13,17 +11,16 @@
 ![GitHub stars](https://img.shields.io/github/stars/dcs-retribution/dcs-retribution?style=social)
 
 ## About DCS Retribution 
-(Last update: 2023-05-20)
+(Last update: 2026-03-22)
 
-DCS Retribution was forked from [DCS Liberation](https://github.com/dcs-liberation/dcs_liberation),
+DCS Retribution was forked in 2022 from [DCS Liberation](https://github.com/dcs-liberation/dcs_liberation),
 which is a [DCS World](https://www.digitalcombatsimulator.com/en/products/world/) turn based single-player or co-op dynamic campaign. 
 It is an external program that generates full and complex DCS missions and manage a persistent combat environment.
 
 ![Screenshot](https://user-images.githubusercontent.com/315852/120939254-0b4a9f80-c6cc-11eb-82f5-ce3f8d714bfe.png)
 
-DCS Retribution is still relying on Liberation for certain updates,
-and will possibly stay that way in a more distant future. Therefore,
-the patreon link will keep pointing to [Khopa's](https://github.com/Khopa) account until further notice.
+DCS Retribution is no longer relying on DCS Liberation updates,
+though occasionally we might still sync a feature to our fork.
 However, we are no longer backwards compatible with Liberation, and will no longer attempt to do so.
 
 Instead, we are focussing on keeping our campaigns forward compatible so that you as a user
@@ -33,6 +30,14 @@ in a previous (save-compatibility breaking) build, your save file
 will have been migrated and thus no longer compatible with the previous build.
 Therefore, we recommend backing up your saves and perhaps organizing them by version/build number.
 
+In the past, we've relied very little on GitHub's "Releases" since our setup is rather based on
+preview builds which are made easily available through our Discord server, where a channel
+will trigger a message with a link to the latest preview build whenever we push a commit to the dev branch.
+However, we're planning to change this strategy and attempt to publish a new release whenever DCS releases a new
+version, unless it's a minor patch which doesn't require any changes on our end.
+
+Over the years we've extended the original DCS Liberation with a lot of features, 
+such as support for road-bases, neutral bases, weapon-settings, additional mission types, etc.
 For a more complete overview of our features, check the
 [changelog](https://github.com/dcs-retribution/dcs-retribution/blob/main/changelog.md).
 
@@ -84,7 +89,9 @@ Tutorials, contributors and developer's guides are available in the project's
 First, a big thanks to shdwp, for starting the original DCS Liberation project. 
 
 Then, DCS Liberation/Retribution uses [pydcs](https://github.com/pydcs/dcs) for mission generation, and nothing would be possible without this.
-It also uses the popular [Mist](https://github.com/mrSkortch/MissionScriptingTools) lua framework for mission scripting.
+It also uses the popular [Mist](https://github.com/mrSkortch/MissionScriptingTools) lua framework for mission scripting. Support for the 
+impressive [Moose](https://github.com/FlightControl-Master/MOOSE) framework was also introduced,
+allowing for even more customization.
 
 Excellent lua scripts DCS Liberation/Retribution uses as plugins:
 
