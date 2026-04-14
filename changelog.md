@@ -6,6 +6,8 @@
 * **[Data]** Add Refueling/Recovery tasks to A-6E Intruder mod
 * **[Modding]** Add CurrentHill UK Assets Pack support (v1.1.2)
 * **[Layouts]** Add signature to layouts' binary file for automatic reloading of updated layouts.
+* **[Modding]** Add support for Su-35S mod (v2.0.27b)
+* **[Plugins]** Update EW Script to version 2.1
 
 ## Fixes
 * **[Performance]** Improved robustness w.r.t. state.json handling to avoid corruption and thus save loss.
