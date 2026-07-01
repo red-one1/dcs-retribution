@@ -15,5 +15,8 @@ patrol:
   altitude: 22000
 variants:
   KC-130J: {}
+altitudes:
+  cruise: 28000  # support mission altitude: https://en.wikipedia.org/wiki/KC-130J
+  combat: 18000  # support mission altitude: https://en.wikipedia.org/wiki/KC-130J
 tasks:
   Refueling: 20

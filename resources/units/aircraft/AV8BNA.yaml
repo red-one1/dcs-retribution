@@ -28,6 +28,9 @@ origin: USA/UK
 price: 15
 role: V/STOL Attack
 max_range: 100
+altitudes:
+  cruise: 18000 # https://en.wikipedia.org/wiki/McDonnell_Douglas_AV-8B_Harrier_II
+  combat: 10000
 variants:
   AV-8B Harrier II Night Attack: {}
 radios:

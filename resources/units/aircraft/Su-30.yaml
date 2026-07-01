@@ -17,6 +17,9 @@ variants:
     manufacturer: Sukhoi
     origin: USSR/Russia
     role: Multirole Fighter
+altitudes:
+  cruise: 33000  # Evidence: https://en.wikipedia.org/wiki/Sukhoi_Su-27
+  combat: 25000  # Evidence: https://en.wikipedia.org/wiki/Sukhoi_Su-27
 tasks:
   Anti-ship: 90
   BAI: 560

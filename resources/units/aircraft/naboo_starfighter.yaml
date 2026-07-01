@@ -13,6 +13,9 @@ max_range: 200
 variants:
   naboo_starfighter: {}
 kneeboard_units: "metric"
+altitudes:
+  cruise: 34000  # fictional starfighter baseline: https://starwars.fandom.com/wiki/N-1_starfighter
+  combat: 26000  # fictional starfighter baseline: https://starwars.fandom.com/wiki/N-1_starfighter
 tasks:
   BARCAP: 460
   Escort: 460

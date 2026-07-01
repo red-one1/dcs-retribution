@@ -13,6 +13,9 @@ max_range: 100
 gunfighter: true
 variants:
   F-100 Super Sabre: {}
+altitudes:
+  cruise: 36000  # Evidence: https://en.wikipedia.org/wiki/F_100_Super_Sabre
+  combat: 28000  # Evidence: https://en.wikipedia.org/wiki/F_100_Super_Sabre
 tasks:
   Anti-ship: 150
   BAI: 140

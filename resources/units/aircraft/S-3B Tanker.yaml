@@ -24,6 +24,9 @@ patrol:
   altitude: 12000
 variants:
   S-3B Tanker: {}
+altitudes:
+  cruise: 24000  # Evidence: https://en.wikipedia.org/wiki/S_3B_Tanker
+  combat: 12000  # Evidence: https://en.wikipedia.org/wiki/S_3B_Tanker
 tasks:
   Refueling: 0
   Recovery: 0

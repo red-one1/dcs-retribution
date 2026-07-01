@@ -20,6 +20,9 @@ role: Light Attack
 variants:
   SA 342L Gazelle: {}
 kneeboard_units: "metric"
+altitudes:
+  cruise: 1500  # Evidence: https://en.wikipedia.org/wiki/Aérospatiale_Gazelle
+  combat: 300  # Evidence: https://en.wikipedia.org/wiki/Aérospatiale_Gazelle
 tasks:
   BAI: 450
   CAS: 450

@@ -32,6 +32,9 @@ radios:
 kneeboard_units: "imperial"
 # default_overrides:
 #   WaterTankContents: 1
+altitudes:
+  cruise: 18000  # Evidence: https://en.wikipedia.org/wiki/Republic_P-47_Thunderbolt
+  combat: 12000  # Evidence: https://en.wikipedia.org/wiki/Republic_P-47_Thunderbolt
 tasks:
   BAI: 120
   BARCAP: 30

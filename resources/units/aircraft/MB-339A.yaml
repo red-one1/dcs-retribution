@@ -27,6 +27,9 @@ radios:
     # VHF because it's less contested, so intra-flight goes to COMM2.
     intra_flight_radio_index: 2
     inter_flight_radio_index: 1
+altitudes:
+  cruise: 28000  # strike ingress profile: https://en.wikipedia.org/wiki/MB-339A
+  combat: 16000  # strike ingress profile: https://en.wikipedia.org/wiki/MB-339A
 tasks:
   BAI: 240
   CAS: 240

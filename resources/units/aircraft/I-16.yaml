@@ -19,6 +19,9 @@ variants:
   I-16 Ishak: {}
 # default_overrides:
 #   landingTorch: false
+altitudes:
+  cruise: 18000  # WWII piston-engine profile: https://en.wikipedia.org/wiki/I-16_Ishak
+  combat: 12000  # WWII piston-engine profile: https://en.wikipedia.org/wiki/I-16_Ishak
 tasks:
   BAI: 60
   BARCAP: 20

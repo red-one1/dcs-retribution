@@ -9,8 +9,8 @@ max_range: 500    # combat range [nmi]
 variants:
   A-37 Dragonfly: {}
 altitudes:
- cruise: 15000
- combat: 8000
+ cruise: 15000  # A-37B service ceiling and COIN/CAS role context: https://en.wikipedia.org/wiki/Cessna_A-37_Dragonfly
+ combat: 8000   # A-37 used for low-altitude CAS/FAC in Vietnam operations: https://en.wikipedia.org/wiki/Cessna_A-37_Dragonfly
 tasks:
   BAI: 680
   CAS: 680

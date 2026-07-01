@@ -37,6 +37,11 @@ radios:
 #   ReadyALCM: true
 #   RocketBurst: 6
 #   WpBullseye: 0
+altitudes:
+  cruise: 34000  # fighter patrol profile: https://en.wikipedia.org/wiki/Mirage_2000C
+  combat: 26000  # fighter patrol profile: https://en.wikipedia.org/wiki/Mirage_2000C
+patrol:
+  altitude: 34000
 tasks:
   BAI: 350
   BARCAP: 230

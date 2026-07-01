@@ -23,6 +23,9 @@ variants:
     manufacturer: Westland
   SA 342M Gazelle: {}
 kneeboard_units: "metric"
+altitudes:
+  cruise: 1500  # Evidence: https://en.wikipedia.org/wiki/Aérospatiale_Gazelle
+  combat: 300  # Evidence: https://en.wikipedia.org/wiki/Aérospatiale_Gazelle
 tasks:
   BAI: 460
   CAS: 460

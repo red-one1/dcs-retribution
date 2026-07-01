@@ -12,6 +12,9 @@ price: 17
 role: Strike Fighter
 variants:
   Tornado GR4: {}
+altitudes:
+  cruise: 33000  # Evidence: https://en.wikipedia.org/wiki/Tornado_GR4
+  combat: 25000  # Evidence: https://en.wikipedia.org/wiki/Tornado_GR4
 tasks:
   Anti-ship: 190
   DEAD: 280
