@@ -16,6 +16,9 @@ role: Supersonic Strategic Bomber
 max_range: 2000
 variants:
   Tu-160 Blackjack: {}
+altitudes:
+  cruise: 36000  # Evidence: https://en.wikipedia.org/wiki/Tupolev_Tu-160
+  combat: 28000  # Evidence: https://en.wikipedia.org/wiki/Tupolev_Tu-160
 tasks:
   BAI: 370
   DEAD: 210

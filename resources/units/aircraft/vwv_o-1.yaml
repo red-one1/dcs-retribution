@@ -20,6 +20,9 @@ max_range: 460
 gunfighter: false
 variants:
   O-1E Bird Dog: {}
+altitudes:
+  cruise: 25000  # Evidence: https://en.wikipedia.org/wiki/O_1E_Bird_Dog
+  combat: 15000  # Evidence: https://en.wikipedia.org/wiki/O_1E_Bird_Dog
 tasks:
   BAI: 100
   CAS: 100

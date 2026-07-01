@@ -20,5 +20,8 @@ role: Light Attack
 variants:
   SA 342M Gazelle Mistral: {}
 kneeboard_units: "metric"
+altitudes:
+  cruise: 1500  # Evidence: https://en.wikipedia.org/wiki/Aérospatiale_Gazelle
+  combat: 300  # Evidence: https://en.wikipedia.org/wiki/Aérospatiale_Gazelle
 tasks:
   Escort: 80

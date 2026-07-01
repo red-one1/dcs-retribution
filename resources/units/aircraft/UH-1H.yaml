@@ -26,6 +26,9 @@ radios:
     namer: huey
     intra_flight_radio_index: 1
     inter_flight_radio_index: 1
+altitudes:
+  cruise: 1500  # Evidence: https://en.wikipedia.org/wiki/Bell_UH-1_Iroquois
+  combat: 300  # Evidence: https://en.wikipedia.org/wiki/Bell_UH-1_Iroquois
 tasks:
   Air Assault: 50
   BAI: 210

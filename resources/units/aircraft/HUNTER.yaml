@@ -15,6 +15,9 @@ role: Multirole Fighter
 max_range: 2000
 variants:
   HUNTER: {}
+altitudes:
+  cruise: 34000  # fighter patrol profile: https://en.wikipedia.org/wiki/HUNTER
+  combat: 26000  # fighter patrol profile: https://en.wikipedia.org/wiki/HUNTER
 tasks:
   BARCAP: 540
   Escort: 540

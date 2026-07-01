@@ -13,6 +13,11 @@ max_range: 800
 variants:
   MiG-31BM Foxhound: {}
 kneeboard_units: "metric"
+altitudes:
+  cruise: 34000  # fighter patrol profile: https://en.wikipedia.org/wiki/MiG-31BM_Foxhound
+  combat: 26000  # fighter patrol profile: https://en.wikipedia.org/wiki/MiG-31BM_Foxhound
+patrol:
+  altitude: 34000
 tasks:
   BARCAP: 550
   Escort: 400

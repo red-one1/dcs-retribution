@@ -34,6 +34,11 @@ fuel:
   min_safe: 2000
 variants:
   F/A-18C Hornet (AI): {}
+altitudes:
+  cruise: 30000  # F/A-18C performance envelope reference: https://en.wikipedia.org/wiki/McDonnell_Douglas_F/A-18_Hornet
+  combat: 20000  # Practical multirole carrier combat altitude profile: https://en.wikipedia.org/wiki/McDonnell_Douglas_F/A-18_Hornet
+patrol:
+  altitude: 30000  
 tasks:
   Anti-ship: 150
   BAI: 740

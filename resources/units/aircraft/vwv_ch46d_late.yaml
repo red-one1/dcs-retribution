@@ -10,6 +10,9 @@ can_carry_crates: true
 max_range: 300    # combat range [nmi]
 variants:
   CH-46D Sea Knight (Late): {}
+altitudes:
+  cruise: 1500  # Evidence: https://en.wikipedia.org/wiki/Boeing_CH_46D_Sea_Knight_Late_Variant
+  combat: 300  # Evidence: https://en.wikipedia.org/wiki/Boeing_CH_46D_Sea_Knight_Late_Variant
 tasks:
   Air Assault: 60
   Transport: 40

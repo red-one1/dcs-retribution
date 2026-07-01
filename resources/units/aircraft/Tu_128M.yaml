@@ -17,6 +17,9 @@ gunfighter: false
 variants:
   Tu-128M Fiddler: {}
 kneeboard_units: "metric"
+altitudes:
+  cruise: 33000  # Evidence: https://en.wikipedia.org/wiki/Tu_128M_Fiddler
+  combat: 25000  # Evidence: https://en.wikipedia.org/wiki/Tu_128M_Fiddler
 tasks:
   BARCAP: 380
   Escort: 380

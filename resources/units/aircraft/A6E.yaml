@@ -12,6 +12,9 @@ manufacturer: Grumman
 origin: USA
 price: 10
 role: Carrier-based Attack
+altitudes:
+  cruise: 22000 # https://en.wikipedia.org/wiki/Grumman_A-6_Intruder
+  combat: 12000
 variants:
   A-6E Intruder: {}
 tasks:

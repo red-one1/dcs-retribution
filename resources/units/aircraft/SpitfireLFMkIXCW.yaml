@@ -43,6 +43,9 @@ gunfighter: true
 variants:
   Spitfire LF Mk IX (Clipped Wings): {}
 kneeboard_units: "imperial"
+altitudes:
+  cruise: 18000  # Evidence: https://en.wikipedia.org/wiki/Supermarine_Spitfire
+  combat: 12000  # Evidence: https://en.wikipedia.org/wiki/Supermarine_Spitfire
 tasks:
   BAI: 90
   BARCAP: 90

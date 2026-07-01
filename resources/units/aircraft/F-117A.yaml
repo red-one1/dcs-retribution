@@ -18,5 +18,8 @@ role: Stealth Attack
 variants:
   F-117A Nighthawk: {}
 has_built_in_target_pod: true
+altitudes:
+  cruise: 35000  # F-117 operational/performance profile reference: https://en.wikipedia.org/wiki/Lockheed_F-117_Nighthawk
+  combat: 25000  # Practical strike ingress/egress altitude profile: https://en.wikipedia.org/wiki/Lockheed_F-117_Nighthawk
 tasks:
   Strike: 710

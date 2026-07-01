@@ -4,6 +4,9 @@ max_range: 2000
 price: 50
 patrol:
   altitude: 33000
+altitudes:
+  cruise: 33000 # https://en.wikipedia.org/wiki/Beriev_A-50
+  combat: 33000
 variants:
   A-50: null
 tasks:

@@ -10,5 +10,8 @@ price: 5
 variants:
   C-47 Skytrain: null
   C-47 Dakota: null
+altitudes:
+  cruise: 10000  # Practical transport cruise profile from C-47 performance data: https://en.wikipedia.org/wiki/Douglas_C-47_Skytrain
+  combat: 6000   # WWII transport/combat operating altitude context: https://en.wikipedia.org/wiki/Douglas_C-47_Skytrain
 tasks:
   Transport: 90

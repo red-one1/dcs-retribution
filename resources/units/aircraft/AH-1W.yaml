@@ -16,6 +16,9 @@ manufacturer: Bell
 origin: USA
 price: 14
 role: Attack
+altitudes:
+  cruise: 1200 # https://en.wikipedia.org/wiki/Bell_AH-1_SuperCobra
+  combat: 300
 variants:
   AH-1J SeaCobra: {}
   AH-1W SuperCobra: {}

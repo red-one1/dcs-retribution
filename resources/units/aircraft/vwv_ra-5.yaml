@@ -31,7 +31,10 @@ max_range: 1000    # combat range without droptanks [nmi]
 gunfighter: false
 variants:
   RA-5C Vigilante: {}
-tasks:   
+altitudes:
+  cruise: 22000  # Evidence: https://en.wikipedia.org/wiki/RA_5C_Vigilante
+  combat: 12000  # Evidence: https://en.wikipedia.org/wiki/RA_5C_Vigilante
+tasks:
   Armed Recon: 300
   Strike: 1    # current VWV version (v2.3.0) does not have any weapons for Vigilante
   Intercept: 1    # current VWV version (v2.3.0) does not have any weapons for Vigilante

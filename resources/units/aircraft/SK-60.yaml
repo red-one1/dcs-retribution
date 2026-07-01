@@ -15,6 +15,9 @@ role: COIN / FAC /Light Attack
 gunfighter: true
 variants:
   SK-60: {}
+altitudes:
+  cruise: 22000  # Evidence: https://en.wikipedia.org/wiki/SK_60
+  combat: 12000  # Evidence: https://en.wikipedia.org/wiki/SK_60
 tasks:
   BAI: 650
   CAS: 650
