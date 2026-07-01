@@ -20,6 +20,9 @@ role: Fighter-Bomber/Strike Fighter
 max_range: 300
 variants:
   Su-34 Fullback: {}
+altitudes:
+  cruise: 36000  # Evidence: https://en.wikipedia.org/wiki/Su_34_Fullback
+  combat: 28000  # Evidence: https://en.wikipedia.org/wiki/Su_34_Fullback
 tasks:
   Anti-ship: 100
   BAI: 800

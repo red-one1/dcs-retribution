@@ -16,6 +16,9 @@ role: Supersonic Strategic Bomber
 max_range: 2000
 variants:
   "[CH] Tu-160M2": {}
+altitudes:
+  cruise: 39000  # Tu-160 strategic bomber cruise/service envelope: https://en.wikipedia.org/wiki/Tupolev_Tu-160
+  combat: 33000  # Practical high-subsonic combat mission altitude: https://en.wikipedia.org/wiki/Tupolev_Tu-160
 tasks:
   Anti-ship: 100
   BAI: 370

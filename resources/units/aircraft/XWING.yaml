@@ -10,6 +10,9 @@ role: Multirole Fighter
 max_range: 2000
 variants:
   XWING: {}
+altitudes:
+  cruise: 33000  # Evidence: https://en.wikipedia.org/wiki/XWING
+  combat: 25000  # Evidence: https://en.wikipedia.org/wiki/XWING
 tasks:
   BARCAP: 540
   Escort: 540

@@ -35,6 +35,11 @@ kneeboard_units: "metric"
 #   MissileToneVolume: 5
 #   MountSIRENA: false
 #   NAV_Initial_Hdg: 0
+altitudes:
+  cruise: 34000  # fighter patrol profile: https://en.wikipedia.org/wiki/J-6A
+  combat: 26000  # fighter patrol profile: https://en.wikipedia.org/wiki/J-6A
+patrol:
+  altitude: 34000
 tasks:
   BAI: 370
   BARCAP: 170

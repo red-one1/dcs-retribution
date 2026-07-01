@@ -13,6 +13,9 @@ origin: USA
 price: 7
 role: Carrier-based Attack/Light Fighter
 gunfighter: true
+altitudes:
+  cruise: 22000 # https://en.wikipedia.org/wiki/Douglas_A-4_Skyhawk
+  combat: 12000
 variants:
   A-4E Skyhawk: {}
 tasks:

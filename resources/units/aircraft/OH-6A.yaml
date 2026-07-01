@@ -12,6 +12,9 @@ price: 3
 role: Light Observation/Light Attack
 variants:
   OH-6A Cayuse: {}
+altitudes:
+  cruise: 4000  # rotary-wing mission profile: https://en.wikipedia.org/wiki/OH-6A_Cayuse
+  combat: 800  # rotary-wing mission profile: https://en.wikipedia.org/wiki/OH-6A_Cayuse
 tasks:
   BAI: 0
   CAS: 0

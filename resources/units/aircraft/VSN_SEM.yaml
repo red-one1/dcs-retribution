@@ -15,6 +15,9 @@ gunfighter: true
 max_range: 200
 variants:
   Super Étendard: {}
+altitudes:
+  cruise: 33000  # Evidence: https://en.wikipedia.org/wiki/Super_tendard
+  combat: 25000  # Evidence: https://en.wikipedia.org/wiki/Super_tendard
 tasks:
   Anti-ship: 150
   BAI: 250

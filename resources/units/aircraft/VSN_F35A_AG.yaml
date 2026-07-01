@@ -28,6 +28,9 @@ fuel:
 variants:
   F-35A Lightning II (A/G): {}
 utc_kneeboard: true
+altitudes:
+  cruise: 33000  # Evidence: https://en.wikipedia.org/wiki/F_35A_Lightning_II_A_G
+  combat: 25000  # Evidence: https://en.wikipedia.org/wiki/F_35A_Lightning_II_A_G
 tasks:
   Armed Recon: 500
   BAI: 740

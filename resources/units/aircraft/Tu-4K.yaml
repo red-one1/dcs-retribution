@@ -10,6 +10,9 @@ price: 20
 role: Heavy Bomber
 variants:
   Tu-4K Bull: {}
+altitudes:
+  cruise: 36000  # Evidence: https://en.wikipedia.org/wiki/Tu_4K_Bull
+  combat: 28000  # Evidence: https://en.wikipedia.org/wiki/Tu_4K_Bull
 tasks:
   OCA/Runway: 200
   Strike: 200

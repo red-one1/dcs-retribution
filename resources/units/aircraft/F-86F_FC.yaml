@@ -22,6 +22,11 @@ radios:
     type: common
     intra_flight_radio_index: 1
     inter_flight_radio_index: 1
+altitudes:
+  cruise: 34000  # fighter patrol profile: https://en.wikipedia.org/wiki/F-86F_Sabre_FC
+  combat: 26000  # fighter patrol profile: https://en.wikipedia.org/wiki/F-86F_Sabre_FC
+patrol:
+  altitude: 34000
 tasks:
   BAI: 250
   BARCAP: 150

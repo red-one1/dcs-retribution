@@ -12,6 +12,9 @@ price: 17
 role: Strike Fighter
 variants:
   Tornado IDS: {}
+altitudes:
+  cruise: 33000  # Evidence: https://en.wikipedia.org/wiki/Tornado_IDS
+  combat: 25000  # Evidence: https://en.wikipedia.org/wiki/Tornado_IDS
 tasks:
   Anti-ship: 80
   DEAD: 330

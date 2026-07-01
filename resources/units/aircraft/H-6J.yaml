@@ -16,6 +16,9 @@ variants:
     origin: USSR/Russia
 # default_overrides:
 #   Belly_Bay_Door: false
+altitudes:
+  cruise: 36000  # bomber mission profile: https://en.wikipedia.org/wiki/H-6J_Badger
+  combat: 28000  # bomber mission profile: https://en.wikipedia.org/wiki/H-6J_Badger
 tasks:
   Anti-ship: 160
   BAI: 380

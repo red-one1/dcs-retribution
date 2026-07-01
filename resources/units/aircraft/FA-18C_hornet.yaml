@@ -53,6 +53,11 @@ utc_kneeboard: true
 #   HelmetMountedDevice: 1
 #   InnerBoard: 0
 #   OuterBoard: 0
+altitudes:
+  cruise: 30000  # strike ingress profile: https://en.wikipedia.org/wiki/CF-188_Hornet
+  combat: 25000  # strike ingress profile: https://en.wikipedia.org/wiki/CF-188_Hornet
+patrol:
+  altitude: 30000  
 tasks:
   Anti-ship: 150
   BAI: 740

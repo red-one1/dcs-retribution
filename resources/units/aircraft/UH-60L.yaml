@@ -21,6 +21,9 @@ radios:
     type: common
     intra_flight_radio_index: 1
     inter_flight_radio_index: 2
+altitudes:
+  cruise: 1500  # Evidence: https://en.wikipedia.org/wiki/Sikorsky_UH-60_Black_Hawk
+  combat: 300  # Evidence: https://en.wikipedia.org/wiki/Sikorsky_UH-60_Black_Hawk
 tasks:
   Air Assault: 80
   Transport: 60

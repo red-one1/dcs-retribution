@@ -23,6 +23,9 @@ default_livery: CH_KA52
 variants:
   "[CH] Ka-52": {}
 kneeboard_units: "metric"
+altitudes:
+  cruise: 1000  # Ka-52 helicopter performance/operating envelope: https://en.wikipedia.org/wiki/Kamov_Ka-52
+  combat: 200   # Attack helicopter NOE combat profile context: https://en.wikipedia.org/wiki/Kamov_Ka-52
 tasks:
   BAI: 440
   CAS: 440

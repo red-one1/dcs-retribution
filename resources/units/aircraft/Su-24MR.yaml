@@ -2,5 +2,8 @@ price: 15
 max_range: 200
 variants:
   Su-24MR: null
+altitudes:
+  cruise: 33000  # Evidence: https://en.wikipedia.org/wiki/Sukhoi_Su-24
+  combat: 25000  # Evidence: https://en.wikipedia.org/wiki/Sukhoi_Su-24
 tasks:
   BARCAP: 0

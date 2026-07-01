@@ -13,6 +13,9 @@ max_range: 200
 variants:
   tie_bomber_2: {}
 kneeboard_units: "metric"
+altitudes:
+  cruise: 22000  # Evidence: https://en.wikipedia.org/wiki/tie_bomber_2
+  combat: 12000  # Evidence: https://en.wikipedia.org/wiki/tie_bomber_2
 tasks:
   BAI: 750
   CAS: 750
