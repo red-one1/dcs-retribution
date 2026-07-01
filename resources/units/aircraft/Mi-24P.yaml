@@ -36,6 +36,9 @@ radios:
     type: common
     intra_flight_radio_index: 1
     inter_flight_radio_index: 1
+altitudes:
+  cruise: 4000  # rotary-wing mission profile: https://en.wikipedia.org/wiki/Mi-24P_Hind-F
+  combat: 800  # rotary-wing mission profile: https://en.wikipedia.org/wiki/Mi-24P_Hind-F
 tasks:
   Air Assault: 20
   BAI: 410

@@ -12,5 +12,8 @@ role: Transport
 max_range: 1000
 variants:
   C5 Galaxy: {}
+altitudes:
+  cruise: 30000  # Strategic airlift cruise profile from C-5 specs: https://en.wikipedia.org/wiki/Lockheed_C-5_Galaxy
+  combat: 20000  # Practical tactical/arrival altitude for heavy transport ops: https://en.wikipedia.org/wiki/Lockheed_C-5_Galaxy
 tasks:
   Transport: 130

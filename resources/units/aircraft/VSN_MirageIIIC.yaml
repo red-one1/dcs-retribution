@@ -13,6 +13,9 @@ max_range: 150
 gunfighter: true
 variants:
   Mirage IIIB/C: {}
+altitudes:
+  cruise: 33000  # Evidence: https://en.wikipedia.org/wiki/Dassault_Mirage_F1
+  combat: 25000  # Evidence: https://en.wikipedia.org/wiki/Dassault_Mirage_F1
 tasks:
   BARCAP: 210
   Escort: 210

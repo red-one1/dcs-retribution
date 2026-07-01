@@ -48,6 +48,11 @@ default_overrides:
   #LaserCodeDigit4: 8
   IsEfbAllowed: true
   #CombatTreeSpoofable: 1 # 0 = all, 1 = historical, 2 = none
+altitudes:
+  cruise: 35000  # strike ingress profile: https://en.wikipedia.org/wiki/F-4E-45MC_Phantom_II
+  combat: 30000  # strike ingress profile: https://en.wikipedia.org/wiki/F-4E-45MC_Phantom_II
+patrol:
+  altitude: 35000
 tasks:
   Anti-ship: 110
   BAI: 570

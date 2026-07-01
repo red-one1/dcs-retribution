@@ -2,5 +2,8 @@ price: 20
 max_range: 1000
 variants:
   IL-76MD: null
+altitudes:
+  cruise: 28000  # support mission altitude: https://en.wikipedia.org/wiki/IL-76MD
+  combat: 18000  # support mission altitude: https://en.wikipedia.org/wiki/IL-76MD
 tasks:
   Transport: 120

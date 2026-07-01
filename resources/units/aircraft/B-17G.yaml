@@ -17,6 +17,9 @@ manufacturer: Boeing
 origin: USA
 price: 16
 role: Heavy Bomber
+altitudes:
+  cruise: 25000 # https://en.wikipedia.org/wiki/Boeing_B-17_Flying_Fortress
+  combat: 18000
 variants:
   B-17G Flying Fortress: {}
   Fortress Mk.III: {}

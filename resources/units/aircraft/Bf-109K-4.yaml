@@ -16,6 +16,9 @@ manufacturer: Messerschmitt
 price: 4
 role: Fighter
 gunfighter: true
+altitudes:
+  cruise: 18000 # https://en.wikipedia.org/wiki/Messerschmitt_Bf_109
+  combat: 12000
 variants:
   "Bf 109 K-4 Kurfürst": {}
 kneeboard_units: "metric"

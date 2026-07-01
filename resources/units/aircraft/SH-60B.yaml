@@ -22,6 +22,9 @@ price: 6
 role: Transport/Anti-Ship
 variants:
   SH-60B Seahawk: {}
+altitudes:
+  cruise: 1500  # Evidence: https://en.wikipedia.org/wiki/Sikorsky_SH-60_Seahawk
+  combat: 300  # Evidence: https://en.wikipedia.org/wiki/Sikorsky_SH-60_Seahawk
 tasks:
   Air Assault: 70
   Anti-ship: 0

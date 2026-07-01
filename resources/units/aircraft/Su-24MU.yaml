@@ -15,6 +15,9 @@ max_range: 200
 default_livery: af standard
 variants:
   "[CH] Su-24MU": {}
+altitudes:
+  cruise: 33000  # Evidence: https://en.wikipedia.org/wiki/Sukhoi_Su-24
+  combat: 25000  # Evidence: https://en.wikipedia.org/wiki/Sukhoi_Su-24
 tasks:
   BAI: 610
   CAS: 610

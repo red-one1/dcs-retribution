@@ -27,6 +27,9 @@ radios:
     type: common
     intra_flight_radio_index: 1
     inter_flight_radio_index: 1
+altitudes:
+  cruise: 5000  # CH-47F operational envelope based on Chinook data: https://en.wikipedia.org/wiki/Boeing_CH-47_Chinook
+  combat: 1000  # Tactical low-altitude insertion/sling-load profile: https://en.wikipedia.org/wiki/Boeing_CH-47_Chinook
 tasks:
   Air Assault: 120
   Transport: 110

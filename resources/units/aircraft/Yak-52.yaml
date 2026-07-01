@@ -1,6 +1,9 @@
 price: 5
 variants:
   Yak-52: null
+altitudes:
+  cruise: 25000  # Evidence: https://en.wikipedia.org/wiki/Yak_52
+  combat: 15000  # Evidence: https://en.wikipedia.org/wiki/Yak_52
 tasks:
   BAI: 0
   CAS: 0

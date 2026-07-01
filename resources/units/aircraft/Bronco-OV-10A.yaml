@@ -11,6 +11,9 @@ origin: USA
 price: 4
 role: COIN / FAC /Light Attack
 gunfighter: true
+altitudes:
+  cruise: 12000 # https://en.wikipedia.org/wiki/North_American_Rockwell_OV-10_Bronco
+  combat: 6000
 variants:
   OV-10A Bronco: {}
 tasks:

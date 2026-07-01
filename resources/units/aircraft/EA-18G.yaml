@@ -36,6 +36,9 @@ utc_kneeboard: true
 #   HelmetMountedDevice: 1
 #   InnerBoard: 0
 #   OuterBoard: 0
+altitudes:
+  cruise: 32000  # EA-18G mission/performance profile reference: https://en.wikipedia.org/wiki/Boeing_EA-18G_Growler
+  combat: 22000  # Practical SEAD/escort jamming combat altitude: https://en.wikipedia.org/wiki/Boeing_EA-18G_Growler
 tasks:
   DEAD: 500
   SEAD: 600

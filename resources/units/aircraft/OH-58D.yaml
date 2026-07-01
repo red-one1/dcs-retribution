@@ -20,6 +20,9 @@ price: 6
 role: Light Attack/Forward Air Control
 variants:
   OH-58D Kiowa Warrior: {}
+altitudes:
+  cruise: 4000  # rotary-wing mission profile: https://en.wikipedia.org/wiki/OH-58D_Kiowa_Warrior
+  combat: 800  # rotary-wing mission profile: https://en.wikipedia.org/wiki/OH-58D_Kiowa_Warrior
 tasks:
   BAI: 470
   CAS: 470

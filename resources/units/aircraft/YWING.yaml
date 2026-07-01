@@ -15,6 +15,9 @@ max_range: 200
 variants:
   YWING: {}
 kneeboard_units: "metric"
+altitudes:
+  cruise: 22000  # Evidence: https://en.wikipedia.org/wiki/YWING
+  combat: 12000  # Evidence: https://en.wikipedia.org/wiki/YWING
 tasks:
   BAI: 750
   CAS: 750

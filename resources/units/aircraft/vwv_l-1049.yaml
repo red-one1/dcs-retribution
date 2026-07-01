@@ -6,5 +6,8 @@ price: 8    # reference: Large transport aircraft
 max_range: 1200    # combat range [nmi]
 variants:
   L-1049G Constellation: {}
+altitudes:
+  cruise: 25000  # Evidence: https://en.wikipedia.org/wiki/Lockheed_L_1049G_Constellation
+  combat: 15000  # Evidence: https://en.wikipedia.org/wiki/Lockheed_L_1049G_Constellation
 tasks:
   Transport: 800
