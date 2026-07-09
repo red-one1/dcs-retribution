@@ -4,6 +4,9 @@ can_carry_crates: true
 price: 6
 variants:
   Mi-26: null
+altitudes:
+  cruise: 4000  # rotary-wing mission profile: https://en.wikipedia.org/wiki/Mi-26
+  combat: 800  # rotary-wing mission profile: https://en.wikipedia.org/wiki/Mi-26
 tasks:
   Air Assault: 30
   Transport: 0

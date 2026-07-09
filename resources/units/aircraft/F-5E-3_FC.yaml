@@ -25,6 +25,9 @@ max_range: 100
 gunfighter: true
 variants:
   F-5E Tiger II (FC): {}
+altitudes:
+  cruise: 34000  # fighter patrol profile: https://en.wikipedia.org/wiki/F-5E_Tiger_II_FC
+  combat: 26000  # fighter patrol profile: https://en.wikipedia.org/wiki/F-5E_Tiger_II_FC
 tasks:
   BAI: 260
   BARCAP: 200

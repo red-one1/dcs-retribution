@@ -19,6 +19,9 @@ manufacturer: Boeing
 origin: USA
 price: 20
 role: Attack
+altitudes:
+  cruise: 1500 # https://en.wikipedia.org/wiki/Boeing_AH-64_Apache
+  combat: 300
 variants:
   AH-64D Apache Longbow: {}
 radios:

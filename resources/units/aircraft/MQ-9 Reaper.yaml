@@ -1,6 +1,9 @@
 price: 10
 variants:
   MQ-9 Reaper: null
+altitudes:
+  cruise: 25000  # UAV endurance profile: https://en.wikipedia.org/wiki/MQ-9_Reaper
+  combat: 16000  # UAV endurance profile: https://en.wikipedia.org/wiki/MQ-9_Reaper
 tasks:
   BAI: 10
   CAS: 10

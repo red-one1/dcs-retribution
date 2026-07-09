@@ -9,6 +9,9 @@ origin: USA
 price: 30
 role: Strategic Bomber
 max_range: 2000
+altitudes:
+  cruise: 35000 # https://en.wikipedia.org/wiki/Boeing_B-47_Stratojet
+  combat: 30000
 variants:
   B-47 Stratojet: {}
 tasks:

@@ -25,6 +25,9 @@ price: 14
 role: Attack/Transport
 variants:
   Mi-24V Hind-E: {}
+altitudes:
+  cruise: 4000  # rotary-wing mission profile: https://en.wikipedia.org/wiki/Mi-24V_Hind-E
+  combat: 800  # rotary-wing mission profile: https://en.wikipedia.org/wiki/Mi-24V_Hind-E
 tasks:
   Air Assault: 10
   BAI: 400

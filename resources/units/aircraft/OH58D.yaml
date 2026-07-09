@@ -38,6 +38,9 @@ default_overrides:
   #tacNet: 1,
 variants:
   OH-58D(R) Kiowa Warrior: {}
+altitudes:
+  cruise: 4000  # rotary-wing mission profile: https://en.wikipedia.org/wiki/OH-58DR_Kiowa_Warrior
+  combat: 800  # rotary-wing mission profile: https://en.wikipedia.org/wiki/OH-58DR_Kiowa_Warrior
 tasks:
   BAI: 470
   CAS: 470

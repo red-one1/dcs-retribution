@@ -12,6 +12,9 @@ role: Multirole Fighter
 max_range: 4000
 variants:
   CORVETTE: {}
+altitudes:
+  cruise: 34000  # fictional starfighter baseline: https://starwars.fandom.com/wiki/CR90_corvette
+  combat: 26000  # fictional starfighter baseline: https://starwars.fandom.com/wiki/CR90_corvette
 tasks:
   BARCAP: 540
   Escort: 540

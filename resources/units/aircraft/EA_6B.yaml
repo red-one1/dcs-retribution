@@ -12,6 +12,9 @@ role: Carrier-based Electronic-warfare Aircraft
 gunfighter: false
 variants:
   EA-6B Prowler: {}
+altitudes:
+  cruise: 28000  # EA-6B performance envelope reference: https://en.wikipedia.org/wiki/Grumman_EA-6B_Prowler
+  combat: 18000  # Practical escort jamming/SEAD altitude profile: https://en.wikipedia.org/wiki/Grumman_EA-6B_Prowler
 tasks:
   SEAD: 460
   SEAD Escort: 460

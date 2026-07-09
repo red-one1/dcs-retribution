@@ -18,6 +18,11 @@ variants:
   Su-17M4 Fitter-K: {}
   Su-22M4 Fitter-K:
     introduced: 1983
+altitudes:
+  cruise: 36000  # Evidence: https://en.wikipedia.org/wiki/Su_17M4_Fitter_K
+  combat: 28000  # Evidence: https://en.wikipedia.org/wiki/Su_17M4_Fitter_K
+pattrol:
+  altitude: 36000 
 tasks:
   Anti-ship: 120
   BAI: 600

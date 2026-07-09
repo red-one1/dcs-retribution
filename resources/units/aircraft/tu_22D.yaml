@@ -12,6 +12,9 @@ variants:
   Tu-22D Blinder: {}
 # default_overrides:
 #   Belly_Bay_Door: false
+altitudes:
+  cruise: 36000  # Evidence: https://en.wikipedia.org/wiki/Tu_22D_Blinder
+  combat: 28000  # Evidence: https://en.wikipedia.org/wiki/Tu_22D_Blinder
 tasks:
   Anti-ship: 100
   BAI: 350

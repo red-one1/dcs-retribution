@@ -28,6 +28,9 @@ role: Transport, Anti-Submarine Warfare
 max_range: 367    # combat range [nmi]
 variants:
   SH-2F Seasprite: {}
+altitudes:
+  cruise: 1500  # Evidence: https://en.wikipedia.org/wiki/Kaman_SH-2_Seasprite
+  combat: 300  # Evidence: https://en.wikipedia.org/wiki/Kaman_SH-2_Seasprite
 tasks:    # defined in flighttype.py
   Anti-ship: 300
   Air Assault: 100

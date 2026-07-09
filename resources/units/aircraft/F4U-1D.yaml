@@ -27,6 +27,9 @@ radios:
     type: ARC-5
     namer: ARC-5
 kneeboard_units: "imperial"
+altitudes:
+  cruise: 18000  # WWII piston-engine profile: https://en.wikipedia.org/wiki/F4U-1D_Corsair
+  combat: 12000  # WWII piston-engine profile: https://en.wikipedia.org/wiki/F4U-1D_Corsair
 tasks:
   BAI: 100
   BARCAP: 100

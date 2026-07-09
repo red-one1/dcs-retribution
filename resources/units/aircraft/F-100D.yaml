@@ -9,6 +9,9 @@ origin: USA
 price: 9
 role: Fighter-Bomber
 max_range: 500
+altitudes:
+  cruise: 29000
+  combat: 20000
 radios:
   intra_flight: ARC-34
   inter_flight: ARC-34

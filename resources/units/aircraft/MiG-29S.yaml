@@ -29,6 +29,9 @@ max_range: 150
 variants:
   MiG-29S Fulcrum-C: {}
 kneeboard_units: "metric"
+altitudes:
+  cruise: 34000  # fighter patrol profile: https://en.wikipedia.org/wiki/MiG-29S_Fulcrum-C
+  combat: 26000  # fighter patrol profile: https://en.wikipedia.org/wiki/MiG-29S_Fulcrum-C
 tasks:
   BAI: 550
   BARCAP: 470

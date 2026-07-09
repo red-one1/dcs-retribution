@@ -9,6 +9,9 @@ origin: Spain
 price: 8
 role: Light Attack
 gunfighter: true
+altitudes:
+  cruise: 18000 # https://en.wikipedia.org/wiki/CASA_C-101_Aviojet
+  combat: 8000
 variants:
   C-101CC Aviojet: {}
 # default_overrides:

@@ -27,6 +27,9 @@ fuel:
 variants:
   F-35B Lightning II (A/G): {}
 utc_kneeboard: true
+altitudes:
+  cruise: 33000  # Evidence: https://en.wikipedia.org/wiki/F_35B_Lightning_II_A_G
+  combat: 25000  # Evidence: https://en.wikipedia.org/wiki/F_35B_Lightning_II_A_G
 tasks:
   Anti-ship: 600
   Armed Recon: 500

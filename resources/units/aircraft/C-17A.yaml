@@ -1,6 +1,9 @@
 description: The C-17 is a military transport aircraft.
 price: 18
 max_range: 2000
+altitudes:
+  cruise: 28000 # https://en.wikipedia.org/wiki/Boeing_C-17_Globemaster_III
+  combat: 18000
 variants:
   C-17A: null
 tasks:

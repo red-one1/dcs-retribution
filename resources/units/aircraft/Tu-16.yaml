@@ -13,6 +13,9 @@ variants:
   Tu-16 Badger-B: {}
 # default_overrides:
 #   Belly_Bay_Door: false
+altitudes:
+  cruise: 36000  # Evidence: https://en.wikipedia.org/wiki/Tu_16_Badger_B
+  combat: 28000  # Evidence: https://en.wikipedia.org/wiki/Tu_16_Badger_B
 tasks:
   Anti-ship: 150
   BAI: 370

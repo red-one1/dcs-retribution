@@ -15,5 +15,8 @@ role: Transport
 max_range: 1000
 variants:
   C2A Greyhound: {}
+altitudes:
+  cruise: 24000  # Carrier onboard delivery performance profile: https://en.wikipedia.org/wiki/Grumman_C-2_Greyhound
+  combat: 12000  # Practical mission altitude for logistics ingress/egress: https://en.wikipedia.org/wiki/Grumman_C-2_Greyhound
 tasks:
   Transport: 130
