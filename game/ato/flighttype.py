@@ -61,6 +61,7 @@ class FlightType(Enum):
     PRETENSE_CARGO = "Cargo Transport"  # For Pretense campaign AI cargo planes
     ARMED_RECON = "Armed Recon"
     RECOVERY = "Recovery"
+    AFAC = "AFAC"
 
     def __str__(self) -> str:
         return self.value

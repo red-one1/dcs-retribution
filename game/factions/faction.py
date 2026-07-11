@@ -106,6 +106,9 @@ class Faction:
     # Unit to use as JTAC for this faction
     jtac_unit: Optional[AircraftType] = field(default=None)
 
+    # Ground unit to use as a ground-based JTAC for this faction
+    jtac_ground_unit: Optional[GroundUnitType] = field(default=None)
+
     # doctrine
     doctrine: Doctrine = field(default=MODERN_DOCTRINE)
 
@@ -138,6 +141,8 @@ class Faction:
         self.__dict__.update(state)
         if not hasattr(self, "weapons_introduction_year_overrides"):
             self.weapons_introduction_year_overrides = {}
+        if not hasattr(self, "jtac_ground_unit"):
+            self.jtac_ground_unit = None
 
     def has_access_to_dcs_type(self, unit_type: Type[DcsUnitType]) -> bool:
         # Vehicle and Ship Units
@@ -279,6 +284,12 @@ class Faction:
         else:
             faction.jtac_unit = None
 
+        jtac_ground_name = json.get("jtac_ground_unit", None)
+        if jtac_ground_name is not None:
+            faction.jtac_ground_unit = GroundUnitType.named(jtac_ground_name)
+        else:
+            faction.jtac_ground_unit = None
+
         # Load doctrine
         doctrine = json.get("doctrine", "modern")
         if doctrine == "modern":
@@ -352,6 +363,9 @@ class Faction:
             "missiles": [unit.variant_id for unit in self.missiles],
             "has_jtac": self.has_jtac,
             "jtac_unit": self.jtac_unit.variant_id if self.jtac_unit else None,
+            "jtac_ground_unit": (
+                self.jtac_ground_unit.variant_id if self.jtac_ground_unit else None
+            ),
             "doctrine": self.doctrine.name,
             "building_set": list(self.building_set),
             "liveries_overrides": {

@@ -68,6 +68,8 @@ class AircraftBehavior:
             self.configure_sweep(group, flight)
         elif self.task == FlightType.AEWC:
             self.configure_awacs(group, flight)
+        elif self.task == FlightType.AFAC:
+            self.configure_afac(group, flight)
         elif self.task == FlightType.REFUELING:
             self.configure_refueling(group, flight)
         elif self.task == FlightType.RECOVERY:
@@ -335,6 +337,20 @@ class AircraftBehavior:
         )
 
         group.points[0].tasks.append(AWACSTaskAction())
+
+    def configure_afac(self, group: FlyingGroup[Any], flight: Flight) -> None:
+        # AFAC uses the DCS Airborne FAC main task when the airframe supports it,
+        # falling back to CAS otherwise. The actual FAC target designation is added
+        # to the on-station race-track waypoint by the waypoint builder.
+        self.configure_task(flight, group, AFAC, [CAS])
+        self.configure_behavior(
+            flight,
+            group,
+            react_on_threat=OptReactOnThreat.Values.EvadeFire,
+            roe=OptROE.Values.WeaponHold,
+            restrict_jettison=True,
+            mission_uses_gun=False,
+        )
 
     def configure_refueling(self, group: FlyingGroup[Any], flight: Flight) -> None:
         self.configure_task(flight, group, Refueling)

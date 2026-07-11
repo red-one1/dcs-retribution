@@ -5,7 +5,10 @@ from dcs.task import (
     ActivateBeaconCommand,
     ControlledTask,
     EngageTargets,
+    FAC,
     OrbitAction,
+    SetImmortalCommand,
+    SetInvisibleCommand,
     Tanker,
     Targets,
     SetUnlimitedFuelCommand,
@@ -52,6 +55,9 @@ class RaceTrackBuilder(PydcsWaypointBuilder):
         # engage targets if available and orbit if they find nothing to shoot.
         if self.flight.flight_type is FlightType.REFUELING:
             self.configure_refueling_actions(waypoint)
+
+        if self.flight.flight_type is FlightType.AFAC:
+            self.configure_afac_actions(waypoint)
 
         # TODO: Move the properties of this task into the flight plan?
         # CAP is the only current user of this so it's not a big deal, but might
@@ -118,3 +124,29 @@ class RaceTrackBuilder(PydcsWaypointBuilder):
                     tanker=True,
                 )
             )
+
+    def configure_afac_actions(self, waypoint: MovingPoint) -> None:
+        # Only begin the FAC task once on station. The flight was registered as a
+        # JTAC during radio setup (see FlightGroupConfigurator.register_air_support),
+        # so the matching JtacInfo is the most recently appended one.
+        if not self.mission_data.jtacs:
+            return
+        jtac_info = self.mission_data.jtacs[-1]
+
+        cs = self.group.units[0].callsign_dict
+        callsign_id = cs[1]
+        number = cs[2]
+        assert isinstance(callsign_id, int)
+        assert isinstance(number, int)
+        waypoint.add_task(
+            FAC(
+                callsign=callsign_id,
+                number=number,
+                frequency=int(jtac_info.freq.mhz),
+                modulation=jtac_info.freq.modulation,
+            )
+        )
+
+        # Cloak the AFAC only while it is on station performing its FAC task.
+        waypoint.tasks.append(SetInvisibleCommand(True))
+        waypoint.tasks.append(SetImmortalCommand(True))

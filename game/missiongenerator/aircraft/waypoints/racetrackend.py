@@ -2,6 +2,8 @@ import logging
 
 from dcs.point import MovingPoint
 from dcs.task import (
+    SetImmortalCommand,
+    SetInvisibleCommand,
     SetUnlimitedFuelCommand,
 )
 
@@ -15,6 +17,12 @@ class RaceTrackEndBuilder(PydcsWaypointBuilder):
         # Unlimited fuel option : enable at racetrack end. Must be first option to work.
         if self.flight.squadron.coalition.game.settings.ai_unlimited_fuel:
             waypoint.tasks.insert(0, SetUnlimitedFuelCommand(True))
+
+        # AFAC leaves station: drop the immortal/invisible cloak used while on the
+        # FAC orbit so it behaves like a normal flight on egress.
+        if self.flight.flight_type is FlightType.AFAC:
+            waypoint.tasks.append(SetInvisibleCommand(False))
+            waypoint.tasks.append(SetImmortalCommand(False))
 
         # Disable Offensive Jamming at Racetrack End
         if self.flight.flight_type == FlightType.AEWC:

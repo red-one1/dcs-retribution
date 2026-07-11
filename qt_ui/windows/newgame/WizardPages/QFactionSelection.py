@@ -53,6 +53,7 @@ class QFactionUnits(QScrollArea):
         self.parent = parent
         self.faction = faction
         self.doctrine_combo: Optional[QComboBox] = None
+        self.jtac_ground_combo: Optional[QComboBox] = None
         self._create_checkboxes(show_jtac, show_doctrine)
         self.show_jtac = show_jtac
         self.show_doctrine = show_doctrine
@@ -222,11 +223,12 @@ class QFactionUnits(QScrollArea):
 
         if show_jtac:
             grid.addWidget(QLabel("<strong>JTAC</strong>"), counter, 0)
-            self.create_has_jtac_checkbox(counter, grid)
+            counter = self.create_has_jtac_checkbox(counter, grid)
+            self.create_jtac_ground_unit_combo(counter, grid)
 
         self.content.setLayout(grid)
 
-    def create_has_jtac_checkbox(self, counter: int, grid: QGridLayout) -> None:
+    def create_has_jtac_checkbox(self, counter: int, grid: QGridLayout) -> int:
         counter += 1
         cb = QCheckBox("Has JTAC")
         cb.setCheckState(
@@ -236,6 +238,42 @@ class QFactionUnits(QScrollArea):
         self.checkboxes["Has JTAC"] = cb
         grid.addWidget(cb, counter, 1)
         counter += 2
+        return counter
+
+    def create_jtac_ground_unit_combo(self, counter: int, grid: QGridLayout) -> None:
+        grid.addWidget(QLabel("Ground JTAC unit:"), counter, 0)
+        combo = QComboBox()
+        combo.addItem("None (airborne JTAC)", None)
+        units = sorted(
+            set(self.faction.ground_units) | set(self.faction.infantry_units),
+            key=lambda u: u.variant_id,
+        )
+        for unit in units:
+            combo.addItem(unit.variant_id, unit)
+
+        current = self.faction.jtac_ground_unit
+        if current is not None:
+            index = next(
+                (
+                    i
+                    for i in range(combo.count())
+                    if (data := combo.itemData(i)) is not None
+                    and data.variant_id == current.variant_id
+                ),
+                None,
+            )
+            if index is None:
+                combo.addItem(current.variant_id, current)
+                index = combo.count() - 1
+            combo.setCurrentIndex(index)
+
+        combo.currentIndexChanged.connect(self._set_jtac_ground_unit)
+        self.jtac_ground_combo = combo
+        grid.addWidget(combo, counter, 1)
+
+    def _set_jtac_ground_unit(self, _: int) -> None:
+        if self.jtac_ground_combo is not None:
+            self.faction.jtac_ground_unit = self.jtac_ground_combo.currentData()
 
     def _set_jtac(self, state: bool) -> None:
         self.faction.has_jtac = state

@@ -108,3 +108,11 @@ class TestFactionLoader(unittest.TestCase):
                 self.fail("Should have thrown assertion error")
             except AssertionError as e:
                 pass
+
+
+def test_faction_setstate_defaults_missing_jtac_ground_unit() -> None:
+    # Simulate loading a save pickled before jtac_ground_unit existed: the field
+    # must default to None rather than raising AttributeError on access.
+    faction = Faction.__new__(Faction)
+    faction.__setstate__({"name": "Old Save Faction"})
+    assert faction.jtac_ground_unit is None

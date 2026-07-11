@@ -65,6 +65,15 @@ if TYPE_CHECKING:
     from game.radio.radios import Radio, RadioFrequency, RadioRegistry
 
 
+# AFAC favours cheap, light spotter-type aircraft over prime CAS jets. Rather than
+# copying the CAS weight, an AFAC-capable airframe's priority is derived inversely
+# from its price, so the planner reaches for expendable aircraft (e.g. the OV-10 or
+# A-4) before pulling a front-line attacker off CAS duty. The resulting weights sit
+# well below the CAS weights, but only the ordering among AFAC-capable aircraft
+# matters here.
+AFAC_BASE_PRIORITY = 200
+
+
 @dataclass(frozen=True)
 class RadioConfig:
     inter_flight: Optional[Radio]
@@ -275,6 +284,10 @@ class AircraftType(UnitType[Type[FlyingType]]):
                 value := self.task_priorities.get(FlightType.BAI)
             ):
                 enrich[FlightType.ARMED_RECON] = value
+
+        if FlightType.AFAC not in self.task_priorities:
+            if FlightType.CAS in self.task_priorities:
+                enrich[FlightType.AFAC] = max(1, AFAC_BASE_PRIORITY - self.price)
 
         if FlightType.RECOVERY not in self.task_priorities:
             if (

@@ -33,6 +33,7 @@ from game.callsigns import callsign_for_support_unit
 from game.data.units import UnitClass
 from game.dcs.aircrafttype import AircraftType
 from game.dcs.groundunittype import GroundUnitType
+from game.lasercodes.lasercode import LaserCode
 from game.ground_forces.ai_ground_planner import (
     CombatGroup,
     CombatGroupRole,
@@ -69,6 +70,11 @@ FIGHT_DISTANCE = 3500
 RANDOM_OFFSET_ATTACK = 250
 
 INFANTRY_GROUP_SIZE = 5
+
+# How far behind the friendly side of the FLOT a ground JTAC is placed, and the
+# search radius used to find a valid land position for it.
+GROUND_JTAC_STANDOFF = 4000
+GROUND_JTAC_PLACEMENT_RADIUS = 2000
 
 
 class FlotGenerator:
@@ -142,65 +148,35 @@ class FlotGenerator:
             self.conflict.blue_cp,
         )
 
-        # Add JTAC
+        # Add JTAC coverage for the front line.
         if self.game.blue.faction.has_jtac:
-            freq = self.radio_registry.alloc_uhf()
-            # If the option fc3LaserCode is enabled, force all JTAC
-            # laser codes to 1113 to allow lasing for Su-25 Frogfoots and A-10A Warthogs.
-            # Otherwise use 1688 for the first JTAC, 1687 for the second etc.
+            # If the option fc3LaserCode is enabled, force all JTAC laser codes to
+            # 1113 to allow lasing for Su-25 Frogfoots and A-10A Warthogs. Otherwise
+            # use 1688 for the first JTAC, 1687 for the second etc.
             if self.game.settings.plugins.get("ctld.fc3LaserCode"):
                 code = self.game.laser_code_registry.fc3_code
             else:
                 code = self.conflict.front_line.laser_code
-
-            utype = self.game.blue.faction.jtac_unit
-            if utype is None:
-                utype = AircraftType.named("MQ-9 Reaper")
-
-            country = self.mission.country(self.game.blue.faction.country.name)
-            jtac = self.mission.flight_group(
-                country=country,
-                name=namegen.next_jtac_name(),
-                aircraft_type=utype.dcs_unit_type,
-                position=position[0],
-                airport=None,
-                altitude=5000,
-                maintask=AFAC,
-            )
-            AircraftPainterJtac(self.game.blue.faction, utype, jtac).apply_livery()
-            cs = jtac.units[0].callsign_dict
-            assert type(cs[1]) == int
-            assert type(cs[2]) == int
-            jtac.points[0].tasks.append(
-                FAC(
-                    callsign=cs[1],
-                    number=cs[2],
-                    frequency=int(freq.mhz),
-                    modulation=freq.modulation,
-                )
-            )
-            jtac.points[0].tasks.append(SetInvisibleCommand(True))
-            jtac.points[0].tasks.append(SetImmortalCommand(True))
-            jtac.points[0].tasks.append(SetUnlimitedFuelCommand(True))
-            jtac.points[0].tasks.append(
-                OrbitAction(5000, 300, OrbitAction.OrbitPattern.Circle)
-            )
             frontline = (
                 f"Frontline {self.conflict.blue_cp.name}/{self.conflict.red_cp.name}"
             )
-            # Note: Will need to change if we ever add ground based JTAC.
-            callsign = callsign_for_support_unit(jtac)
-            self.mission_data.jtacs.append(
-                JtacInfo(
-                    group_name=jtac.name,
-                    unit_name=jtac.units[0].name,
-                    callsign=callsign,
-                    region=frontline,
-                    code=str(code),
-                    blue=Player.BLUE,
-                    freq=freq,
-                )
-            )
+
+            # A planned AFAC provides airborne FAC coverage, but only if it can reach
+            # its orbit before the CAS it supports arrives. A slow FAC based far from
+            # the front may not make it in time.
+            afac_on_station = self._afac_on_station_in_time(Player.BLUE)
+
+            ground_utype = self.game.blue.faction.jtac_ground_unit
+            ground_jtac_spawned = False
+            if ground_utype is not None:
+                self._generate_ground_jtac(position[0], ground_utype, frontline)
+                ground_jtac_spawned = True
+
+            # Fall back to the immortal on-station JTAC drone when neither a timely
+            # AFAC flight nor a ground JTAC is covering the front. If the AFAC is
+            # merely late, the drone covers the gap and the AFAC flies in as relief.
+            if not afac_on_station and not ground_jtac_spawned:
+                self._generate_airborne_jtac(position[0], code, frontline)
 
             for vehicle_group, combat_group in player_groups:
                 self.mission_data.player_frontline_groups.append(
@@ -215,6 +191,147 @@ class FlotGenerator:
                         group_name=vehicle_group.name, unit_type=combat_group.unit_type
                     )
                 )
+
+    def _afac_on_station_in_time(self, player: Player) -> bool:
+        """True if a planned AFAC will be on station by the time CAS arrives.
+
+        AFAC support is coupled to CAS packages, but a slow FAC based far from the
+        front may not reach its orbit before the CAS it supports. In that case this
+        returns False so the immortal on-station drone is spawned to cover the gap;
+        the planned AFAC then arrives as relief.
+        """
+        packages = [
+            p
+            for p in self.game.ato_for(player).packages
+            if p.target == self.conflict.front_line
+        ]
+        cas_tots = [
+            t
+            for p in packages
+            if any(f.flight_type is FlightType.CAS for f in p.flights)
+            if (t := p.time_over_target) is not None
+        ]
+        afac_tots = [
+            t
+            for p in packages
+            if any(f.flight_type is FlightType.AFAC for f in p.flights)
+            if (t := p.time_over_target) is not None
+        ]
+        if not cas_tots:
+            # No CAS to support here; any planned AFAC covers the front.
+            return bool(afac_tots)
+        if not afac_tots:
+            return False
+        return min(afac_tots) <= min(cas_tots)
+
+    def _generate_airborne_jtac(
+        self, position: Point, code: LaserCode, frontline: str
+    ) -> None:
+        freq = self.radio_registry.alloc_uhf()
+
+        utype = self.game.blue.faction.jtac_unit
+        if utype is None:
+            utype = AircraftType.named("MQ-9 Reaper")
+
+        country = self.mission.country(self.game.blue.faction.country.name)
+        jtac = self.mission.flight_group(
+            country=country,
+            name=namegen.next_jtac_name(),
+            aircraft_type=utype.dcs_unit_type,
+            position=position,
+            airport=None,
+            altitude=5000,
+            maintask=AFAC,
+        )
+        AircraftPainterJtac(self.game.blue.faction, utype, jtac).apply_livery()
+        cs = jtac.units[0].callsign_dict
+        assert type(cs[1]) == int
+        assert type(cs[2]) == int
+        jtac.points[0].tasks.append(
+            FAC(
+                callsign=cs[1],
+                number=cs[2],
+                frequency=int(freq.mhz),
+                modulation=freq.modulation,
+            )
+        )
+        jtac.points[0].tasks.append(SetInvisibleCommand(True))
+        jtac.points[0].tasks.append(SetImmortalCommand(True))
+        jtac.points[0].tasks.append(SetUnlimitedFuelCommand(True))
+        jtac.points[0].tasks.append(
+            OrbitAction(5000, 300, OrbitAction.OrbitPattern.Circle)
+        )
+        callsign = callsign_for_support_unit(jtac)
+        self.mission_data.jtacs.append(
+            JtacInfo(
+                group_name=jtac.name,
+                unit_name=jtac.units[0].name,
+                callsign=callsign,
+                region=frontline,
+                code=str(code),
+                blue=Player.BLUE,
+                freq=freq,
+            )
+        )
+
+    def _generate_ground_jtac(
+        self,
+        position: Point,
+        utype: GroundUnitType,
+        frontline: str,
+    ) -> None:
+        # Use a laser code distinct from the airborne/advertised front-line JTAC so
+        # a ground JTAC coexisting with an AFAC flight does not share a code. When
+        # fc3LaserCode is enabled all JTACs must share 1113 for FC3 compatibility.
+        if self.game.settings.plugins.get("ctld.fc3LaserCode"):
+            code = self.game.laser_code_registry.fc3_code
+        else:
+            code = self.game.laser_code_registry.alloc_laser_code()
+
+        freq = self.radio_registry.alloc_uhf()
+        side = self.mission.country(self.game.blue.faction.country.name)
+
+        # Position the JTAC behind the friendly side of the FLOT.
+        heading_to_blue = Heading.from_degrees(
+            position.heading_between_point(self.conflict.blue_cp.position)
+        )
+        ground_position = self.conflict.find_ground_position(
+            position.point_from_heading(heading_to_blue.degrees, GROUND_JTAC_STANDOFF),
+            GROUND_JTAC_PLACEMENT_RADIUS,
+            heading_to_blue,
+            self.conflict.theater,
+        )
+
+        vg = self.mission.vehicle_group(
+            side,
+            namegen.next_jtac_name(),
+            utype.dcs_unit_type,
+            position=ground_position,
+            group_size=1,
+            heading=heading_to_blue.opposite.degrees,
+            move_formation=PointAction.OffRoad,
+        )
+        vehicle = vg.units[0]
+        vehicle.skill = Skill.Excellent
+        GroundForcePainter(self.game.blue.faction, vehicle).apply_livery()
+        # Keep the ground JTAC alive and hidden while it designates targets. The
+        # actual lasing is performed by the CTLD autolase script keyed on the group
+        # name registered below.
+        vg.points[0].tasks.append(SetInvisibleCommand(True))
+        vg.points[0].tasks.append(SetImmortalCommand(True))
+        vg.hidden_on_mfd = True
+
+        self.mission_data.jtacs.append(
+            JtacInfo(
+                group_name=vg.name,
+                unit_name=vehicle.name,
+                callsign=vg.name,
+                region=frontline,
+                code=str(code),
+                blue=Player.BLUE,
+                freq=freq,
+            )
+        )
 
     def gen_infantry_group_for_group(
         self,

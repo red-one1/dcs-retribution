@@ -1,6 +1,9 @@
 # Retribution v1.6.0
 
 ## Features/Improvements
+* **[Mission Planning]** New AFAC (Airborne FAC) mission type. Unlike the auto-spawned JTAC drone, an AFAC flight takes off, transits, and only begins its FAC target designation once on station over the front line, orbiting behind the friendly FLOT. A supporting AFAC package is automatically planned for every CAS package targeting a front line — whether the CAS was auto-planned or created by the player — timed to arrive just ahead of it. AFAC favours cheaper, lighter spotter-type aircraft (e.g. the OV-10) so it does not pull prime attackers off CAS duty. Can be disabled with the "Automatically plan a supporting AFAC for CAS packages" option.
+* **[Mission Planning]** Front-line JTAC can now be a ground unit via the new optional faction field `jtac_ground_unit`. The immortal on-station JTAC drone is now a fallback, spawned when a front has CAS but no ground JTAC and no AFAC that can reach its orbit before the CAS arrives (e.g. a slow FAC based far from the front). In that case the drone covers the gap and the planned AFAC flies in as relief. Coexisting JTACs use distinct laser codes (unless the CTLD `fc3LaserCode` option forces a shared code for FC3 aircraft).
+* **[Options]** FAC/JTAC aircraft now keep unlimited fuel while on station performing their task, matching BARCAP/TARCAP behaviour on CAP.
 * **[Kneeboard]** Use a light-grey daytime kneeboard background instead of near-white, to avoid glare under HDR / Auto-HDR while staying readable in daylight.
 * **[UX]** Hovering a friendly flight's route line on the map highlights it in yellow, and clicking it selects that flight's package (and the flight) in the ATO sidebar.
 * **[UX]** Press Delete with a package selected in the Packages list to cancel it, making it quick to clear several packages in a row.

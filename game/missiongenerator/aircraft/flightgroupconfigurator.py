@@ -20,7 +20,12 @@ from game.callsigns import callsign_for_support_unit
 from game.data.weapons import Pylon, WeaponType
 from game.lasercodes.lasercode import LaserCode
 from game.missiongenerator.logisticsgenerator import LogisticsGenerator
-from game.missiongenerator.missiondata import MissionData, AwacsInfo, TankerInfo
+from game.missiongenerator.missiondata import (
+    MissionData,
+    AwacsInfo,
+    TankerInfo,
+    JtacInfo,
+)
 from game.radio.radios import RadioFrequency, RadioRegistry
 from game.radio.tacan import (
     TacanBand,
@@ -38,6 +43,7 @@ from .flightdata import FlightData
 from .waypoints import WaypointGenerator
 from ...ato.flightmember import FlightMember
 from ...ato.flightplans.aewc import AewcFlightPlan
+from ...ato.flightplans.afac import AfacFlightPlan
 from ...ato.flightplans.packagerefueling import PackageRefuelingFlightPlan
 from ...ato.flightplans.theaterrefueling import TheaterRefuelingFlightPlan
 from ...radio.datalink import (
@@ -271,6 +277,7 @@ class FlightGroupConfigurator:
 
         if self.flight.flight_type in {
             FlightType.AEWC,
+            FlightType.AFAC,
             FlightType.REFUELING,
             FlightType.RECOVERY,
         }:
@@ -325,6 +332,36 @@ class FlightGroupConfigurator:
                     blue=self.flight.departure.captured,
                 )
             )
+        elif isinstance(self.flight.flight_plan, AfacFlightPlan):
+            self.register_afac(channel, callsign)
+
+    def register_afac(self, channel: RadioFrequency, callsign: str) -> None:
+        from game.theater import FrontLine
+
+        target = self.flight.package.target
+        if not isinstance(target, FrontLine):
+            logging.error(
+                f"Cannot register AFAC {self.flight} because its target "
+                f"{target} is not a front line."
+            )
+            return
+
+        if self.game.settings.plugins.get("ctld.fc3LaserCode"):
+            code = self.game.laser_code_registry.fc3_code
+        else:
+            code = target.laser_code
+        region = f"Frontline {target.blue_cp.name}/{target.red_cp.name}"
+        self.mission_data.jtacs.append(
+            JtacInfo(
+                group_name=str(self.group.name),
+                unit_name=self.group.units[0].name,
+                callsign=callsign,
+                region=region,
+                code=str(code),
+                blue=self.flight.departure.captured,
+                freq=channel,
+            )
+        )
 
     def set_skill(self, unit: FlyingUnit, member: FlightMember) -> None:
         if not member.is_player:

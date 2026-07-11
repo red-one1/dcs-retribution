@@ -1,12 +1,13 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Any, Optional, TYPE_CHECKING
 
 from faker import Faker
 
 from game.armedforces.armedforces import ArmedForces
 from game.ato.airtaaskingorder import AirTaskingOrder
+from game.ato.flighttype import FlightType
 from game.campaignloader.defaultsquadronassigner import DefaultSquadronAssigner
 from game.commander import TheaterCommander
 from game.commander.missionscheduler import MissionScheduler
@@ -23,12 +24,19 @@ from game.threatzones import ThreatZones
 from game.transfers import PendingTransfers
 
 if TYPE_CHECKING:
+    from .ato import Package
     from .campaignloader import CampaignAirWingConfig
     from .data.doctrine import Doctrine
     from .factions.faction import Faction
     from .game import Game
     from .lasercodes import LaserCodeRegistry
     from .sim import GameUpdateEvents
+    from .theater import FrontLine
+
+
+# How far ahead of the CAS it supports an AFAC should arrive on station, so the
+# Forward Air Controller is already designating targets when the attackers show up.
+AFAC_LEAD_TIME = timedelta(minutes=5)
 
 
 class Coalition:
@@ -226,6 +234,71 @@ class Coalition:
                     MissionScheduler(
                         self, self.game.settings.desired_player_mission_duration
                     ).schedule_missions(now)
+        for package in self.build_afac_support_packages(now):
+            self.ato.add_package(package)
+
+    def build_afac_support_packages(self, now: datetime) -> list[Package]:
+        """Builds a supporting AFAC package for each CAS package that lacks one.
+
+        AFAC support is coupled to CAS packages (whether auto-planned or created by
+        the player) rather than to front lines, so a Forward Air Controller is only
+        planned where there is CAS to support. Each AFAC is timed to arrive on station
+        just ahead of the earliest CAS it supports at that front line. Returns the new
+        packages without adding them to the ATO so callers can add them through the
+        appropriate path (e.g. the UI model).
+        """
+        from game.ato import Package
+        from game.commander.missionproposals import ProposedFlight, ProposedMission
+        from game.commander.packagefulfiller import PackageFulfiller
+        from game.ato.traveltime import TotEstimator
+        from game.theater import FrontLine
+
+        if not self.game.settings.auto_afac_for_cas:
+            return []
+
+        earliest_cas_tot: dict[FrontLine, datetime] = {}
+        fronts_with_afac: set[FrontLine] = set()
+        for package in self.ato.packages:
+            target = package.target
+            if not isinstance(target, FrontLine):
+                continue
+            if any(f.flight_type is FlightType.AFAC for f in package.flights):
+                fronts_with_afac.add(target)
+            if package.time_over_target is not None and any(
+                f.flight_type is FlightType.CAS for f in package.flights
+            ):
+                current = earliest_cas_tot.get(target)
+                if current is None or package.time_over_target < current:
+                    earliest_cas_tot[target] = package.time_over_target
+
+        new_packages: list[Package] = []
+        with MultiEventTracer() as tracer:
+            for front, cas_tot in earliest_cas_tot.items():
+                if front in fronts_with_afac:
+                    continue
+                fulfiller = PackageFulfiller(
+                    self,
+                    self.game.theater,
+                    self.game.db.flights,
+                    self.game.settings,
+                )
+                afac_package = fulfiller.plan_mission(
+                    ProposedMission(front, [ProposedFlight(FlightType.AFAC, 1)]),
+                    1,
+                    now,
+                    tracer,
+                )
+                if afac_package is None:
+                    continue
+                # A flight cannot launch before the turn's start time, so clamp the
+                # AFAC to the earliest TOT it can actually reach flying from a
+                # mission-start departure. A slow FAC based far from the front may
+                # therefore arrive after the CAS it supports; base it closer or use a
+                # faster airframe to get it on station in time.
+                earliest = TotEstimator(afac_package).earliest_tot(now)
+                afac_package.time_over_target = max(earliest, cas_tot - AFAC_LEAD_TIME)
+                new_packages.append(afac_package)
+        return new_packages
 
     def plan_procurement(self) -> None:
         # The first turn needs to buy a *lot* of aircraft to fill CAPs, so it gets much

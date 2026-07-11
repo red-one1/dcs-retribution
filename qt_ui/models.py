@@ -278,6 +278,25 @@ class AtoModel(QAbstractListModel):
             # noinspection PyUnresolvedReferences
             self.client_slots_changed.emit()
             self.on_packages_changed()
+        self._plan_afac_support_for(package)
+
+    def _plan_afac_support_for(self, package: Package) -> None:
+        """Auto-plans a supporting AFAC package when a CAS package is added."""
+        from game.ato import FlightType
+        from game.theater import FrontLine
+
+        game = self.game
+        if game is None:
+            return
+        if not isinstance(package.target, FrontLine):
+            return
+        if not any(f.flight_type is FlightType.CAS for f in package.flights):
+            return
+        coalition = game.blue if game.blue.ato is self.ato else game.red
+        for afac_package in coalition.build_afac_support_packages(
+            game.conditions.start_time
+        ):
+            self.add_package(afac_package)
 
     def cancel_or_abort_package_at_index(self, index: QModelIndex) -> None:
         """Removes the package at the given index from the ATO."""

@@ -667,6 +667,17 @@ class Settings:
         HQ_AUTOMATION_SECTION,
         default=True,
     )
+    auto_afac_for_cas: bool = boolean_option(
+        "Automatically plan a supporting AFAC for CAS packages",
+        CAMPAIGN_MANAGEMENT_PAGE,
+        HQ_AUTOMATION_SECTION,
+        default=True,
+        detail=(
+            "When a CAS package targets a front line, a supporting AFAC package is "
+            "planned to arrive just ahead of it. Applies to both auto-planned and "
+            "manually-created CAS packages."
+        ),
+    )
     auto_ato_behavior_tankers: bool = boolean_option(
         "Automatic Theater tanker package planning",
         CAMPAIGN_MANAGEMENT_PAGE,
