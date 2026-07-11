@@ -14,7 +14,14 @@ from dcs.countries import (
     CombinedJointTaskForcesBlue,
     CombinedJointTaskForcesRed,
 )
-from dcs.task import AFAC, FAC, SetInvisibleCommand, SetImmortalCommand, OrbitAction
+from dcs.task import (
+    AFAC,
+    FAC,
+    SetInvisibleCommand,
+    SetImmortalCommand,
+    SetUnlimitedFuelCommand,
+    OrbitAction,
+)
 
 from game.missiongenerator.convoygenerator import ConvoyGenerator
 from game.missiongenerator.environmentgenerator import EnvironmentGenerator
@@ -221,6 +228,7 @@ class PretenseMissionGenerator(MissionGenerator):
                 )
                 jtac.points[0].tasks.append(SetInvisibleCommand(True))
                 jtac.points[0].tasks.append(SetImmortalCommand(True))
+                jtac.points[0].tasks.append(SetUnlimitedFuelCommand(True))
                 jtac.points[0].tasks.append(
                     OrbitAction(5000, 300, OrbitAction.OrbitPattern.Circle)
                 )
