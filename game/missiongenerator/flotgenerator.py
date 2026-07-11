@@ -22,6 +22,7 @@ from dcs.task import (
     OrbitAction,
     SetImmortalCommand,
     SetInvisibleCommand,
+    SetUnlimitedFuelCommand,
     OptAlarmState,
 )
 from dcs.triggers import Event, TriggerOnce
@@ -180,6 +181,7 @@ class FlotGenerator:
             )
             jtac.points[0].tasks.append(SetInvisibleCommand(True))
             jtac.points[0].tasks.append(SetImmortalCommand(True))
+            jtac.points[0].tasks.append(SetUnlimitedFuelCommand(True))
             jtac.points[0].tasks.append(
                 OrbitAction(5000, 300, OrbitAction.OrbitPattern.Circle)
             )
