@@ -200,8 +200,7 @@ class LuaPlugin(PluginSettings):
 
             joined_options = "\n".join(option_decls)
 
-            lua = textwrap.dedent(
-                f"""\
+            lua_template = f"""\
                 -- {self.identifier} plugin configuration.
 
                 if dcsRetribution then
@@ -213,7 +212,7 @@ class LuaPlugin(PluginSettings):
                 end
 
             """
-            )
+            lua = textwrap.dedent(lua_template)
 
             lua_generator.inject_lua_trigger(
                 lua, f"{self.identifier} plugin configuration"
