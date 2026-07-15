@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, cast
 
@@ -24,7 +24,7 @@ from game.missiongenerator.aircraft.aircraftgenerator import (
 from game.naming import namegen
 from game.spatialindex import LiveUnitIndex
 from game.radio.radios import RadioFrequency, RadioRegistry, MHz
-from game.radio.tacan import TacanRegistry
+from game.radio.tacan import TacanBand, TacanRegistry, TacanUsage
 from game.theater import Airfield
 from game.theater.bullseye import Bullseye
 from game.unitmap import UnitMap
@@ -38,7 +38,7 @@ from .forcedoptionsgenerator import ForcedOptionsGenerator
 from .frontlineconflictdescription import FrontLineConflictDescription
 from .kneeboard import KneeboardGenerator
 from .luagenerator import LuaGenerator
-from .missiondata import MissionData
+from .missiondata import MissionData, TankerInfo
 from .rebelliongenerator import RebellionGenerator
 from .tgogenerator import TgoGenerator
 from .triggergenerator import TriggerGenerator
@@ -116,6 +116,8 @@ class MissionGenerator:
         # rather than the first player flight with a TGP.
         self.generate_ground_conflicts()
         self.generate_air_units(tgo_generator)
+
+        self.generate_recovery_tankers()
 
         RebellionGenerator(self.mission, self.game).generate()
         TriggerGenerator(self.mission, self.game).generate()
@@ -365,6 +367,62 @@ class MissionGenerator:
                     heading=d["orientation"],
                     dead=True,
                 )
+
+    def generate_recovery_tankers(self) -> None:
+        """Register Airboss plugin recovery tankers for the briefing/kneeboard.
+
+        The Airboss plugin spawns its recovery tanker dynamically at runtime via
+        MOOSE, so Retribution's mission generation otherwise has no knowledge of
+        it and it never appears in the briefing or kneeboard. Here we allocate
+        conflict-free comms (TACAN + radio) for each CVN carrier's recovery
+        tanker, stash them on the CarrierInfo so LuaGenerator can export them to
+        the plugin, and register a briefing-only tanker for the documentation.
+        """
+        settings = self.game.settings
+        if not settings.plugins.get("airboss", False):
+            return
+        if not settings.plugins.get("airboss.enableTanker", False):
+            return
+
+        tanker_type = settings.plugins.get("airboss.tankerType", "S3")
+        variant = "A-6E" if tanker_type == "A6" else "S-3B Tanker"
+
+        start_time = self.time
+        end_time = self.time + timedelta(hours=4)
+
+        # The Airboss plugin only spawns a recovery tanker for CVN carriers,
+        # matched at runtime by unit type name (see airboss.lua). Mirror that
+        # here so the briefing only lists tankers that will actually spawn.
+        cvn_markers = ("cvn", "stennis", "forrestal")
+
+        for carrier in self.mission_data.carriers:
+            if not carrier.blue.is_blue:
+                continue
+            carrier_type_id = carrier.ship_group.units[0].type.lower()
+            if not any(marker in carrier_type_id for marker in cvn_markers):
+                continue
+
+            tacan = self.tacan_registry.alloc_for_band(TacanBand.Y, TacanUsage.AirToAir)
+            radio = self.radio_registry.alloc_uhf()
+            callsign = "Arco 1-1"
+
+            carrier.recovery_tanker_tacan = tacan
+            carrier.recovery_tanker_freq = radio
+            carrier.recovery_tanker_callsign = callsign
+
+            self.mission_data.tankers.append(
+                TankerInfo(
+                    group_name=f"Airboss Recovery Tanker ({carrier.unit_name})",
+                    callsign=callsign,
+                    freq=radio,
+                    blue=carrier.blue,
+                    variant=variant,
+                    tacan=tacan,
+                    start_time=start_time,
+                    end_time=end_time,
+                    briefing_only=True,
+                )
+            )
 
     def notify_info_generators(
         self,

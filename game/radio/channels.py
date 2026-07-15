@@ -88,6 +88,9 @@ class CommonRadioChannelAllocator(RadioChannelAllocator):
         try:
             # TODO: Skip incompatible tankers.
             for tanker in mission_data.tankers:
+                if tanker.briefing_only:
+                    # Plugin-spawned tanker documented only in the briefing/kneeboard.
+                    continue
                 flight.assign_channel(radio_id, next(channel_alloc), tanker.freq)
 
             if flight.divert is not None and flight.divert.atc is not None:

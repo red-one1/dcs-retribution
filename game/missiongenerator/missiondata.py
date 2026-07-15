@@ -51,6 +51,11 @@ class TankerInfo(GroupInfo):
     tacan: Optional[TacanChannel]
     start_time: datetime
     end_time: datetime
+    # Tankers spawned dynamically by a plugin (e.g. the Airboss recovery tanker)
+    # exist only at runtime. They are surfaced in the briefing and kneeboard for
+    # documentation, but must be excluded from the generic Lua tanker export and
+    # from player radio presets.
+    briefing_only: bool = False
 
 
 @dataclass
@@ -61,6 +66,12 @@ class CarrierInfo(UnitInfo):
     icls_channel: int | None
     link4_freq: RadioFrequency | None
     ship_group: ShipGroup
+    # Comms allocated by Retribution for the Airboss plugin recovery tanker
+    # associated with this carrier, exported to the plugin so the runtime spawn
+    # uses conflict-free values instead of hardcoded ones.
+    recovery_tanker_tacan: Optional[TacanChannel] = None
+    recovery_tanker_freq: Optional[RadioFrequency] = None
+    recovery_tanker_callsign: Optional[str] = None
 
 
 @dataclass

@@ -305,8 +305,12 @@ function AddTrickOrTreat(nameOfCarrier)
         MESSAGE:New("AIRBOSS: Group Spawned Late Activated: " .. grp:GetName(), 15, "SPAWN"):ToLog()
 
         local S3TED = RECOVERYTANKER:New(UNIT:FindByName(nameOfCarrier), grp:GetName())
-        S3TED:SetTACAN(57, "MLR", "Y")
-        S3TED:SetRadio(257, "AM")
+        local carrierData = airboss_carrier_data[nameOfCarrier]
+        local tkrChannel = tonumber(carrierData and carrierData.recovery_tanker_tacan_channel) or 57
+        local tkrBand = (carrierData and carrierData.recovery_tanker_tacan_band) or "Y"
+        local tkrRadio = tonumber(carrierData and carrierData.recovery_tanker_radio) or 257
+        S3TED:SetTACAN(tkrChannel, "MLR", tkrBand)
+        S3TED:SetRadio(tkrRadio, "AM")
         S3TED:SetTakeoffHot()
         S3TED:SetAltitude(8000)
         S3TED:SetSpeed(275)
@@ -438,8 +442,12 @@ function AddA6Tanker(nameOfCarrier)
         MESSAGE:New("AIRBOSS: Group Spawned Late Activated: " .. grp:GetName(), 15, "SPAWN"):ToLog()
 
         local A6TED = RECOVERYTANKER:New(UNIT:FindByName(nameOfCarrier), grp:GetName())
-        A6TED:SetTACAN(57, "MLR", "Y")
-        A6TED:SetRadio(257, "AM")
+        local carrierData = airboss_carrier_data[nameOfCarrier]
+        local tkrChannel = tonumber(carrierData and carrierData.recovery_tanker_tacan_channel) or 57
+        local tkrBand = (carrierData and carrierData.recovery_tanker_tacan_band) or "Y"
+        local tkrRadio = tonumber(carrierData and carrierData.recovery_tanker_radio) or 257
+        A6TED:SetTACAN(tkrChannel, "ARC", tkrBand)
+        A6TED:SetRadio(tkrRadio, "AM")
         A6TED:SetTakeoffHot()
         A6TED:SetAltitude(8000)
         A6TED:SetSpeed(275)

@@ -77,9 +77,26 @@ class LuaGenerator:
             carrier_item.add_key_value("tacan_band", carrier.tacan.band.name)
             if carrier.icls_channel:
                 carrier_item.add_key_value("icls", str(carrier.icls_channel))
+            # Retribution-allocated comms for the Airboss plugin recovery tanker.
+            if carrier.recovery_tanker_tacan is not None:
+                carrier_item.add_key_value(
+                    "recovery_tanker_tacan_channel",
+                    str(carrier.recovery_tanker_tacan.number),
+                )
+                carrier_item.add_key_value(
+                    "recovery_tanker_tacan_band",
+                    carrier.recovery_tanker_tacan.band.name,
+                )
+            if carrier.recovery_tanker_freq is not None:
+                carrier_item.add_key_value(
+                    "recovery_tanker_radio", str(carrier.recovery_tanker_freq.mhz)
+                )
 
         tankers_object = lua_data.add_item("Tankers")
         for tanker in self.mission_data.tankers:
+            if tanker.briefing_only:
+                # Dynamically spawned by a plugin at runtime; not a real DCS group.
+                continue
             tanker_item = tankers_object.add_item()
             tanker_item.add_key_value("dcsGroupName", tanker.group_name)
             tanker_item.add_key_value("callsign", tanker.callsign)
