@@ -1,5 +1,5 @@
 {
-    "nameInUI": "Splash Damage 3.4.2",
+    "nameInUI": "Splash Damage 3.4.5",
     "defaultValue": false,
     "specificOptions": [
         {
@@ -204,7 +204,7 @@
     ],
     "scriptsWorkOrders": [
         {
-            "file": "Splash_Damage_3.4.2_Standard_Retribution.lua",
+            "file": "Splash_Damage_3.4.5_Standard_Retribution.lua",
             "mnemonic": "splashdamage3"
         }
     ],
