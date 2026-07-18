@@ -811,7 +811,7 @@ local function AutoSetup()
         if airboss_options.enableRescueHelo then AddRescueHelo(cvn.name) end
         if airboss_options.enableAWACS      then AddShipAWACS(cvn.name) end
         if airboss_options.enableTanker then
-            if airboss_options.tankerType == "A6" then
+            if airboss_options.tankerType == "A-6" then
                 AddA6Tanker(cvn.name)
             else
                 AddTrickOrTreat(cvn.name)

@@ -16,8 +16,8 @@
         {
             "nameInUI": "Recovery Tanker Aircraft",
             "mnemonic": "tankerType",
-            "possibleValues": ["S3", "A6"],
-            "defaultValue": "S3"
+            "possibleValues": ["S-3", "A-6"],
+            "defaultValue": "S-3"
         },
         {
             "nameInUI": "Enable Airboss AWACS",
