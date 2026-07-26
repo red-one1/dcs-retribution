@@ -33,7 +33,14 @@ from game.dcs.countries import country_with_name
 from game.dcs.groundunittype import GroundUnitType
 from game.dcs.shipunittype import ShipUnitType
 from game.dcs.unittype import UnitType
-from pydcs_extensions import inject_F15I, eject_F15I, eject_F4E, inject_F4E
+from pydcs_extensions import (
+    inject_F15I,
+    eject_F15I,
+    eject_F4E,
+    inject_F4E,
+    inject_F14ModernWeapons,
+    eject_F14ModernWeapons,
+)
 from pydcs_extensions.f16i_idf.f16i_idf import inject_F16I, eject_F16I
 
 if TYPE_CHECKING:
@@ -475,6 +482,11 @@ class Faction:
             eject_F4E()
         else:
             inject_F4E()
+        # F-14 modern weapons mod
+        if not mod_settings.f14_modern_weapons:
+            eject_F14ModernWeapons()
+        else:
+            inject_F14ModernWeapons()
         if not mod_settings.f22_raptor:
             self.remove_aircraft("F-22A")
         if not mod_settings.f84g_thunderjet:
