@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import random
-from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from dataclasses import dataclass, replace
+from typing import Optional, TYPE_CHECKING
 
 from dcs import Point
 
@@ -11,7 +11,7 @@ from game.flightplan import JoinZoneGeometry
 from game.flightplan.ipsolver import IpSolver
 from game.flightplan.refuelzonegeometry import RefuelZoneGeometry
 from game.persistency import waypoint_debug_directory
-from game.utils import dcs_to_shapely_point
+from game.utils import Distance, dcs_to_shapely_point
 from game.utils import nautical_miles
 
 if TYPE_CHECKING:
@@ -27,17 +27,33 @@ class PackageWaypoints:
     split: Point
     refuel: Point
 
+    #: The package's longest stand-off launch range at the time these waypoints were
+    #: built. Used to detect when a payload change invalidates the ingress point.
+    standoff_range: Optional[Distance] = None
+
     @staticmethod
     def create(
         package: Package, coalition: Coalition, dump_debug_info: bool
     ) -> PackageWaypoints:
         origin = package.departure_closest_to_target()
 
+        # Push the ingress point out to the package's stand-off launch range when it
+        # exceeds the doctrine's ingress distance, so cruise/stand-off-armed flights
+        # (e.g. Tu-16s with Kh-22s) begin their attack run from a realistic distance
+        # instead of being dragged all the way in to the doctrine ingress point.
+        doctrine = coalition.doctrine
+        standoff_range = package.max_standoff_range()
+        if (
+            standoff_range is not None
+            and standoff_range > doctrine.max_ingress_distance
+        ):
+            doctrine = replace(doctrine, max_ingress_distance=standoff_range)
+
         # Start by picking the best IP for the attack.
         ip_solver = IpSolver(
             dcs_to_shapely_point(origin.position),
             dcs_to_shapely_point(package.target.position),
-            coalition.doctrine,
+            doctrine,
             coalition.opponent.threat_zone.air_defenses,
         )
         ip_solver.set_debug_properties(
@@ -81,6 +97,7 @@ class PackageWaypoints:
             initial_point,
             WaypointBuilder.perturb(join_point),
             refuel_point,
+            standoff_range,
         )
 
     @staticmethod
