@@ -17,7 +17,7 @@ from dcs.planes import (
     MiG_15bis,
     M_2000C,
 )
-from dcs.point import PointAction
+from dcs.point import MovingPoint, PointAction
 from dcs.ships import KUZNECOW
 from dcs.terrain import NoParkingSlotError, Sinai, ParkingSlot
 from dcs.terrain.sinai.airports import Nevatim, Ramon_Airbase
@@ -36,11 +36,18 @@ from game.ato.traveltime import GroundSpeed
 from game.missiongenerator.missiondata import MissionData
 from game.naming import namegen
 from game.theater import Airfield, ControlPoint, Fob, NavalControlPoint, OffMapSpawn
-from game.utils import feet, meters
+from game.utils import Heading, feet, meters, nautical_miles
 from pydcs_extensions import A_4E_C, VSN_F4B, VSN_F4C
 
 WARM_START_HELI_ALT = meters(500)
 WARM_START_ALTITUDE = meters(3000)
+
+# Distance ahead of an in-air departure spawn at which we place an orientation
+# waypoint aligned with the runway. DCS points an air-spawned aircraft directly at
+# its first waypoint, which can fly it into terrain when the airfield sits in a
+# valley. Flying straight out along the runway heading first avoids this.
+# https://github.com/red-one1/dcs-retribution/issues/35
+ORIENTATION_WAYPOINT_DISTANCE = nautical_miles(1)
 
 # In-flight spawns are MSL for the first waypoint (this can maybe be changed to AGL, but
 # AGL waypoints have different piloting behavior, so we need to check whether that's
@@ -57,6 +64,31 @@ STACK_SEPARATION = feet(200)
 RTB_ALTITUDE = meters(800)
 RTB_DISTANCE = 5000
 HELI_ALT = 500
+
+
+def orient_in_air_departure(group: FlyingGroup[Any], heading: Heading) -> None:
+    """Align an in-air departure with the runway heading.
+
+    Inserts an "Orientation WPT" one nautical mile ahead of the spawn along
+    ``heading`` and points the units in that direction. DCS orients an
+    air-spawned aircraft toward its next waypoint, so without this the flight
+    tracks straight at waypoint 1 from the moment it spawns, which can fly it
+    into terrain when the departure airfield sits in a valley.
+    https://github.com/red-one1/dcs-retribution/issues/35
+    """
+    spawn = group.points[0]
+    pos = spawn.position.point_from_heading(
+        heading.degrees, ORIENTATION_WAYPOINT_DISTANCE.meters
+    )
+    point = MovingPoint(pos)
+    point.alt = spawn.alt
+    point.alt_type = spawn.alt_type
+    point.speed = spawn.speed
+    point.ETA_locked = False
+    point.name = "Orientation WPT"
+    group.points.insert(1, point)
+    for unit in group.units:
+        unit.heading = heading.degrees
 
 
 class FlightGroupSpawner:
@@ -360,7 +392,28 @@ class FlightGroupSpawner:
         )
 
         group.points[0].alt_type = alt_type
+
+        # Air-start flights whose startup time is at or before mission start are
+        # spawned here (as Navigating at waypoint 0) rather than via
+        # _generate_over_departure. While still on the departure leg, orient them
+        # along the runway so they fly straight out before turning to waypoint 1.
+        # https://github.com/red-one1/dcs-retribution/issues/35
+        if self.flight.state.waypoint_index == 0:
+            self._orient_departure_along_runway(group)
+
         return group
+
+    def _orient_departure_along_runway(self, group: FlyingGroup[Any]) -> None:
+        """Align an air-start departure with its airfield's active runway.
+
+        No-op for non-airfield departures (carriers, FOBs) which have no runway.
+        """
+        departure = self.flight.departure
+        if not isinstance(departure, Airfield):
+            return
+        game = self.flight.coalition.game
+        runway = departure.active_runway(game.theater, game.conditions, {})
+        orient_in_air_departure(group, runway.runway_heading)
 
     def _generate_at_airfield(
         self,
@@ -425,6 +478,13 @@ class FlightGroupSpawner:
         )
 
         group.points[0].alt_type = alt_type
+
+        # Orient the flight along the departure runway so it flies straight out
+        # before turning to waypoint 1, rather than pointing at waypoint 1 from
+        # spawn (which risks flying into terrain around valley airfields).
+        # https://github.com/red-one1/dcs-retribution/issues/35
+        self._orient_departure_along_runway(group)
+
         return group
 
     def _generate_at_group(

@@ -13,6 +13,7 @@ from dcs.task import (
     FighterSweep,
     GroundAttack,
     Nothing,
+    OptFormation,
     OptROE,
     OptRTBOnBingoFuel,
     OptRTBOnOutOfAmmo,
@@ -39,6 +40,8 @@ from dcs.task import (
 from dcs.unitgroup import FlyingGroup, ShipGroup
 
 from game.ato import Flight, FlightType, Package
+from game.ato.flightstate import InFlight
+from game.ato.starttype import StartType
 from game.ato.flightplans.aewc import AewcFlightPlan
 from game.ato.flightplans.formationattack import FormationAttackLayout
 from game.ato.flightplans.packagerefueling import PackageRefuelingFlightPlan
@@ -152,6 +155,26 @@ class AircraftBehavior:
         group.points[0].tasks.append(OptReactOnThreat(react_on_threat))
         if roe is not None:
             group.points[0].tasks.append(OptROE(roe))
+
+        # In-flight-start flights fly the departure leg (up to waypoint 1) in line
+        # astern so wingmen follow the leader's terrain-safe track out of the field
+        # instead of spreading into nearby terrain. The first formation-setting
+        # waypoint (e.g. hold/join) restores the normal combat formation.
+        # https://github.com/red-one1/dcs-retribution/issues/35
+        state = flight.state
+        on_departure_leg = state.is_waiting_for_start or (
+            isinstance(state, InFlight) and state.waypoint_index == 0
+        )
+        if (
+            not at_ip_or_combat
+            and state.spawn_type is StartType.IN_FLIGHT
+            and on_departure_leg
+        ):
+            if flight.is_helo:
+                group.points[0].tasks.append(OptFormation.rotary_column())
+            else:
+                group.points[0].tasks.append(OptFormation.trail_close())
+
         if restrict_jettison is not None:
             group.points[0].tasks.append(OptRestrictJettison(restrict_jettison))
         if rtb_winchester is not None:
