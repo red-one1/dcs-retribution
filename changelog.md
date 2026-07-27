@@ -27,6 +27,7 @@
 * **[UX]** Add the ability to filter campaigns by version, map, and performance
 
 ## Fixes
+* **[Mission Generator]** EWR sites now get the DCS "EWR" enroute task and come up on RED alarm, so their radars actually scan and report contacts (previously they could sit inert, especially with the "red alert state" performance option off). Works with or without the Skynet IADS plugin.
 * **[Mission Generator]** Air-start flights departing an airfield now spawn aligned with the active runway and fly straight out before turning to waypoint 1, instead of pointing at waypoint 1 from the moment they spawn (which could fly them into terrain around airfields in valleys). They also fly the departure leg in line astern so wingmen follow the leader's terrain-safe track (#35).
 * **[Data]** The F-14A-135-GR Early's payload file declared the wrong unitType, so the Early Tomcat flew every tasking unarmed; its loadouts now resolve (with a guard test pinning the payload to the airframe). (#889)
 * **[Mission Generator]** EWR sites now get the DCS "EWR" enroute task and come up on RED alarm, so their radars actually scan and report contacts (previously they could sit inert, especially with the "red alert state" performance option off). Works with or without the Skynet IADS plugin.
