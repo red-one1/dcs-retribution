@@ -80,6 +80,7 @@ class ModSettings:
     e7a_wedgetail: bool = False
     f4bc_phantom: bool = False
     f4e_expanded_weapons: bool = False
+    f14_modern_weapons: bool = False
     f9f_panther: bool = False
     f15d_baz: bool = False
     f_15_idf: bool = False

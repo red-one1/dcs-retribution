@@ -110,6 +110,8 @@ class GeneratorOptions(QtWidgets.QWizardPage):
         self.registerField("f4bc_phantom", self.f4bc_phantom)
         self.f4e_expanded_weapons = QtWidgets.QCheckBox()
         self.registerField("f4e_expanded_weapons", self.f4e_expanded_weapons)
+        self.f14_modern_weapons = QtWidgets.QCheckBox()
+        self.registerField("f14_modern_weapons", self.f14_modern_weapons)
         self.f9f_panther = QtWidgets.QCheckBox()
         self.registerField("f9f_panther", self.f9f_panther)
         self.f15d_baz = QtWidgets.QCheckBox()
@@ -240,6 +242,7 @@ class GeneratorOptions(QtWidgets.QWizardPage):
             ("F-35A/B/C Lightning II (v2.9.2.103 FC3 EFM)", self.vsnf35),
             ("F-4B/C Phantom II (2.8.7.204)", self.f4bc_phantom),
             ("F-4E Expanded Weapons (v1.0.11)", self.f4e_expanded_weapons),
+            ("F-14 Modern Weapons (by DSplayer)", self.f14_modern_weapons),
             ("F-84G Thunderjet (v2.5.7.01)", self.f84g_thunderjet),
             ("F-111C Aardvark (Warpig Production v2.260208)", self.f111c),
             ("F9F Panther (v2.8.7.101)", self.f9f_panther),
@@ -315,6 +318,7 @@ class GeneratorOptions(QtWidgets.QWizardPage):
         self.uh_60l.setChecked(s.get("uh_60l", False))
         self.f4bc_phantom.setChecked(s.get("f4bc_phantom", False))
         self.f4e_expanded_weapons.setChecked(s.get("f4e_expanded_weapons", False))
+        self.f14_modern_weapons.setChecked(s.get("f14_modern_weapons", False))
         self.f15d_baz.setChecked(s.get("f15d_baz", False))
         self.f_15_idf.setChecked(s.get("f_15_idf", False))
         self.f_16_idf.setChecked(s.get("f_16_idf", False))
