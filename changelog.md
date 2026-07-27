@@ -28,6 +28,7 @@
 * **[UX]** Add the ability to filter campaigns by version, map, and performance
 
 ## Fixes
+* **[Mission Generator]** Generic AAA sites no longer pull in a radar the guns cannot use (e.g. a Patriot STR sitting next to 8.8 cm Flak). The SON-9 "Fire Can" gun-laying radar is now a dedicated unit class and only appears where it is explicitly bundled with its guns (the KS-19 + SON-9 preset); generic AAA sites no longer auto-fill a radar, so a gun line without a matching radar simply spawns without one.
 * **[Mission Generator]** EWR sites now get the DCS "EWR" enroute task and come up on RED alarm, so their radars actually scan and report contacts (previously they could sit inert, especially with the "red alert state" performance option off). Works with or without the Skynet IADS plugin.
 * **[Mission Generator]** Air-start flights departing an airfield now spawn aligned with the active runway and fly straight out before turning to waypoint 1, instead of pointing at waypoint 1 from the moment they spawn (which could fly them into terrain around airfields in valleys). They also fly the departure leg in line astern so wingmen follow the leader's terrain-safe track (#35).
 * **[Data]** The F-14A-135-GR Early's payload file declared the wrong unitType, so the Early Tomcat flew every tasking unarmed; its loadouts now resolve (with a guard test pinning the payload to the airframe). (#889)
