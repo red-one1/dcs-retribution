@@ -29,9 +29,11 @@
 * **[UX]** Add the ability to filter campaigns by version, map, and performance
 
 ## Fixes
+* **[Mission Generator]** Carrier LINK4 is now allocated within 300.0-324.9 MHz (previously allocated from the full 225-400 MHz UHF band), so it stays within the range the F-14's Link4/ACLS radio can actually tune to. (#37)
 * **[Mission Generator]** Generic AAA sites no longer pull in a radar the guns cannot use (e.g. a Patriot STR sitting next to 8.8 cm Flak). The SON-9 "Fire Can" gun-laying radar is now a dedicated unit class and only appears where it is explicitly bundled with its guns (the KS-19 + SON-9 preset); generic AAA sites no longer auto-fill a radar, so a gun line without a matching radar simply spawns without one.
 * **[Mission Generator]** EWR sites now get the DCS "EWR" enroute task and come up on RED alarm, so their radars actually scan and report contacts (previously they could sit inert, especially with the "red alert state" performance option off). Works with or without the Skynet IADS plugin.
 * **[Mission Generator]** Air-start flights departing an airfield now spawn aligned with the active runway and fly straight out before turning to waypoint 1, instead of pointing at waypoint 1 from the moment they spawn (which could fly them into terrain around airfields in valleys). They also fly the departure leg in line astern so wingmen follow the leader's terrain-safe track (#35).
+* **[Map]** Right-clicking a front line under a blue flight-plan route now opens the new-package dialog instead of the browser context menu (the route's invisible hover overlay swallowed the click).
 * **[Data]** The F-14A-135-GR Early's payload file declared the wrong unitType, so the Early Tomcat flew every tasking unarmed; its loadouts now resolve (with a guard test pinning the payload to the airframe). (#889)
 * **[Mission Generator]** EWR sites now get the DCS "EWR" enroute task and come up on RED alarm, so their radars actually scan and report contacts (previously they could sit inert, especially with the "red alert state" performance option off). Works with or without the Skynet IADS plugin.
 * **[Plugins]** Fix the escort leash never running (DCS has no `Group.getByID`; look the group up by name via mist), so escorts are actually held to their engagement range.

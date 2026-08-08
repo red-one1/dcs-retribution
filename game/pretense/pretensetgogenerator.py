@@ -718,7 +718,7 @@ class PretenseGenericCarrierGenerator(GenericCarrierGenerator):
                 link4carriers = [Stennis, CVN_71, CVN_72, CVN_73, CVN_75, Forrestal]
                 if carrier_type in link4carriers:
                     if self.control_point.link4 is None:
-                        link4 = self.radio_registry.alloc_uhf()
+                        link4 = self.radio_registry.alloc_link4()
                     else:
                         link4 = self.control_point.link4
                 icls = None
