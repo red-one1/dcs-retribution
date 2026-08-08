@@ -28,6 +28,7 @@
 * **[Engine]** Bump campaign version to 10.9 for motorpool support
 
 ## Fixes
+* **[Mission Generator]** Carrier LINK4 is now allocated within 300.0-324.9 MHz (previously allocated from the full 225-400 MHz UHF band), so it stays within the range the F-14's Link4/ACLS radio can actually tune to. (#37)
 * **[Map]** Right-clicking a front line under a blue flight-plan route now opens the new-package dialog instead of the browser context menu (the route's invisible hover overlay swallowed the click).
 * **[Data]** The F-14A-135-GR Early's payload file declared the wrong unitType, so the Early Tomcat flew every tasking unarmed; its loadouts now resolve (with a guard test pinning the payload to the airframe). (#889)
 * **[Mission Generator]** EWR sites now get the DCS "EWR" enroute task and come up on RED alarm, so their radars actually scan and report contacts (previously they could sit inert, especially with the "red alert state" performance option off). Works with or without the Skynet IADS plugin.

@@ -46,7 +46,8 @@ class QLink4Widget(QWidget):
         return f"<b>LINK4: {freq}</b>"
 
     def open_freq_dialog(self) -> None:
-        ranges = [RadioRange(MHz(225), MHz(400), kHz(25))]
+        # The F-14's Link4/ACLS radio can only tune 300.0-324.9 MHz.
+        ranges = [RadioRange(MHz(300), MHz(325), kHz(100))]
         self.frequency_dialog = QRadioFrequencyDialog(self, self.cp, ranges, link4=True)
         self.frequency_dialog.accepted.connect(self.assign_frequency)
         self.frequency_dialog.show()
