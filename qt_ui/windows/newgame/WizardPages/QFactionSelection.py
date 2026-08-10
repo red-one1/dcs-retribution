@@ -244,10 +244,10 @@ class QFactionUnits(QScrollArea):
         self.faction.doctrine = self.doctrine_combo.currentData()
 
     def _aircraft_predicate(self, ac: AircraftType):
-        if (
-            FlightType.AEWC not in ac.task_priorities
-            and FlightType.REFUELING not in ac.task_priorities
-        ):
+        # List any aircraft with a combat/utility role, even if it is also buddy-tanker
+        # or AEW&C capable (e.g. A-6E, S-3B). Pure tankers/AWACS have only these tasks.
+        support_only = {FlightType.AEWC, FlightType.REFUELING, FlightType.RECOVERY}
+        if set(ac.task_priorities) - support_only:
             self.add_ac_combo.addItem(ac.display_name, ac)
 
     def _awacs_predicate(self, ac: AircraftType):
