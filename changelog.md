@@ -28,6 +28,7 @@
 * **[Engine]** Bump campaign version to 10.9 for motorpool support
 
 ## Fixes
+* **[AirWing]** Buddy-tanker/AEW&C-capable strike aircraft (e.g. the A-6E) now appear in the faction editor's "Aircraft" list, not only under Tankers/AWACS; the list now excludes only pure tankers and AWACS.
 * **[Map]** Right-clicking a front line under a blue flight-plan route now opens the new-package dialog instead of the browser context menu (the route's invisible hover overlay swallowed the click).
 * **[Data]** The F-14A-135-GR Early's payload file declared the wrong unitType, so the Early Tomcat flew every tasking unarmed; its loadouts now resolve (with a guard test pinning the payload to the airframe). (#889)
 * **[Mission Generator]** EWR sites now get the DCS "EWR" enroute task and come up on RED alarm, so their radars actually scan and report contacts (previously they could sit inert, especially with the "red alert state" performance option off). Works with or without the Skynet IADS plugin.
