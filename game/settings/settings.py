@@ -40,7 +40,6 @@ class CloudPresetPack(Enum):
 
 
 @unique
-@unique
 class NightMissions(Enum):
     DayAndNight = "nightmissions_nightandday"
     OnlyDay = "nightmissions_onlyday"
